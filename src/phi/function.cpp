@@ -8,6 +8,7 @@ namespace phi
     {
         using runtime::Block;
         //TODO function call
+        return *Variant::Null;
     }
 
     string Function::stringify() const
