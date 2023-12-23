@@ -1,0 +1,28 @@
+import io;
+import variant;
+import math;
+import os;
+
+var a = io.input("输入二次项系数：").convert(variant.TYPE_REAL);
+var b = io.input("输入一次项系数：").convert(variant.TYPE_REAL);
+var c = io.input("输入常数项：").convert(variant.TYPE_REAL);
+var delta = b ** 2 - 4 * a * c;
+var axis_of_symmetry = -b / (2 * a);
+var vertex = (4 * a * c - b ** 2) / (4 * a);
+var x1 = (-b + math.sqrt(delta)) / (2 * a);
+var x2 = (-b - math.sqrt(delta)) / (2 * a);
+io.print("函数y = ", a, "x² + ", b, "x + ", c, "图像：");
+if (a > 0.0)
+    io.print("开口向上");
+else
+    io.print("开口向下");
+io.print("对称轴是直线x=", axis_of_symmetry);
+io.print("顶点坐标为(", axis_of_symmetry, ", ", vertex, ") ");
+if (delta > 0.0)
+    io.print("与x轴的两个交点坐标为(", x1, ", 0)和(", x2, ", 0)");
+else if (delta == 0.0)
+    io.print("与x轴的交点坐标为(", x1, ", 0)");
+else
+    io.print("与x轴无交点");
+
+os.system("pause");
