@@ -1,0 +1,61 @@
+#include "../data_type.hpp"
+#include <iostream>
+#include <string>
+
+namespace phi
+{
+    using std::string;
+    namespace compiler
+    {
+        struct Position
+        {
+            integer line = 1;
+            integer column = 1;
+            string filename;
+
+            string stringify() const;
+        };
+
+        class Token
+        {
+        public:
+            enum class Type
+            {
+                KEYWORD,
+                IDENTIFIER,
+                SYMBOL,
+                OPERATOR,
+                STRING,
+                NUMBER,
+                BOOLEAN,
+                EOFT,
+                MAX
+            };
+
+        private:
+            string m_content;
+            Position m_position;
+            Type m_type;
+
+        public:
+            Token() {}
+            Token(const Type &type) : m_type(type) {}
+            Token(const Position &pos) : m_position(pos) {}
+            Token(const Position &position, const string &content, const Type &type);
+
+            Position &position() { return m_position; }
+            const Position &position() const { return m_position; }
+            string &content() { return m_content; }
+            const string &content() const { return m_content; }
+            Type &type() { return m_type; }
+            const Type &type() const { return m_type; }
+
+            string stringify() const;
+
+            static string stringifyType(const Type &);
+        };
+
+        std::ostream &operator<<(std::ostream &, const Position &);
+        std::ostream &operator<<(std::ostream &, const Token &);
+    } // namespace compiler
+} // namespace phi
