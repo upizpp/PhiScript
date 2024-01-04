@@ -1,6 +1,21 @@
-# PhiScript
+# φPhiScript
+
+[![PHISCRIPT](https://img.shields.io/badge/φPhiScript-4AAADA)](https://github.com/upizpp/phiscript) [![UPIZPP](https://img.shields.io/badge/UPIZPP-4A2F96)](https://github.com/upizpp)
 
 PhiScript is an interpreted programming language that I have created with the goal of enhancing my programming skills. Due to its experimental nature, it may not be actively maintained for an extended period. However, I plan to address any reported bugs and provide occasional updates.
+
+## Content
+
+- [φPhiScript](#φphiscript)
+  - [Content](#content)
+  - [Features](#features)
+  - [Build](#build)
+    - [Dependencies](#dependencies)
+    - [Steps](#steps)
+    - [Release](#release)
+    - [Debug](#debug)
+    - [Unit Test](#unit-test)
+  - [Changing config.json](#changing-configjson)
 
 ## Features
 
@@ -19,7 +34,7 @@ PhiScript is an interpreted programming language that I have created with the go
 ### Dependencies
 
 **Python:** Version 3.9 or higher  
-**Clang:** Version 10 or higher. Please ensure that it supports [C++20](https://en.cppreference.com/w/cpp/20). If you wish to change the compiler, please modify the `config.json` file (refer to the _Changing config.json_ section for detailed information).
+**Clang:** Version 10 or higher. Please ensure that it supports [C++20](https://en.cppreference.com/w/cpp/20). If you wish to change the compiler, please modify the `config.json` file (refer to the *[Changing config.json](#changing-configjson)* section for detailed information).
 
 ### Steps
 
