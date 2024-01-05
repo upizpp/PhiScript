@@ -1,0 +1,5 @@
+import io;//Import the input&output module
+import os;//Import the operating system module
+
+io.print("Hello World!");//Use the print function to output the string "Hello World!"
+os.system("pause");

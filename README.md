@@ -1,39 +1,70 @@
-# PhiScript
+# φPhiScript
 
-PhiScript is an interpreted programming language.  
-The purpose of this language is to improve my programming ability,  
-so maybe it won't be maintained for a long time.  
-But I will fix some bugs and update from time to time.  
+[![PHISCRIPT](https://img.shields.io/badge/φPhiScript-4AAADA)](https://github.com/upizpp/phiscript) [![UPIZPP](https://img.shields.io/badge/UPIZPP-4A2F96)](https://github.com/upizpp)
 
-# Features
-- Dynamic Type
-- if-else statement
-- for-else statement with tags
-- while-else statement with tags
-- break statement with tags
-- continue statement with tags
-- import statement
-- builtin module
-- *function* (unfinished)
+PhiScript is an interpreted programming language that I have created with the goal of enhancing my programming skills. Due to its experimental nature, it may not be actively maintained for an extended period. However, I plan to address any reported bugs and provide occasional updates.
 
-# Build
+## Content
 
-Dependencies: **python**, **clang++**  
-Steps:
+- [φPhiScript](#φphiscript)
+  - [Content](#content)
+  - [Features](#features)
+  - [Build](#build)
+    - [Dependencies](#dependencies)
+    - [Steps](#steps)
+    - [Release](#release)
+    - [Debug](#debug)
+    - [Unit Test](#unit-test)
+  - [Changing config.json](#changing-configjson)
+
+## Features
+
+- Dynamic typing
+- Support for if-else statements
+- Support for for-else statements with tags
+- Support for while-else statements with tags
+- Ability to use break statements with tags
+- Ability to use continue statements with tags
+- Import statement functionality
+- Built-in modules
+- *Functions* (work in progress)
+
+## Build
+
+### Dependencies
+
+**Python:** Version 3.9 or higher  
+**Clang:** Version 10 or higher. Please ensure that it supports [C++20](https://en.cppreference.com/w/cpp/20). If you wish to change the compiler, please modify the `config.json` file (refer to the *[Changing config.json](#changing-configjson)* section for detailed information).
+
+### Steps
+
 ```cmd
 git clone https://github.com/upizpp/PhiScript.git
 cd PhiScript
 python build.py
 ```
-Release:
-```
+
+### Release
+
+```cmd
 python build.py
 ```
-Debug:
-```
+
+### Debug
+
+```cmd
 python build.py DEBUG
 ```
-Unit Test:
-```
+
+### Unit Test
+
+```cmd
 python build.py TEST DEBUG
 ```
+
+## Changing config.json
+
+The `config.json` file is used to configure the build process. Below is a description of each field:
+
+- `compiler`: The compiler used to compile the source code. The default value is `clang++`.
+- **Warning:** Do not attempt to modify the value of `standard`. The `build.py` script can only run in the `C++20` standard.
