@@ -79,6 +79,17 @@ def get_included_files(unit: str) -> list[str]:
             result.append(included_path)
             result.extend(get_included_files(included_path))
     return [item.replace("/", "\\") for item in result]
+
+def relative_path(abspath: str, rel: str) -> str:
+    rel_paths = rel.replace("/", "\\").split('\\')
+    result = abspath.replace("/", "\\").split('\\')[0:-1]
+    for path in rel_paths:
+        if path == "..":
+            result.pop()
+        else:
+            result.append(path)
+    return "\\".join(result)
+
 def is_unit(path: str) -> bool:
     for pat in config.units:
         if fnmatch(path, pat):
