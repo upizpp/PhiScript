@@ -1,0 +1,12 @@
+{
+    "release": {
+        "compiler": "clang++",
+        "cache": ".build",
+        "scan": "src"
+    },
+    "debug": {
+        "compiler": "clang++",
+        "cache": ".build",
+        "scan": "src"
+    }
+}

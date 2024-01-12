@@ -1,0 +1,49 @@
+import json
+
+class ConfigType:
+    # the compiler to use
+    compiler: str = "g++"
+    # extra arguments for the compiler
+    extra: str = ""
+    # the path to the cache directory
+    cache: str = ""
+    # the directory to scan
+    scan: str = ""
+    # the naming format of the code units
+    units: list = ["*.cpp"]
+
+    def __init__(self, config: dict) -> None:
+        self._lock(config)
+        self.pick("compiler")
+        self.pick("extra")
+        self.pick("cache")
+        self.pick("scan")
+        self._unlock()
+         
+    def pick(self, key: str) -> None:
+        if self.__temp is None:
+            raise Exception("Unable to call pick before calling _lock.")
+        if key in self.__temp:
+            setattr(self, key, self.__temp[key])
+
+    def _lock(self, config: dict) -> None:
+        self.__temp = config
+    
+    def _unlock(self) -> None:
+        del self.__temp
+
+
+class Config:
+    def __init__(self, path: str) -> None:
+        with open(path, encoding="utf-8") as file:
+            data: dict = json.loads(file.read())
+            self.data = data
+            self.types = data.keys()
+    
+    def pick(self, type: str) -> ConfigType:
+        if not type in self.data:
+            raise KeyError("the type is not existed in the config file.")
+        return ConfigType(self.data[type])
+
+
+
