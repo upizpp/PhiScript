@@ -1,6 +1,7 @@
 import argparse
 import os
 import json
+import re
 from shutil import rmtree
 from fnmatch import fnmatch
 
@@ -62,7 +63,22 @@ def handle_file(path: str) -> None:
     if not is_unit(path):
         return
     print(path)
-
+def get_included_files(unit: str) -> list[str]:
+    if not os.path.exists(unit):
+        return []
+    result = []
+    with open(unit, "r", encoding="utf-8") as file:
+        pattern = """^#include\s*"(.*)"\s*$"""
+        for match in re.finditer(pattern, file.read(), re.MULTILINE):
+            filename = match.group(1)
+            included_path = None
+            if os.path.isabs(filename):
+                included_path = os.path.join("src", filename)
+            else:
+                included_path = relative_path(unit, filename)
+            result.append(included_path)
+            result.extend(get_included_files(included_path))
+    return [item.replace("/", "\\") for item in result]
 def is_unit(path: str) -> bool:
     for pat in config.units:
         if fnmatch(path, pat):
