@@ -1,8 +1,0 @@
-import io;
-fn fib(n)
-{
-    if (n <= 1) return 1;
-    io.print("fib ", fib(n - 1));
-    return 3;
-};
-io.print(fib(3));

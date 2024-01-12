@@ -1,6 +1,0 @@
-*.log
-/.build
-/.vscode
-/.VSCodeCounter
-/__pycache__
-main.exe
