@@ -41,6 +41,7 @@
         "variant": "cpp",
         "*.inc": "cpp",
         "*.def": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "string": "cpp"
     }
 }
