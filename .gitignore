@@ -1,4 +1,6 @@
 .build
 .test_build
 .debug_build
-main.exe
+phi.exe
+test.exe
+debug.exe
