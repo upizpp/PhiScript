@@ -1,3 +1,5 @@
+#pragma once
+#include <ostream>
 #include <phi/typedef.hpp>
 
 namespace phi
@@ -6,12 +8,17 @@ namespace phi
     class Function;
     class Variant;
 
+    struct VariantHash;
+    struct VariantEqual;
+
     using array = vector<Ref<Variant>>;
-    using dict = map<Ref<Variant>, Ref<Variant>>;
+    using dict = unordered_map<Ref<Variant>, Ref<Variant>, VariantHash, VariantEqual>;
 
     class Variant
     {
     public:
+        static uinteger hashSeed;
+
         enum class Type : char
         {
             NIL,
@@ -53,6 +60,8 @@ namespace phi
         explicit Variant(const dict &);
         explicit Variant(const Object &);
         explicit Variant(const Function &);
+        Variant(const Variant &);
+        Variant(Variant &&);
         ~Variant() { free(); }
 
         Variant &operator=(const int &);
@@ -66,16 +75,44 @@ namespace phi
         Variant &operator=(const dict &);
         Variant &operator=(const Object &);
         Variant &operator=(const Function &);
+        Variant &operator=(const Variant &);
+        Variant &operator=(Variant &&);
 
-        operator integer() {return _M_int;}
-        operator real() {return _M_real;}
-        operator bool() {return _M_bool;}
-        operator string() {return *_M_string_P;}
-        operator array() {return *_M_array_P;}
-        operator dict() {return *_M_dict_P;}
-        operator Object();
-        operator Function();
+        operator integer() const;
+        operator real() const;
+        operator bool() const;
+        operator string() const;
+        operator array() const;
+        operator dict() const;
+        operator Object() const;
+        operator Function() const;
 
         void free();
+        Type type() const { return _M_type; }
+        static string stringifyType(Type);
+
+        string toString() const;
+        uinteger hash() const;
+
+        bool operator==(const int &) const;
+        bool operator==(const double &) const;
+        bool operator==(const integer &) const;
+        bool operator==(const real &) const;
+        bool operator==(const bool &) const;
+        bool operator==(const char *) const;
+        bool operator==(const string &) const;
+        bool operator==(const array &) const;
+        bool operator==(const dict &) const;
+        bool operator==(const Object &) const;
+        bool operator==(const Function &) const;
+        bool operator==(const Variant &) const;
+    };
+
+    struct VariantHash
+    {
+        size_t operator()(const Ref<Variant> &value)
+        {
+            return value->hash();
+        }
     };
 } // namespace phi

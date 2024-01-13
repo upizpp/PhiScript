@@ -1,6 +1,9 @@
 #include <iostream>
+#include <phi/variant.hpp>
 
 int main()
 {
-    puts("TEST");
+    using namespace phi;
+    Variant test;
+    
 }
