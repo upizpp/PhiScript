@@ -48,7 +48,7 @@ def build(units: dict) -> None:
         objects.append(output)
         if units[unit]:
             command = get_command(unit, output)
-            print(Colors([Colors.CYAN, Colors.BOLD], unit + ":"))
+            print(Colors(Colors.CYAN, unit + ":"))
             if os.system(command) != 0:
                 print(Colors([Colors.RED, Colors.BOLD], "出现错误，编译终止。"))
                 print(Colors([Colors.RED, Colors.BOLD], "编译命令："), Colors(Colors.WHITE, command))
@@ -58,7 +58,7 @@ def build(units: dict) -> None:
     print(Colors(Colors.WHITE, "-" * 64))
     print(Colors([Colors.YELLOW, Colors.YELLOW], "开始链接..."))
     command = f"{config.compiler} {config.link_extra} {' '.join(objects)} -o {config.output} "
-    print(Colors([Colors.RED, Colors.BOLD], "链接命令："), Colors(Colors.WHITE, command))
+    print(Colors([Colors.CYAN, Colors.BOLD], "链接命令："), Colors(Colors.WHITE, command))
     if os.system(command) != 0:
         print(Colors([Colors.RED, Colors.BOLD], "链接错误，编译终止。"))
         exit(-1)

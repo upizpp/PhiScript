@@ -94,19 +94,33 @@ namespace phi
         string toString() const;
         uinteger hash() const;
 
-        bool operator==(const int &) const;
-        bool operator==(const double &) const;
-        bool operator==(const integer &) const;
-        bool operator==(const real &) const;
-        bool operator==(const bool &) const;
-        bool operator==(const char *) const;
-        bool operator==(const string &) const;
-        bool operator==(const array &) const;
-        bool operator==(const dict &) const;
-        bool operator==(const Object &) const;
-        bool operator==(const Function &) const;
-        bool operator==(const Variant &) const;
+#define COMPARE_DECL(op)                      \
+    bool operator op(const int &) const;      \
+    bool operator op(const double &) const;   \
+    bool operator op(const integer &) const;  \
+    bool operator op(const real &) const;     \
+    bool operator op(const bool &) const;     \
+    bool operator op(const char *) const;     \
+    bool operator op(const string &) const;   \
+    bool operator op(const array &) const;    \
+    bool operator op(const dict &) const;     \
+    bool operator op(const Object &) const;   \
+    bool operator op(const Function &) const; \
+    bool operator op(const Variant &) const;
+
+        COMPARE_DECL(==)
+        COMPARE_DECL(!=)
+        COMPARE_DECL(>)
+        COMPARE_DECL(>=)
+        COMPARE_DECL(<)
+        COMPARE_DECL(<=)
     };
+
+    inline std::ostream &operator<<(std::ostream &os, const Variant &value)
+    {
+        os << value.toString();
+        return os;
+    }
 
     struct VariantHash
     {
@@ -115,4 +129,13 @@ namespace phi
             return value->hash();
         }
     };
+
+    struct VariantEqual
+    {
+        size_t operator()(const Ref<Variant> &lhs, const Ref<Variant> &rhs)
+        {
+            return *lhs == *rhs;
+        }
+    };
+
 } // namespace phi

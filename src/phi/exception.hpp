@@ -38,6 +38,33 @@ namespace phi
 
         // formatting bug
         ;
+    
+    class CompareException : public RuntimeException
+    {
+    private:
+        Variant::Type _M_a;
+        Variant::Type _M_b;
+
+    public:
+        using RuntimeException::RuntimeException;
+
+        CompareException(Variant::Type a, Variant::Type b): _M_a(a), _M_b(b) {}
+
+        virtual string className() override
+        {
+            return "CompareException";
+        }
+
+        virtual string what() override
+        {
+            static std::ostringstream ss;
+            ss.str("");
+            ss << "Cannot compare "
+               << Variant::stringifyType(_M_a) << " with " << Variant::stringifyType(_M_b) << ".\n";
+            ss << RuntimeException::what();
+            return ss.str();
+        }
+    };
 
     class ConversionException : public RuntimeException
     {

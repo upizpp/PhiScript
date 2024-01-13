@@ -49,6 +49,8 @@
         "iosfwd": "cpp",
         "sstream": "cpp",
         "cstdlib": "cpp",
-        "compare": "cpp"
+        "compare": "cpp",
+        "charconv": "cpp",
+        "utility": "cpp"
     }
 }

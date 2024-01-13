@@ -3,6 +3,8 @@
 
 namespace phi
 {
+    class Variant;
+
     class Object
     {
     private:
@@ -16,14 +18,25 @@ namespace phi
         string toString() { return string(); }
 
         // TODO: Object::hash()
-        uinteger hash() { return this; }
+        uinteger hash() { return uinteger(this); }
 
-        //  TODO: Object::operator==(const Object&)
-        bool operator==(const Object &) { return false; }
+        //  TODO: Object::compare
+        bool operator==(const Object &) const { return false; }
+        bool operator==(const Variant &) const { return false; }
+        bool operator!=(const Object &) const { return false; }
+        bool operator!=(const Variant &) const { return false; }
+        bool operator>(const Object &) const { return false; }
+        bool operator>(const Variant &) const { return false; }
+        bool operator>=(const Object &) const { return false; }
+        bool operator>=(const Variant &) const { return false; }
+        bool operator<(const Object &) const { return false; }
+        bool operator<(const Variant &) const { return false; }
+        bool operator<=(const Object &) const { return false; }
+        bool operator<=(const Variant &) const { return false; }
 
         // TODO Object::convert
-        operator integer() {return 0;}
-        operator real() {return 0.0}
+        operator integer() { return 0; }
+        operator real() { return 0.0; }
         operator bool() { return true; }
         operator string() { return string(); }
     };

@@ -400,6 +400,7 @@ namespace phi
         case Type::FUNCTION:
             return (string)(*_M_func_P);
         }
+        return string();
     }
 
     Variant::operator array() const
@@ -476,7 +477,10 @@ namespace phi
             return "OBJECT";
         case Type::FUNCTION:
             return "FUNCTION";
+        case Type::MAX:
+            return "MAX";
         }
+        return string();
     }
 
     string Variant::toString() const
@@ -525,6 +529,7 @@ namespace phi
         case Type::FUNCTION:
             return _M_func_P->toString();
         }
+        return string();
     }
 
     uinteger Variant::hash() const
@@ -568,172 +573,185 @@ namespace phi
         return value ^ hashSeed;
     }
 
-    bool Variant::operator==(const int &value) const
-    {
-        switch (_M_type)
-        {
-        case Type::INT:
-            return _M_int == value;
-        case Type::REAL:
-            return _M_real == value;
-        case Type::BOOL:
-            return _M_bool == value;
-        default:
-            return false;
-        }
+#define COMPARE_IMPL(op)                                      \
+    bool Variant::operator op(const int &value) const          \
+    {                                                         \
+        switch (_M_type)                                      \
+        {                                                     \
+        case Type::INT:                                       \
+            return _M_int op value;                           \
+        case Type::REAL:                                      \
+            return _M_real op value;                          \
+        case Type::BOOL:                                      \
+            return _M_bool op value;                          \
+        default:                                              \
+            throw CompareException(type(), Type::INT);        \
+        }                                                     \
+    }                                                         \
+                                                              \
+    bool Variant::operator op(const double &value) const       \
+    {                                                         \
+        switch (_M_type)                                      \
+        {                                                     \
+        case Type::INT:                                       \
+            return _M_int op value;                           \
+        case Type::REAL:                                      \
+            return _M_real op value;                          \
+        case Type::BOOL:                                      \
+            return _M_bool op value;                          \
+        default:                                              \
+            throw CompareException(type(), Type::REAL);       \
+        }                                                     \
+    }                                                         \
+                                                              \
+    bool Variant::operator op(const integer &value) const      \
+    {                                                         \
+        switch (_M_type)                                      \
+        {                                                     \
+        case Type::INT:                                       \
+            return _M_int op value;                           \
+        case Type::REAL:                                      \
+            return _M_real op value;                          \
+        case Type::BOOL:                                      \
+            return _M_bool op value;                          \
+        default:                                              \
+            throw CompareException(type(), Type::INT);        \
+        }                                                     \
+    }                                                         \
+                                                              \
+    bool Variant::operator op(const real &value) const         \
+    {                                                         \
+        switch (_M_type)                                      \
+        {                                                     \
+        case Type::INT:                                       \
+            return _M_int op value;                           \
+        case Type::REAL:                                      \
+            return _M_real op value;                          \
+        case Type::BOOL:                                      \
+            return _M_bool op value;                          \
+        default:                                              \
+            throw CompareException(type(), Type::REAL);       \
+        }                                                     \
+    }                                                         \
+                                                              \
+    bool Variant::operator op(const bool &value) const         \
+    {                                                         \
+        switch (_M_type)                                      \
+        {                                                     \
+        case Type::INT:                                       \
+            return _M_int op value;                           \
+        case Type::REAL:                                      \
+            return _M_real op value;                          \
+        case Type::BOOL:                                      \
+            return _M_bool op value;                          \
+        default:                                              \
+            throw CompareException(type(), Type::BOOL);       \
+        }                                                     \
+    }                                                         \
+                                                              \
+    bool Variant::operator op(const char *value) const         \
+    {                                                         \
+        switch (_M_type)                                      \
+        {                                                     \
+        case Type::STRING:                                    \
+            return *_M_string_P op value;                     \
+        default:                                              \
+            throw CompareException(type(), Type::STRING);     \
+        }                                                     \
+    }                                                         \
+                                                              \
+    bool Variant::operator op(const string &value) const       \
+    {                                                         \
+        switch (_M_type)                                      \
+        {                                                     \
+        case Type::STRING:                                    \
+            return *_M_string_P op value;                     \
+        default:                                              \
+            throw CompareException(type(), Type::STRING);     \
+        }                                                     \
+    }                                                         \
+                                                              \
+    bool Variant::operator op(const array &value) const        \
+    {                                                         \
+        switch (_M_type)                                      \
+        {                                                     \
+        case Type::ARRAY:                                     \
+            return _M_array_P op &value;                      \
+        default:                                              \
+            throw CompareException(type(), Type::ARRAY);      \
+        }                                                     \
+    }                                                         \
+                                                              \
+    bool Variant::operator op(const dict &value) const         \
+    {                                                         \
+        switch (_M_type)                                      \
+        {                                                     \
+        case Type::DICTIONARY:                                \
+            return _M_dict_P op &value;                       \
+        default:                                              \
+            throw CompareException(type(), Type::DICTIONARY); \
+        }                                                     \
+    }                                                         \
+                                                              \
+    bool Variant::operator op(const Object &value) const       \
+    {                                                         \
+        switch (_M_type)                                      \
+        {                                                     \
+        case Type::OBJECT:                                    \
+            return *_M_obj_P op value;                        \
+        default:                                              \
+            throw CompareException(type(), Type::OBJECT);     \
+        }                                                     \
+    }                                                         \
+                                                              \
+    bool Variant::operator op(const Function &value) const     \
+    {                                                         \
+        switch (_M_type)                                      \
+        {                                                     \
+        case Type::FUNCTION:                                  \
+            return _M_func_P op &value;                       \
+        default:                                              \
+            throw CompareException(type(), Type::FUNCTION);   \
+        }                                                     \
+    }                                                         \
+                                                              \
+    bool Variant::operator op(const Variant &value) const      \
+    {                                                         \
+        switch (_M_type)                                      \
+        {                                                     \
+        case Type::NIL:                                       \
+            return value._M_type op Type::NIL;                \
+        case Type::INT:                                       \
+            return _M_int op integer(value);                  \
+        case Type::REAL:                                      \
+            return _M_real op real(value);                    \
+        case Type::BOOL:                                      \
+            return _M_bool op bool(value);                    \
+        case Type::STRING:                                    \
+            return *_M_string_P op string(value);             \
+        case Type::ARRAY:                                     \
+            if (value.type() != Type::ARRAY)                  \
+                throw CompareException(type(), value.type()); \
+            return _M_array_P op value._M_array_P;            \
+        case Type::DICTIONARY:                                \
+            if (value.type() != Type::DICTIONARY)             \
+                throw CompareException(type(), value.type()); \
+            return _M_dict_P op value._M_dict_P;              \
+        case Type::OBJECT:                                    \
+            return *_M_obj_P op value;                        \
+        case Type::FUNCTION:                                  \
+            if (value.type() != Type::ARRAY)                  \
+                throw CompareException(type(), value.type()); \
+            return _M_func_P op value._M_func_P;              \
+        default:                                              \
+            throw CompareException(type(), value.type());     \
+        }                                                     \
     }
 
-    bool Variant::operator==(const double &value) const
-    {
-        switch (_M_type)
-        {
-        case Type::INT:
-            return _M_int == value;
-        case Type::REAL:
-            return _M_real == value;
-        case Type::BOOL:
-            return _M_bool == value;
-        default:
-            return false;
-        }
-    }
-
-    bool Variant::operator==(const integer &value) const
-    {
-        switch (_M_type)
-        {
-        case Type::INT:
-            return _M_int == value;
-        case Type::REAL:
-            return _M_real == value;
-        case Type::BOOL:
-            return _M_bool == value;
-        default:
-            return false;
-        }
-    }
-
-    bool Variant::operator==(const real &value) const
-    {
-        switch (_M_type)
-        {
-        case Type::INT:
-            return _M_int == value;
-        case Type::REAL:
-            return _M_real == value;
-        case Type::BOOL:
-            return _M_bool == value;
-        default:
-            return false;
-        }
-    }
-
-    bool Variant::operator==(const bool &value) const
-    {
-        switch (_M_type)
-        {
-        case Type::INT:
-            return _M_int == value;
-        case Type::REAL:
-            return _M_real == value;
-        case Type::BOOL:
-            return _M_bool == value;
-        default:
-            return false;
-        }
-    }
-
-    bool Variant::operator==(const char *value) const
-    {
-        switch (_M_type)
-        {
-        case Type::STRING:
-            return *_M_string_P == value;
-        default:
-            return false;
-        }
-    }
-
-    bool Variant::operator==(const string &value) const
-    {
-        switch (_M_type)
-        {
-        case Type::STRING:
-            return *_M_string_P == value;
-        default:
-            return false;
-        }
-    }
-
-    bool Variant::operator==(const array &value) const
-    {
-        switch (_M_type)
-        {
-        case Type::ARRAY:
-            return _M_array_P == &value;
-        default:
-            return false;
-        }
-    }
-
-    bool Variant::operator==(const dict &value) const
-    {
-        switch (_M_type)
-        {
-        case Type::DICTIONARY:
-            return _M_dict_P == &value;
-        default:
-            return false;
-        }
-    }
-
-    bool Variant::operator==(const Object &value) const
-    {
-        switch (_M_type)
-        {
-        case Type::OBJECT:
-            return *_M_obj_P == value;
-        default:
-            return false;
-        }
-    }
-
-    bool Variant::operator==(const Function &value) const
-    {
-        switch (_M_type)
-        {
-        case Type::FUNCTION:
-            return _M_func_P == &value;
-        default:
-            return false;
-        }
-    }
-
-    bool Variant::operator==(const Variant &value) const
-    {
-        switch (_M_type)
-        {
-        case Type::NIL:
-            return value._M_type == Type::NIL;
-        case Type::INT:
-            return _M_int == integer(value);
-        case Type::REAL:
-            return _M_real == real(value);
-        case Type::BOOL:
-            return _M_bool == bool(value);
-        case Type::STRING:
-            return *_M_string_P == string(value);
-        case Type::ARRAY:
-            return *_M_array_P == array(value);
-        case Type::DICTIONARY:
-            return *_M_dict_P == dict(value);
-        case Type::OBJECT:
-            return *_M_obj_P == Object(value);
-        case Type::FUNCTION:
-            return *_M_func_P == Function(value);
-        default:
-            return false;
-        }
-    }
-
+    COMPARE_IMPL(==)
+    COMPARE_IMPL(!=)
+    COMPARE_IMPL(>)
+    COMPARE_IMPL(>=)
+    COMPARE_IMPL(<)
+    COMPARE_IMPL(<=)
 } // namespace phi

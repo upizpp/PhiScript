@@ -4,6 +4,6 @@
 int main()
 {
     using namespace phi;
-    Variant test;
-    
+    Variant test{"Hello, world!"};
+    std::cout << test;
 }
