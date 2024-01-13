@@ -11,6 +11,14 @@ class ConfigType:
     scan: str = ""
     # the naming format of the code units
     units: list = ["*.cpp"]
+    # the units which are ignored
+    ignore: list = [""]
+    # the RegEx pattern to search the associated files.
+    pattern: str = """^#include\s*(?:(?:"(.*)")|(?:<(.*)>))\s*$"""
+    # the output file path
+    output: str = "main.exe"
+    # the compile command pattern.
+    command: str = """{compiler} -c {unit} -o {output}"""
 
     def __init__(self, config: dict) -> None:
         self._lock(config)
@@ -18,8 +26,16 @@ class ConfigType:
         self.pick("extra")
         self.pick("cache")
         self.pick("scan")
+        self.pick("units")
+        self.pick("ignore")
+        self.pick("pattern")
+        self.pick("command")
+        self.pick("output")
         self._unlock()
          
+    def get_command(self, unit: str) -> str:
+        return self.command.format(compiler=self.compiler, output=self.output, unit=unit)
+    
     def pick(self, key: str) -> None:
         if self.__temp is None:
             raise Exception("Unable to call pick before calling _lock.")

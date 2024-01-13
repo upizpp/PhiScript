@@ -2,11 +2,19 @@
     "release": {
         "compiler": "clang++",
         "cache": ".build",
-        "scan": "src"
+        "scan": "src",
+        "extra": "-std=c++11 -O3"
     },
     "debug": {
         "compiler": "clang++",
         "cache": ".build",
-        "scan": "src"
+        "scan": "src",
+        "extra": "-std=c++11 -DDEBUG"
+    },
+    "test": {
+        "compiler": "clang++",
+        "cache": ".build",
+        "scan": "src",
+        "extra": "-std=c++11 -DDEBUG -DTEST"
     }
 }

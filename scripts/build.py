@@ -2,14 +2,15 @@ import argparse
 import os
 import json
 import re
+from hashlib import sha256
 from shutil import rmtree
 from fnmatch import fnmatch
 
 from config import Config, ConfigType
 
 
-global_config: ConfigType = None
-config: Config = None
+global_config: Config = None
+config: ConfigType = None
 file_map: dict = {}
 
 def main() -> None:
@@ -27,14 +28,25 @@ def main() -> None:
         return
 
     load_file_map()
-    scan()
+
+    changed = scan()
+    build(changed)
+
     save_file_map()
 
-def clear_cache():
+def build(changed_units: list) -> None:
+    for unit in changed_units:
+        print()
+
+
+def get_command(unit: str) -> str:
+    return config.get_command(unit)
+
+def clear_cache() -> None:
     rmtree(config.cache, True)
 
 
-def load_file_map():
+def load_file_map() -> None:
     if not os.path.isdir(config.cache):
         return
     global file_map
@@ -44,40 +56,56 @@ def load_file_map():
 def save_file_map():
     if not os.path.isdir(config.cache):
         os.makedirs(config.cache)
-    with open(os.path.join(config.cache, "file_map.json"), "w", encoding="utf-8") as file:
-        file.write(json.dumps(file_map, indent=4))
 
-def scan() -> None:
-    changed: list = []
     for root, _, files in os.walk(config.scan):
         for filename in files:
             full_path = os.path.join(root, filename)
-            file_id = get_id(full_path)
+            file_map[full_path] = get_id(full_path)
+    with open(os.path.join(config.cache, "file_map.json"), "w", encoding="utf-8") as file:
+        file.write(json.dumps(file_map, indent=4))
 
-            handle_file(full_path)
+def scan() -> list:
+    changed_units: list = []
+    for root, _, files in os.walk(config.scan):
+        for filename in files:
+            full_path = os.path.join(root, filename)
 
-            file_map[full_path] = file_id
+            if is_unit(full_path) and has_unit_changed(full_path):
+                changed_units.append(full_path)
+    return changed_units
 
 
-def handle_file(path: str) -> None:
+def has_unit_changed(path: str) -> None:
     if not is_unit(path):
-        return
-    print(path)
-def get_included_files(unit: str) -> list[str]:
+        return has_changed(path)
+    return has_changed(path) or any([has_unit_changed(x) for x in get_associated_files(path)])
+    
+
+def has_changed(path: str) -> bool:
+    return path in file_map and file_map[path] != get_id(path)
+
+def get_associated_files(unit: str) -> list:
     if not os.path.exists(unit):
         return []
     result = []
     with open(unit, "r", encoding="utf-8") as file:
-        pattern = """^#include\s*"(.*)"\s*$"""
+        pattern = config.pattern
         for match in re.finditer(pattern, file.read(), re.MULTILINE):
-            filename = match.group(1)
+            filenames = match.groups()
+            filename = ""
+            for fn in filenames:
+                if not fn is None:
+                    filename = fn
             included_path = None
-            if os.path.isabs(filename):
-                included_path = os.path.join("src", filename)
-            else:
-                included_path = relative_path(unit, filename)
-            result.append(included_path)
-            result.extend(get_included_files(included_path))
+            try:
+                if os.path.isabs(filename):
+                    included_path = os.path.join("src", filename)
+                else:
+                    included_path = relative_path(unit, filename)
+                result.append(included_path)
+                result.extend(get_associated_files(included_path))
+            except TypeError:
+                ...
     return [item.replace("/", "\\") for item in result]
 
 def relative_path(abspath: str, rel: str) -> str:
@@ -91,13 +119,22 @@ def relative_path(abspath: str, rel: str) -> str:
     return "\\".join(result)
 
 def is_unit(path: str) -> bool:
-    for pat in config.units:
+    return filename_match(path, config.units)
+
+def filename_match(path: str, patterns: list) -> bool:
+    for pat in patterns:
         if fnmatch(path, pat):
             return True
     return False
 
 def get_id(path: str) -> int:
-    return int(os.path.getmtime(path))
+    if not os.path.exists(path):
+        return ""
+    sha256_hash = sha256()
+    with open(path, "rb") as file:
+        for chunk in iter(lambda: file.read(4096), b""):
+            sha256_hash.update(chunk)
+    return sha256_hash.hexdigest()
 
 def load_config():
     global global_config
