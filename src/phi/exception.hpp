@@ -39,7 +39,7 @@ namespace phi
         // formatting bug
         ;
     
-    class CompareException : public RuntimeException
+    class BinaryException : public RuntimeException
     {
     private:
         Variant::Type _M_a;
@@ -48,48 +48,51 @@ namespace phi
     public:
         using RuntimeException::RuntimeException;
 
-        CompareException(Variant::Type a, Variant::Type b): _M_a(a), _M_b(b) {}
+        BinaryException(Variant::Type a, Variant::Type b): _M_a(a), _M_b(b) {}
 
         virtual string className() override
         {
-            return "CompareException";
+            return "BinaryException";
         }
 
         virtual string what() override
         {
             static std::ostringstream ss;
             ss.str("");
-            ss << "Cannot compare "
-               << Variant::stringifyType(_M_a) << " with " << Variant::stringifyType(_M_b) << ".\n";
+            ss << "Unable to operate between "
+               << Variant::stringifyType(_M_a) << " and " << Variant::stringifyType(_M_b) << ".\n";
             ss << RuntimeException::what();
             return ss.str();
         }
     };
 
-    class ConversionException : public RuntimeException
+    class UnaryException : public RuntimeException
     {
     private:
-        Variant::Type _M_from;
-        Variant::Type _M_to;
+        Variant::Type _M_t;
 
     public:
         using RuntimeException::RuntimeException;
 
-        ConversionException(Variant::Type from, Variant::Type to) : _M_from(from), _M_to(to) {}
+        UnaryException(Variant::Type t): _M_t(t) {}
 
         virtual string className() override
         {
-            return "ConversionException";
+            return "UnaryException";
         }
 
         virtual string what() override
         {
             static std::ostringstream ss;
             ss.str("");
-            ss << "Cannot convert the type from "
-               << Variant::stringifyType(_M_from) << " to " << Variant::stringifyType(_M_to) << ".\n";
+            ss << "Unable to operate with the type of "
+               << Variant::stringifyType(_M_t) << ".\n";
             ss << RuntimeException::what();
             return ss.str();
         }
     };
+    
+    DefineException(CalculateException, BinaryException)
+    DefineException(ConversionException, BinaryException)
+    DefineException(CompareException, BinaryException)
 } // namespace phi

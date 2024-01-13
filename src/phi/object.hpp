@@ -1,10 +1,9 @@
 #pragma once
 #include <phi/typedef.hpp>
+#include <phi/variant.hpp>
 
 namespace phi
 {
-    class Variant;
-
     class Object
     {
     private:
@@ -33,6 +32,23 @@ namespace phi
         bool operator<(const Variant &) const { return false; }
         bool operator<=(const Object &) const { return false; }
         bool operator<=(const Variant &) const { return false; }
+
+        // TODO: Object::calculate
+        Variant operator+(const Variant &) const { return Variant(); }
+        Variant operator+(const Object &) const { return Variant(); }
+        Variant operator-(const Variant &) const { return Variant(); }
+        Variant operator-(const Object &) const { return Variant(); }
+        Variant operator*(const Variant &) const { return Variant(); }
+        Variant operator*(const Object &) const { return Variant(); }
+        Variant operator/(const Variant &) const { return Variant(); }
+        Variant operator/(const Object &) const { return Variant(); }
+        Variant operator&(const Variant &) const { return Variant(); }
+        Variant operator&(const Object &) const { return Variant(); }
+        Variant operator|(const Variant &) const { return Variant(); }
+        Variant operator|(const Object &) const { return Variant(); }
+        Variant operator!() const { return Variant(); }
+        Variant operator-() const { return Variant(); }
+        Variant operator~() const { return Variant(); }
 
         // TODO Object::convert
         operator integer() { return 0; }

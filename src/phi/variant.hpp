@@ -107,13 +107,50 @@ namespace phi
     bool operator op(const Object &) const;   \
     bool operator op(const Function &) const; \
     bool operator op(const Variant &) const;
-
         COMPARE_DECL(==)
         COMPARE_DECL(!=)
         COMPARE_DECL(>)
         COMPARE_DECL(>=)
         COMPARE_DECL(<)
         COMPARE_DECL(<=)
+
+#define CALCULATE_DECL(op)                      \
+    int operator op(const int &) const;         \
+    double operator op(const double &) const;   \
+    integer operator op(const integer &) const; \
+    real operator op(const real &) const;       \
+    bool operator op(const bool &) const;       \
+    string operator op(const char *) const;     \
+    string operator op(const string &) const;   \
+    Variant operator op(const Object &) const;  \
+    Variant operator op(const Variant &) const;
+#define CALCULATE_NUM_DECL(op)                  \
+    int operator op(const int &) const;         \
+    double operator op(const double &) const;   \
+    integer operator op(const integer &) const; \
+    real operator op(const real &) const;       \
+    bool operator op(const bool &) const;       \
+    Variant operator op(const Object &) const;  \
+    Variant operator op(const Variant &) const;
+#define CALCULATE_INT_DECL(op)                  \
+    int operator op(const int &) const;         \
+    integer operator op(const integer &) const; \
+    bool operator op(const bool &) const;       \
+    Variant operator op(const Object &) const;  \
+    Variant operator op(const Variant &) const;
+        CALCULATE_DECL(+)
+        CALCULATE_NUM_DECL(-)
+        CALCULATE_NUM_DECL(*)
+        CALCULATE_NUM_DECL(/)
+        CALCULATE_INT_DECL(&)
+        CALCULATE_INT_DECL(|)
+        CALCULATE_INT_DECL(^)
+        // CALCULATE_DECL(&&)
+        // CALCULATE_DECL(||)
+
+        Variant operator-() const;
+        Variant operator~() const;
+        Variant operator!() const;
     };
 
     inline std::ostream &operator<<(std::ostream &os, const Variant &value)
