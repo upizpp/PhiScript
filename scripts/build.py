@@ -7,7 +7,7 @@ from shutil import rmtree
 from fnmatch import fnmatch
 
 from config import Config, ConfigType
-
+from colors import Colors
 
 global_config: Config = None
 config: ConfigType = None
@@ -29,22 +29,49 @@ def main() -> None:
 
     load_file_map()
 
-    changed = scan()
-    build(changed)
+    units = scan()
+    build(units)
 
     save_file_map()
 
-def build(changed_units: list) -> None:
-    for unit in changed_units:
-        print()
+def build(units: dict) -> None:
+    objects = []
+    print(Colors([Colors.YELLOW, Colors.BOLD], "开始编译..."))
+    print()
+    for unit in units:
+        print(Colors([Colors.CYAN, Colors.BOLD], unit + ":"))
+        output_source = os.path.join(config.cache, unit)
+        basename = os.path.splitext(output_source)[0]
+        output = basename + ".o"
+        output_dir = os.path.split(output)[0]
+        if not os.path.isdir(output_dir):
+            os.makedirs(output_dir)
+        objects.append(output)
+        if units[unit]:
+            command = get_command(unit, output)
+            if os.system(command) != 0:
+                print(Colors([Colors.RED, Colors.BOLD], "出现错误，编译终止。"))
+                print(Colors([Colors.RED, Colors.BOLD], "编译命令："), Colors(Colors.WHITE, command))
+                exit(-1)
+    print()
+    print(Colors([Colors.YELLOW, Colors.BOLD], Colors(Colors.BOLD, "编译结束...")))
+    print(Colors(Colors.WHITE, "-" * 64))
+    print(Colors([Colors.YELLOW, Colors.YELLOW], "开始链接..."))
+    command = f"{config.compiler} {config.link_extra} {' '.join(objects)} -o {config.output} "
+    print(Colors([Colors.RED, Colors.BOLD], "链接命令："), Colors(Colors.WHITE, command))
+    if os.system(command) != 0:
+        print(Colors([Colors.RED, Colors.BOLD], "链接错误，编译终止。"))
+        exit(-1)
+    print(Colors(Colors.WHITE, "-" * 64))
+    if config.auto_run:
+        os.system(config.output)
 
 
-def get_command(unit: str) -> str:
-    return config.get_command(unit)
+def get_command(unit: str, output: str) -> str:
+    return config.get_command(unit, output)
 
 def clear_cache() -> None:
     rmtree(config.cache, True)
-
 
 def load_file_map() -> None:
     if not os.path.isdir(config.cache):
@@ -64,15 +91,15 @@ def save_file_map():
     with open(os.path.join(config.cache, "file_map.json"), "w", encoding="utf-8") as file:
         file.write(json.dumps(file_map, indent=4))
 
-def scan() -> list:
-    changed_units: list = []
+def scan() -> dict:
+    units: dict = {}
     for root, _, files in os.walk(config.scan):
         for filename in files:
             full_path = os.path.join(root, filename)
 
-            if is_unit(full_path) and has_unit_changed(full_path):
-                changed_units.append(full_path)
-    return changed_units
+            if is_unit(full_path):
+                units[full_path] = has_unit_changed(full_path)
+    return units
 
 
 def has_unit_changed(path: str) -> None:

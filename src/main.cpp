@@ -1,4 +1,6 @@
 #include <iostream>
-#include <a.hpp>
 
-// 
+int main()
+{
+    std::cout << "Hello world!";
+}

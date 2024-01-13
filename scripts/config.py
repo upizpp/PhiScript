@@ -5,6 +5,8 @@ class ConfigType:
     compiler: str = "g++"
     # extra arguments for the compiler
     extra: str = ""
+    # extra arguments for the linker
+    link_extra: str = ""
     # the path to the cache directory
     cache: str = ""
     # the directory to scan
@@ -18,12 +20,15 @@ class ConfigType:
     # the output file path
     output: str = "main.exe"
     # the compile command pattern.
-    command: str = """{compiler} -c {unit} -o {output}"""
+    command: str = """{compiler} {unit} {extra} -c -o {output}"""
+    # whether to run the output file.
+    auto_run: bool = True
 
     def __init__(self, config: dict) -> None:
         self._lock(config)
         self.pick("compiler")
         self.pick("extra")
+        self.pick("link_extra")
         self.pick("cache")
         self.pick("scan")
         self.pick("units")
@@ -31,10 +36,11 @@ class ConfigType:
         self.pick("pattern")
         self.pick("command")
         self.pick("output")
+        self.pick("auto_run")
         self._unlock()
          
-    def get_command(self, unit: str) -> str:
-        return self.command.format(compiler=self.compiler, output=self.output, unit=unit)
+    def get_command(self, unit: str, output: str) -> str:
+        return self.command.format(extra=self.extra, compiler=self.compiler, output=output, unit=unit)
     
     def pick(self, key: str) -> None:
         if self.__temp is None:

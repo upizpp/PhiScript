@@ -1,5 +1,7 @@
 {
-    "src\\main.cpp": "b3ff00ead33b7f175661972ef5d5ea402b55d84595d26ef509e46d03f620af59",
+    "src\\main.cpp": "1d12fd94de84144332f892fcdb016336c5c0fb50e46e59d9dcdf31087e43b43a",
     "src\\test\\test.txt": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
-    "src\\a.hpp": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    "src\\a.hpp": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "src\\test\\a.cpp": "ca452a778322112acf74d2542d39fd7e2d2c4687aedcf0fe895d60ca1fbb536b",
+    "src\\test\\a.hpp": "fa78e4ef262e95abc8de06709aae76ca019d9534bb0253ade36145021237ab2b"
 }
