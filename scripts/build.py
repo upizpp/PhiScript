@@ -39,7 +39,6 @@ def build(units: dict) -> None:
     print(Colors([Colors.YELLOW, Colors.BOLD], "开始编译..."))
     print()
     for unit in units:
-        print(Colors([Colors.CYAN, Colors.BOLD], unit + ":"))
         output_source = os.path.join(config.cache, unit)
         basename = os.path.splitext(output_source)[0]
         output = basename + ".o"
@@ -49,6 +48,7 @@ def build(units: dict) -> None:
         objects.append(output)
         if units[unit]:
             command = get_command(unit, output)
+            print(Colors([Colors.CYAN, Colors.BOLD], unit + ":"))
             if os.system(command) != 0:
                 print(Colors([Colors.RED, Colors.BOLD], "出现错误，编译终止。"))
                 print(Colors([Colors.RED, Colors.BOLD], "编译命令："), Colors(Colors.WHITE, command))
@@ -99,17 +99,20 @@ def scan() -> dict:
     for root, _, files in os.walk(config.scan):
         for filename in files:
             full_path = os.path.join(root, filename)
+            if is_ignored(full_path):
+                continue
 
             if is_unit(full_path):
                 units[full_path] = has_unit_changed(full_path)
     return units
 
+def is_ignored(path: str) -> bool:
+    return filename_match(path, config.ignore)
 
 def has_unit_changed(path: str) -> None:
     if not is_unit(path):
         return has_changed(path)
     return has_changed(path) or any([has_unit_changed(x) for x in get_associated_files(path)])
-    
 
 def has_changed(path: str) -> bool:
     if path in file_map:
@@ -135,8 +138,9 @@ def get_associated_files(unit: str) -> list:
                     included_path = os.path.join("src", filename)
                 else:
                     included_path = relative_path(unit, filename)
-                result.append(included_path)
-                result.extend(get_associated_files(included_path))
+                if os.path.isfile(included_path):
+                    result.append(included_path)
+                    result.extend(get_associated_files(included_path))
             except TypeError:
                 ...
     return [item.replace("/", "\\") for item in result]

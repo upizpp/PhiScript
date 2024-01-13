@@ -3,19 +3,31 @@
         "compiler": "g++",
         "cache": ".build",
         "scan": "src",
-        "extra": "-Isrc -std=c++11 -O3"
+        "output": "phi.exe",
+        "extra": "-Isrc -std=c++11 -O3",
+        "ignore": [
+            "src/test_main.cpp"
+        ]
     },
     "debug": {
         "compiler": "g++",
-        "cache": ".build",
+        "cache": ".debug_build",
         "scan": "src",
+        "output": "debug.exe",
         "extra": "-g -Isrc-std=c++11 -DDEBUG",
-        "auto_run": false
+        "auto_run": false,
+        "ignore": [
+            "src/test_main.cpp"
+        ]
     },
     "test": {
         "compiler": "g++",
-        "cache": ".build",
+        "cache": ".test_build",
         "scan": "src",
-        "extra": "-g -Isrc -std=c++11 -DDEBUG -DTEST"
+        "output": "test.exe",
+        "extra": "-g -Isrc -std=c++11 -DDEBUG -DTEST",
+        "ignore": [
+            "src/main.cpp"
+        ]
     }
 }

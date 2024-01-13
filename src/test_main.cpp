@@ -2,5 +2,5 @@
 
 int main()
 {
-    puts("MAIN");
+    puts("TEST");
 }
