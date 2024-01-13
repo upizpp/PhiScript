@@ -1,6 +1,46 @@
 {
     "cSpell.words": [
         "DDEBUG",
-        "DTEST"
-    ]
+        "DTEST",
+        "Isrc"
+    ],
+    "files.associations": {
+        "cctype": "cpp",
+        "array": "cpp",
+        "atomic": "cpp",
+        "bit": "cpp",
+        "*.tcc": "cpp",
+        "bitset": "cpp",
+        "chrono": "cpp",
+        "concepts": "cpp",
+        "cstddef": "cpp",
+        "cstdio": "cpp",
+        "cstring": "cpp",
+        "cwchar": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "vector": "cpp",
+        "functional": "cpp",
+        "memory": "cpp",
+        "memory_resource": "cpp",
+        "optional": "cpp",
+        "string_view": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "random": "cpp",
+        "format": "cpp",
+        "fstream": "cpp",
+        "initializer_list": "cpp",
+        "istream": "cpp",
+        "new": "cpp",
+        "span": "cpp",
+        "stdexcept": "cpp",
+        "system_error": "cpp",
+        "ratio": "cpp",
+        "typeinfo": "cpp",
+        "variant": "cpp",
+        "*.inc": "cpp",
+        "*.def": "cpp",
+        "iostream": "cpp"
+    }
 }

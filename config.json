@@ -1,20 +1,21 @@
 {
     "release": {
-        "compiler": "clang++",
+        "compiler": "g++",
         "cache": ".build",
         "scan": "src",
         "extra": "-Isrc -std=c++11 -O3"
     },
     "debug": {
-        "compiler": "clang++",
+        "compiler": "g++",
         "cache": ".build",
         "scan": "src",
-        "extra": "-Isrc-std=c++11 -DDEBUG"
+        "extra": "-g -Isrc-std=c++11 -DDEBUG",
+        "auto_run": false
     },
     "test": {
-        "compiler": "clang++",
+        "compiler": "g++",
         "cache": ".build",
         "scan": "src",
-        "extra": "-Isrc -std=c++11 -DDEBUG -DTEST"
+        "extra": "-g -Isrc -std=c++11 -DDEBUG -DTEST"
     }
 }
