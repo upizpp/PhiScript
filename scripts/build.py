@@ -77,8 +77,11 @@ def load_file_map() -> None:
     if not os.path.isdir(config.cache):
         return
     global file_map
-    with open(os.path.join(config.cache, "file_map.json"), encoding="utf-8") as file:
-        file_map = json.loads(file.read())
+    try:
+        with open(os.path.join(config.cache, "file_map.json"), encoding="utf-8") as file:
+            file_map = json.loads(file.read())
+    except:
+        file_map = {}
 
 def save_file_map():
     if not os.path.isdir(config.cache):
@@ -109,7 +112,10 @@ def has_unit_changed(path: str) -> None:
     
 
 def has_changed(path: str) -> bool:
-    return path in file_map and file_map[path] != get_id(path)
+    if path in file_map:
+        return file_map[path] != get_id(path)
+    else:
+        return True
 
 def get_associated_files(unit: str) -> list:
     if not os.path.exists(unit):
