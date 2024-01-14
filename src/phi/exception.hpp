@@ -37,9 +37,6 @@ namespace phi
 
     DefineException(RuntimeException, Exception)
 
-        // formatting bug
-        ;
-
     class BinaryException : public RuntimeException
     {
     private:
@@ -94,10 +91,10 @@ namespace phi
     };
 
     DefineException(CalculateException, BinaryException)
-        DefineException(ConversionException, BinaryException)
-            DefineException(CompareException, BinaryException)
+    DefineException(ConversionException, BinaryException)
+    DefineException(CompareException, BinaryException)
 
-                class ArgumentException : public RuntimeException
+    class ArgumentException : public RuntimeException
     {
     private:
         integer _M_expected;
