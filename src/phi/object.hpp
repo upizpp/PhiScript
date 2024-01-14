@@ -35,17 +35,14 @@ namespace phi
 
         // TODO: Object::calculate
         Variant operator+(const Variant &) const { return Variant(); }
-        Variant operator+(const Object &) const { return Variant(); }
         Variant operator-(const Variant &) const { return Variant(); }
-        Variant operator-(const Object &) const { return Variant(); }
         Variant operator*(const Variant &) const { return Variant(); }
-        Variant operator*(const Object &) const { return Variant(); }
         Variant operator/(const Variant &) const { return Variant(); }
-        Variant operator/(const Object &) const { return Variant(); }
         Variant operator&(const Variant &) const { return Variant(); }
-        Variant operator&(const Object &) const { return Variant(); }
         Variant operator|(const Variant &) const { return Variant(); }
-        Variant operator|(const Object &) const { return Variant(); }
+        Variant operator^(const Variant &) const { return Variant(); }
+        Variant operator&&(const Variant &) const { return Variant(); }
+        Variant operator||(const Variant &) const { return Variant(); }
         Variant operator!() const { return Variant(); }
         Variant operator-() const { return Variant(); }
         Variant operator~() const { return Variant(); }

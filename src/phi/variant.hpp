@@ -114,16 +114,23 @@ namespace phi
         COMPARE_DECL(<)
         COMPARE_DECL(<=)
 
-#define CALCULATE_DECL(op)                      \
-    int operator op(const int &) const;         \
-    double operator op(const double &) const;   \
-    integer operator op(const integer &) const; \
-    real operator op(const real &) const;       \
-    bool operator op(const bool &) const;       \
-    string operator op(const char *) const;     \
-    string operator op(const string &) const;   \
-    Variant operator op(const Object &) const;  \
-    Variant operator op(const Variant &) const;
+#define CALCULATE_DECL(op)                                        \
+    int operator op(const int &) const;                           \
+    double operator op(const double &) const;                     \
+    integer operator op(const integer &) const;                   \
+    real operator op(const real &) const;                         \
+    bool operator op(const bool &) const;                         \
+    string operator op(const char *) const;                       \
+    string operator op(const string &) const;                     \
+    Variant operator op(const Object &) const;                    \
+    Variant operator op(const Variant &) const;                   \
+    friend int operator op(const int &, const Variant &);         \
+    friend double operator op(const double &, const Variant &);   \
+    friend integer operator op(const integer &, const Variant &); \
+    friend real operator op(const real &, const Variant &);       \
+    friend bool operator op(const bool &, const Variant &);       \
+    friend string operator op(const char *, const Variant &);     \
+    friend string operator op(const string &, const Variant &);
 #define CALCULATE_NUM_DECL(op)                  \
     int operator op(const int &) const;         \
     double operator op(const double &) const;   \
@@ -145,8 +152,8 @@ namespace phi
         CALCULATE_INT_DECL(&)
         CALCULATE_INT_DECL(|)
         CALCULATE_INT_DECL(^)
-        // CALCULATE_DECL(&&)
-        // CALCULATE_DECL(||)
+        CALCULATE_INT_DECL(&&)
+        CALCULATE_INT_DECL(||)
 
         Variant operator-() const;
         Variant operator~() const;
