@@ -41,6 +41,16 @@
         "variant": "cpp",
         "*.inc": "cpp",
         "*.def": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "string": "cpp",
+        "ostream": "cpp",
+        "cstdint": "cpp",
+        "unordered_map": "cpp",
+        "iosfwd": "cpp",
+        "sstream": "cpp",
+        "cstdlib": "cpp",
+        "compare": "cpp",
+        "charconv": "cpp",
+        "utility": "cpp"
     }
 }
