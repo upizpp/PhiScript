@@ -52,6 +52,39 @@
         "compare": "cpp",
         "charconv": "cpp",
         "utility": "cpp",
-        "map": "cpp"
-    }
+        "map": "cpp",
+        "clocale": "cpp",
+        "cmath": "cpp",
+        "condition_variable": "cpp",
+        "cstdarg": "cpp",
+        "ctime": "cpp",
+        "cwctype": "cpp",
+        "set": "cpp",
+        "unordered_set": "cpp",
+        "exception": "cpp",
+        "algorithm": "cpp",
+        "iterator": "cpp",
+        "numeric": "cpp",
+        "iomanip": "cpp",
+        "limits": "cpp",
+        "mutex": "cpp",
+        "numbers": "cpp",
+        "semaphore": "cpp",
+        "shared_mutex": "cpp",
+        "stop_token": "cpp",
+        "streambuf": "cpp",
+        "thread": "cpp",
+        "cinttypes": "cpp"
+    },
+    "C_Cpp.default.cppStandard": "c++11",
+    "c-cpp-flylint.clang.standard": [
+        "c++11"
+    ],
+    "c-cpp-flylint.standard": [
+        "c11",
+        "c++11"
+    ],
+    "c-cpp-flylint.cppcheck.standard": [
+        "c++11"
+    ]
 }

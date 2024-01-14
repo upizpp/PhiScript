@@ -13,6 +13,15 @@ namespace phi
 
         virtual ~Object() {}
 
+        static string className()
+        {
+            return "Object";
+        }
+        virtual string getClass()
+        {
+            return "Object";
+        }
+
         // TODO: Object::toString()
         string toString() { return string(); }
 

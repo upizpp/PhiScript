@@ -9,7 +9,7 @@
             "command": "python scripts/build.py -tdebug"
         },
         {
-            "label": "build",
+            "label": "build_test",
             "type": "shell",
             "command": "python scripts/build.py -ttest"
         }

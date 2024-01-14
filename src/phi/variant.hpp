@@ -78,6 +78,8 @@ namespace phi
         Variant &operator=(const Variant &);
         Variant &operator=(Variant &&);
 
+        operator int() const;
+        operator double() const;
         operator integer() const;
         operator real() const;
         operator bool() const;
