@@ -37,7 +37,7 @@ namespace phi
 
     DefineException(RuntimeException, Exception)
 
-    class BinaryException : public RuntimeException
+        class BinaryException : public RuntimeException
     {
     private:
         Variant::Type _M_a;
@@ -91,10 +91,10 @@ namespace phi
     };
 
     DefineException(CalculateException, BinaryException)
-    DefineException(ConversionException, BinaryException)
-    DefineException(CompareException, BinaryException)
+        DefineException(ConversionException, BinaryException)
+            DefineException(CompareException, BinaryException)
 
-    class ArgumentException : public RuntimeException
+                class ArgumentException : public RuntimeException
     {
     private:
         integer _M_expected;
@@ -117,6 +117,31 @@ namespace phi
             ss.str("");
             ss << "Too few arguments for method " << _M_method << " (expected " << _M_expected << " arguments, got " << _M_actually << " arguments).\n";
             ss << RuntimeException::what();
+            return ss.str();
+        }
+    };
+
+    class FileException : public Exception
+    {
+    private:
+        string _M_filename;
+
+    public:
+        using Exception::Exception;
+
+        FileException(const string& filename) : _M_filename(filename) {}
+
+        virtual string className() override
+        {
+            return "FilenameException";
+        }
+
+        string what() override
+        {
+            static std::ostringstream ss;
+            ss.str("");
+            ss << "Unable to open file " << _M_filename << ".\n";
+            ss << Exception::what();
             return ss.str();
         }
     };

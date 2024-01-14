@@ -49,17 +49,17 @@ namespace phi
 
     public:
         Variant();
-        explicit Variant(const int &);
-        explicit Variant(const double &);
-        explicit Variant(const integer &);
-        explicit Variant(const real &);
-        explicit Variant(const bool &);
-        explicit Variant(const char *);
-        explicit Variant(const string &);
-        explicit Variant(const array &);
-        explicit Variant(const dict &);
-        explicit Variant(const Object &);
-        explicit Variant(const Function &);
+        Variant(const int &);
+        Variant(const double &);
+        Variant(const integer &);
+        Variant(const real &);
+        Variant(const bool &);
+        Variant(const char *);
+        Variant(const string &);
+        Variant(const array &);
+        Variant(const dict &);
+        Variant(const Object &);
+        Variant(const Function &);
         Variant(const Variant &);
         Variant(Variant &&);
         ~Variant() { free(); }
