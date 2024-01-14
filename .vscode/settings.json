@@ -51,6 +51,7 @@
         "cstdlib": "cpp",
         "compare": "cpp",
         "charconv": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "map": "cpp"
     }
 }

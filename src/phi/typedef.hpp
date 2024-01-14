@@ -2,12 +2,14 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <map>
 #include <unordered_map>
 #include <phi/auto_ptr.hpp>
 
 namespace phi
 {
     using std::vector;
+    using std::map;
     using std::unordered_map;
     using std::string;
 
