@@ -5,6 +5,7 @@
 #include <phi/function.hpp>
 #include <phi/object.hpp>
 #include <sstream>
+#include <iostream>
 
 namespace phi
 {
@@ -283,6 +284,16 @@ namespace phi
             break;
         }
         return *this;
+    }
+
+    Variant::operator int() const
+    {
+        return integer(*this);
+    }
+
+    Variant::operator double() const
+    {
+        return real(*this);
     }
 
     Variant::operator integer() const

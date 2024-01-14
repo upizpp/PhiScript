@@ -20,6 +20,7 @@ namespace phi
     {
     private:
         string _M_what;
+
     public:
         Exception() = default;
         Exception(const string &what) : _M_what(what) {}
@@ -38,7 +39,7 @@ namespace phi
 
         // formatting bug
         ;
-    
+
     class BinaryException : public RuntimeException
     {
     private:
@@ -48,7 +49,7 @@ namespace phi
     public:
         using RuntimeException::RuntimeException;
 
-        BinaryException(Variant::Type a, Variant::Type b): _M_a(a), _M_b(b) {}
+        BinaryException(Variant::Type a, Variant::Type b) : _M_a(a), _M_b(b) {}
 
         virtual string className() override
         {
@@ -74,7 +75,7 @@ namespace phi
     public:
         using RuntimeException::RuntimeException;
 
-        UnaryException(Variant::Type t): _M_t(t) {}
+        UnaryException(Variant::Type t) : _M_t(t) {}
 
         virtual string className() override
         {
@@ -91,8 +92,35 @@ namespace phi
             return ss.str();
         }
     };
-    
+
     DefineException(CalculateException, BinaryException)
-    DefineException(ConversionException, BinaryException)
-    DefineException(CompareException, BinaryException)
+        DefineException(ConversionException, BinaryException)
+            DefineException(CompareException, BinaryException)
+
+                class ArgumentException : public RuntimeException
+    {
+    private:
+        integer _M_expected;
+        integer _M_actually;
+        string _M_method;
+
+    public:
+        using RuntimeException::RuntimeException;
+
+        ArgumentException(integer expected, integer actually, const string &method) : _M_expected(expected), _M_actually(actually), _M_method(method) {}
+
+        virtual string className() override
+        {
+            return "ArgumentException";
+        }
+
+        string what() override
+        {
+            static std::ostringstream ss;
+            ss.str("");
+            ss << "Too few arguments for method " << _M_method << " (expected " << _M_expected << " arguments, got " << _M_actually << " arguments).\n";
+            ss << RuntimeException::what();
+            return ss.str();
+        }
+    };
 } // namespace phi
