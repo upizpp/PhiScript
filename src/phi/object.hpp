@@ -17,10 +17,20 @@ namespace phi
         {
             return "Object";
         }
+        static string parentClassName()
+        {
+            return "";
+        }
         virtual string getClass()
         {
             return "Object";
         }
+        virtual string getParentClass()
+        {
+            return "";
+        }
+
+        static void static_register();
 
         // TODO: Object::toString()
         string toString() { return string(); }

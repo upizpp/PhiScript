@@ -25,10 +25,10 @@ class Test : public phi::Object
 
 void Test::static_register()
 {
-    METHOD_R(f, func);
-    METHOD(add);
 #undef CLASS
 #define CLASS Test
+    METHOD_R(f, func);
+    METHOD(add);
     PROPERTY(value);
     PROPERTY(message);
 }
@@ -46,4 +46,5 @@ int main()
     ClassDB::set(&obj, "message", Variant{"Hello world!"});
     std::cout << ClassDB::get(&obj, "message") << std::endl;
     std::cout << obj.getClass() << std::endl;
+    std::cout << obj.getParentClass() << std::endl;
 }

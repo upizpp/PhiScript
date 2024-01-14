@@ -33,7 +33,7 @@ public:                                    \
     }                                      \
                                            \
 private:                                   \
-    ClassRegister<Test> _;
+    ClassRegister<class_name, parent_class> _;
 
 namespace phi
 {
@@ -43,6 +43,7 @@ namespace phi
         using arg_list = vector<type>;
         using method = std::function<type(Object *, arg_list &)>;
 
+        string parent;
         map<string, method> methods;
         map<string, std::pair<std::function<type(Object *)>, std::function<void(Object *, const type &)>>> properties;
     };
@@ -60,20 +61,21 @@ namespace phi
 
     public:
         static void bind(const string &class_name) { _M_bound = class_name; }
-        static void registerClass(const string &class_name)
+        static void registerClass(const string &class_name, const string &parent)
         {
-            _M_classes.insert({class_name, ClassInfo()});
+            _M_classes.insert({class_name, ClassInfo{.parent = parent}});
             bind(class_name);
         }
 
         template <typename F>
         static void registerMethod(const string &name, const F &func)
         {
-            getInfo().methods.insert({name, [=](Object *obj, arg_list &args) -> type
-                                      {
-                                          using seq = gen_index_seq_t<function_traits<F>::arity>;
-                                          return call_impl<seq, F>::call(func, obj, args);
-                                      }});
+            auto caller = [=](Object *obj, arg_list &args) -> type
+            {
+                using seq = gen_index_seq_t<function_traits<F>::arity>;
+                return call_impl<seq, F>::call(func, obj, args);
+            };
+            getInfo().methods.insert({name, caller});
         }
         template <typename T>
         static void registerProperty(const string &name, size_t offset)
@@ -118,14 +120,16 @@ namespace phi
         static type call(Object *obj, const string &method_name, arg_list args = {});
         static void set(Object *obj, const string &property_name, const type &value);
         static type get(Object *obj, const string &property_name);
+
+        static string parent(const string &class_name) { return _M_classes[class_name].parent; }
     };
 
-    template <typename T>
+    template <typename T, typename P>
     struct ClassRegister
     {
         ClassRegister()
         {
-            ClassDB::registerClass(T::className());
+            ClassDB::registerClass(T::className(), P::className());
             T::static_register();
         }
     };
