@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <list>
 #include <iostream>
 #include <unordered_map>
 #include <phi/auto_ptr.hpp>
@@ -13,6 +14,7 @@ namespace phi
     using std::map;
     using std::unordered_map;
     using std::string;
+    using std::list;
 
     using integer = int64_t;
     using uinteger = uint64_t;

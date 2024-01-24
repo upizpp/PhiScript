@@ -166,4 +166,12 @@ namespace phi
         return new Token(_M_peek);
     }
 
+    list<Ref<token::Token>> Lexer::getTokens()
+    {
+        list<Ref<token::Token>> tokens;
+        while (!eof())
+            tokens.push_back(getNextToken());
+        return tokens;
+    }
+
 } // namespace phi

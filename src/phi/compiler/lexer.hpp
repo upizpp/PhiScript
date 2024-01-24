@@ -32,6 +32,7 @@ namespace phi
         uinteger line() const { return _M_line; }
 
         Ref<token::Token> getNextToken();
+        list<Ref<token::Token>> getTokens();
 
         bool eof() { return _M_scanner->eof() || _M_peek == char_t(EOF); }
     };
