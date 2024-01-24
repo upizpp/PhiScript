@@ -2,7 +2,10 @@
     "cSpell.words": [
         "DDEBUG",
         "DTEST",
-        "Isrc"
+        "Isrc",
+        "reidentify",
+        "Wdelete",
+        "Wswitch"
     ],
     "files.associations": {
         "cctype": "cpp",

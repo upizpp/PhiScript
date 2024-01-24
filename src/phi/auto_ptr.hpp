@@ -4,6 +4,13 @@
 
 namespace phi
 {
+    struct RefCount
+    {
+        using counter_t = unsigned int;
+        static std::map<void*, counter_t> data;
+    };
+    
+
     template <typename T>
     class Reference
     {
@@ -12,7 +19,6 @@ namespace phi
 
     public:
         using counter_t = unsigned int;
-        static std::map<const T *, counter_t> refCount;
 
         Reference() : _M_ptr(nullptr)
         {
@@ -28,6 +34,11 @@ namespace phi
         Reference(Reference<T> &&ref) : _M_ptr(ref._M_ptr)
         {
             ref._M_ptr = nullptr;
+        }
+        template <typename U>
+        Reference(const Reference<U> &ref) : _M_ptr(const_cast<U*>(ref.data()))
+        {
+            reference();
         }
         ~Reference()
         {
@@ -74,7 +85,7 @@ namespace phi
         T *data() { return _M_ptr; }
         const T *data() const { return _M_ptr; }
 
-        counter_t count() { return refCount[_M_ptr]; }
+        counter_t count() { return RefCount::data[_M_ptr]; }
 
         T &operator*() { return *_M_ptr; }
         const T &operator*() const { return *_M_ptr; }
@@ -90,28 +101,25 @@ namespace phi
         {
             if (!_M_ptr)
                 return;
-            if (refCount.find(_M_ptr) == refCount.end())
-                refCount.insert({_M_ptr, 0});
-            ++refCount[_M_ptr];
+            if (RefCount::data.find(_M_ptr) == RefCount::data.end())
+                RefCount::data.insert({_M_ptr, 0});
+            ++RefCount::data[_M_ptr];
         }
 
         void dereference()
         {
             if (!_M_ptr)
                 return;
-            if (refCount.find(_M_ptr) == refCount.end())
+            if (RefCount::data.find(_M_ptr) == RefCount::data.end())
                 return;
-            --refCount[_M_ptr];
-            if (refCount[_M_ptr] == 0)
+            --RefCount::data[_M_ptr];
+            if (RefCount::data[_M_ptr] == 0)
             {
-                refCount.erase(_M_ptr);
+                RefCount::data.erase(_M_ptr);
                 delete _M_ptr;
             }
         }
     };
-
-    template <typename T>
-    std::map<const T *, typename Reference<T>::counter_t> Reference<T>::refCount;
 
     template <typename T>
     std::ostream &operator<<(std::ostream &os, const Reference<T> &ref)

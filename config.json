@@ -1,31 +1,42 @@
 {
     "release": {
-        "compiler": "g++",
+        "compiler": "clang++",
         "cache": ".build",
         "scan": "src",
         "output": "phi.exe",
-        "extra": "-Isrc -std=c++11 -O3",
+        "extra": "-Isrc -std=c++11 -O3 -Wno-switch -Wno-delete-abstract-non-virtual-dtor",
         "ignore": [
             "src/test_main.cpp"
         ]
     },
     "debug": {
-        "compiler": "g++",
+        "compiler": "clang++",
         "cache": ".debug_build",
         "scan": "src",
         "output": "debug.exe",
-        "extra": "-g -Isrc-std=c++11 -DDEBUG",
+        "extra": "-g -Isrc-std=c++11 -DDEBUG -Wno-switch -Wno-delete-abstract-non-virtual-dtor",
         "auto_run": false,
         "ignore": [
             "src/test_main.cpp"
         ]
     },
     "test": {
-        "compiler": "g++",
+        "compiler": "clang++",
         "cache": ".test_build",
         "scan": "src",
         "output": "test.exe",
-        "extra": "-g -Isrc -std=c++11 -DDEBUG -DTEST",
+        "extra": "-g -Isrc -std=c++11 -DDEBUG -DTEST -Wno-switch -Wno-delete-abstract-non-virtual-dtor",
+        "ignore": [
+            "src/main.cpp"
+        ]
+    },
+    "test_debug": {
+        "compiler": "clang++",
+        "cache": ".test_build",
+        "scan": "src",
+        "output": "test.exe",
+        "auto_run": false,
+        "extra": "-g -Isrc -std=c++11 -DDEBUG -DTEST -Wno-switch -Wno-delete-abstract-non-virtual-dtor",
         "ignore": [
             "src/main.cpp"
         ]
