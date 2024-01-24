@@ -17,11 +17,12 @@ def main() -> None:
     load_config()
 
     parser = argparse.ArgumentParser(description="Build a project.")
-    parser.add_argument("--type", "-t", required=True, choices=list(global_config.types), help="type of project to build.")
+    parser.add_argument("--type", "-t", required=True, choices=list(global_config.types) + ["all"], help="type of project to build.")
     parser.add_argument("--clear", "-c", action="store_true", help="clear the cache")
     args = parser.parse_args()
     global config
-    config = global_config.pick(args.type)
+    if args.type != "all":
+        config = global_config.pick(args.type)
 
     if args.clear:
         clear_cache()
@@ -48,6 +49,7 @@ def build(units: dict) -> None:
         objects.append(output)
         if units[unit]:
             command = get_command(unit, output)
+            print(command)
             print(Colors(Colors.CYAN, unit + ":"))
             if os.system(command) != 0:
                 print(Colors([Colors.RED, Colors.BOLD], "出现错误，编译终止。"))
@@ -71,7 +73,12 @@ def get_command(unit: str, output: str) -> str:
     return config.get_command(unit, output)
 
 def clear_cache() -> None:
-    rmtree(config.cache, True)
+    global config
+    if config is None:
+        for config in global_config.data:
+            rmtree(global_config.data[config]["cache"], True)
+    else:
+        rmtree(config.cache, True)
 
 def load_file_map() -> None:
     if not os.path.isdir(config.cache):

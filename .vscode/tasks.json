@@ -11,7 +11,7 @@
         {
             "label": "build_test",
             "type": "shell",
-            "command": "python scripts/build.py -ttest"
+            "command": "python scripts/build.py -ttest_debug"
         }
     ]
 }

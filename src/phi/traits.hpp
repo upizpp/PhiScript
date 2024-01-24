@@ -84,7 +84,7 @@ namespace phi
         template <typename T>
         struct append;
 
-        template <template <int...> typename T, int... V>
+        template <template <int...> class T, int... V>
         struct append<T<V...>>
         {
             using type = index_seq<Ts..., V...>;

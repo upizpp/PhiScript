@@ -1,20 +1,13 @@
 #include <iostream>
-#include <phi/compiler/scanner.hpp>
+#include <phi/compiler/lexer.hpp>
 
 int main()
 {
     using namespace phi;
-    puts("FileScanner:");
+    Lexer lexer(new FileScanner("D:\\User File\\Projects\\VSCode\\PhiScript\\src\\phi_script\\test.phi"));
+    while (!lexer.eof())
     {
-        FileScanner scanner("./config.json");
-        while (!scanner.eof())
-            std::cout << scanner.get();
+        std::cout << *lexer.getNextToken() << std::endl;
     }
-    std::cout << std::endl;
-    puts("StringScanner:");
-    {
-        StringScanner scanner("Hello world!");
-        while (!scanner.eof())
-            std::cout << scanner.get();
-    }
+    puts("FINISH!");
 }
