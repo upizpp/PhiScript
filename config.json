@@ -14,7 +14,7 @@
         "cache": ".debug_build",
         "scan": "src",
         "output": "debug.exe",
-        "extra": "-g -Isrc-std=c++11 -DDEBUG -Wno-switch -Wno-delete-abstract-non-virtual-dtor",
+        "extra": "-g -Isrc -std=c++11 -DDEBUG -Wno-switch -Wno-delete-abstract-non-virtual-dtor",
         "auto_run": false,
         "ignore": [
             "src/test_main.cpp"

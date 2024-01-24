@@ -24,6 +24,9 @@ namespace phi
             _M_peek = '\0';
             return true;
         }
+
+        void skipWhitespace();
+        void checkEOF();
         void unget() { if (!_M_scanner->eof()) _M_scanner->unget(); }
 
     public:

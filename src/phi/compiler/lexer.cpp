@@ -13,22 +13,10 @@ static uint8_t byte_length(phi::char_t b)
     return 1;
 }
 
-#define CHECK_EOF              \
-    {                          \
-        char_t peek = _M_peek; \
-        read();                \
-        if (!read(EOF))        \
-            unget();           \
-        _M_peek = peek;        \
-    }
-
 namespace phi
 {
-    Ref<Token> Lexer::getNextToken()
+    void Lexer::skipWhitespace()
     {
-        using R = Ref<Token>;
-        static std::ostringstream os;
-        // skip whitespace
         while (true)
         {
             read();
@@ -39,19 +27,41 @@ namespace phi
             else
                 break;
         }
+    }
 
-        switch (_M_peek)
+    void Lexer::checkEOF()
+    {
+        char_t peek = _M_peek;
+        skipWhitespace();
+        if (!read(EOF))
+            unget();
+        _M_peek = peek;
+    }
+
+    Ref<Token> Lexer::getNextToken()
+    {
+        using R = Ref<Token>;
+        static std::ostringstream os;
+        // skip whitespace
+        skipWhitespace();
+
         {
-        case '&':
-            return read('&') ? R(Word::get("AND")) : R(new Token('&'));
-        case '|':
-            return read('|') ? R(Word::get("OR")) : R(new Token('|'));
-        case '=':
-            return read('=') ? R(Word::get("EQ")) : R(new Token('='));
-        case '<':
-            return read('=') ? R(Word::get("LE")) : R(new Token('<'));
-        case '>':
-            return read('=') ? R(Word::get("GE")) : R(new Token('>'));
+            R res;
+            switch (_M_peek)
+            {
+            case '&':
+                return (res = read('&') ? R(Word::get("&&")) : R(new Token('&')), checkEOF(), res);
+            case '|':
+                return (res = read('|') ? R(Word::get("||")) : R(new Token('|')), checkEOF(), res);
+            case '=':
+                return (res = read('=') ? R(Word::get("==")) : R(new Token('=')), checkEOF(), res);
+            case '!':
+                return (res = read('=') ? R(Word::get("!=")) : R(new Token('!')), checkEOF(), res);
+            case '<':
+                return (res = read('=') ? R(Word::get("<=")) : R(new Token('<')), checkEOF(), res);
+            case '>':
+                return (res = read('=') ? R(Word::get(">=")) : R(new Token('>')), checkEOF(), res);
+            }
         }
 
         if (std::isdigit(_M_peek))
@@ -153,7 +163,7 @@ namespace phi
             os << ch;                                            \
             read();                                              \
         } while (_M_peek != terminal);                           \
-        CHECK_EOF;                                               \
+        checkEOF();                                              \
         string s = os.str();                                     \
         if (!Word::has(s))                                       \
             Word::put(s, Tag::STRING);                           \
@@ -162,7 +172,7 @@ namespace phi
         STRING_IMPL('"');
         STRING_IMPL('\'');
 
-        CHECK_EOF;
+        checkEOF();
         return new Token(_M_peek);
     }
 

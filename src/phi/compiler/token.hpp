@@ -54,6 +54,8 @@ namespace phi
 
             const Token *reidentify() const;
             Token *reidentify();
+
+            bool operator==(const Token& token) const;
         };
 
         class Integer : public Token
@@ -63,6 +65,8 @@ namespace phi
 
         public:
             explicit Integer(integer value) : Token(Tag::INT), _M_value(value) {}
+
+            integer value() const { return _M_value; }
 
             operator string() const { return '[' + std::to_string(_M_value) + ']'; }
         };
@@ -74,6 +78,8 @@ namespace phi
 
         public:
             explicit Real(real value) : Token(Tag::REAL), _M_value(value) {}
+
+            real value() const { return _M_value; }
 
             operator string() const { return "[" + std::to_string(_M_value) + ']'; }
         };
@@ -93,6 +99,10 @@ namespace phi
             static bool has(const string &);
             static Ref<Word> get(const string &);
 
+            const string &value() const { return _M_value; }
+
+            void merge(const Word &word) { _M_value += word.value(); }
+
             operator string() const
             {
                 if (tag() == Tag::STRING)
@@ -101,6 +111,31 @@ namespace phi
                     return '{' + _M_value + '}';
             }
         };
+
+        using tokens = list<Ref<Token>>;
+
+        template <typename A, typename B>
+        inline bool equals(const A &a, const B &b)
+        {
+            return false;
+        }
+        inline bool equals(const token::Token &a, const token::Token &b)
+        {
+            return a.tag() == b.tag();
+        }
+        inline bool equals(const token::Word &a, const token::Word &b)
+        {
+            return a.tag() == b.tag() && a.value() == b.value();
+        }
+        inline bool equals(const token::Integer &a, const token::Integer &b)
+        {
+            return a.tag() == b.tag() && a.value() == b.value();
+        }
+        inline bool equals(const token::Real &a, const token::Real &b)
+        {
+            return a.tag() == b.tag() && a.value() == b.value();
+        }
+
     } // namespace token
 
     inline std::ostream &operator<<(std::ostream &os, const token::Token &token)
@@ -108,3 +143,15 @@ namespace phi
         return os << token.reidentify()->operator std::string();
     }
 } // namespace phi
+
+namespace std
+{
+    template<>
+    struct hash<phi::token::Token>
+    {
+        size_t operator()(const phi::token::Token &token) const
+        {
+            return size_t(&token);
+        }
+    };
+}
