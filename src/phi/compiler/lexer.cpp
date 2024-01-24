@@ -13,11 +13,21 @@ static uint8_t byte_length(phi::char_t b)
     return 1;
 }
 
+#define CHECK_EOF              \
+    {                          \
+        char_t peek = _M_peek; \
+        read();                \
+        if (!read(EOF))        \
+            unget();           \
+        _M_peek = peek;        \
+    }
+
 namespace phi
 {
     Ref<Token> Lexer::getNextToken()
     {
         using R = Ref<Token>;
+        static std::ostringstream os;
         // skip whitespace
         while (true)
         {
@@ -70,15 +80,22 @@ namespace phi
             return new Real{y};
         }
 
-        if (isalpha(_M_peek) || _M_peek == '_')
+        if (isalpha(_M_peek) || _M_peek == '_' || byte_length(_M_peek) > 1)
         {
-            static std::ostringstream os;
             os.str("");
             do
             {
-                os << _M_peek;
+                uint8_t len = byte_length(_M_peek);
+                if (len > 1)
+                {
+                    for (size_t i = 0; i < len; i++, read())
+                        os << _M_peek;
+                    unget();
+                }
+                else
+                    os << _M_peek;
                 read();
-            } while (isalpha(_M_peek) || _M_peek == '_' || std::isdigit(_M_peek));
+            } while (!eof() && (isalpha(_M_peek) || _M_peek == '_' || std::isdigit(_M_peek) || byte_length(_M_peek) > 1));
             unget();
             string s = os.str();
             if (!Word::has(s))
@@ -86,10 +103,67 @@ namespace phi
             return Word::get(s);
         }
 
-        char_t peek = _M_peek;
-        read();
-        if (!read(EOF)) unget();
-        return new Token(peek);
+#define STRING_IMPL(terminal)                                    \
+    if (_M_peek == terminal)                                     \
+    {                                                            \
+        os.str("");                                              \
+        read();                                                  \
+        do                                                       \
+        {                                                        \
+            char_t ch = _M_peek;                                 \
+            if (_M_peek == '\\')                                 \
+            {                                                    \
+                read();                                          \
+                switch (_M_peek)                                 \
+                {                                                \
+                case 'n':                                        \
+                    ch = '\n';                                   \
+                    break;                                       \
+                case 't':                                        \
+                    ch = '\t';                                   \
+                    break;                                       \
+                case 'r':                                        \
+                    ch = '\r';                                   \
+                    break;                                       \
+                case 'b':                                        \
+                    ch = '\b';                                   \
+                    break;                                       \
+                case 'f':                                        \
+                    ch = '\f';                                   \
+                    break;                                       \
+                case 'a':                                        \
+                    ch = '\a';                                   \
+                    break;                                       \
+                case '\\':                                       \
+                    ch = '\\';                                   \
+                    break;                                       \
+                case '0':                                        \
+                    ch = '\0';                                   \
+                    break;                                       \
+                case '\'':                                       \
+                    ch = '\'';                                   \
+                    break;                                       \
+                case '"':                                        \
+                    ch = '"';                                    \
+                    break;                                       \
+                default:                                         \
+                    throw SyntaxException("Bad escape symbol."); \
+                }                                                \
+            }                                                    \
+            os << ch;                                            \
+            read();                                              \
+        } while (_M_peek != terminal);                           \
+        CHECK_EOF;                                               \
+        string s = os.str();                                     \
+        if (!Word::has(s))                                       \
+            Word::put(s, Tag::STRING);                           \
+        return Word::get(s);                                     \
+    }
+        STRING_IMPL('"');
+        STRING_IMPL('\'');
+
+        CHECK_EOF;
+        return new Token(_M_peek);
     }
 
 } // namespace phi

@@ -1,6 +1,6 @@
 {
     "release": {
-        "compiler": "clang++",
+        "compiler": "g++",
         "cache": ".build",
         "scan": "src",
         "output": "phi.exe",
@@ -10,7 +10,7 @@
         ]
     },
     "debug": {
-        "compiler": "clang++",
+        "compiler": "g++",
         "cache": ".debug_build",
         "scan": "src",
         "output": "debug.exe",
@@ -21,7 +21,7 @@
         ]
     },
     "test": {
-        "compiler": "clang++",
+        "compiler": "g++",
         "cache": ".test_build",
         "scan": "src",
         "output": "test.exe",
@@ -31,7 +31,7 @@
         ]
     },
     "test_debug": {
-        "compiler": "clang++",
+        "compiler": "g++",
         "cache": ".test_build",
         "scan": "src",
         "output": "test.exe",

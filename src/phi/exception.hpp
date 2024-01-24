@@ -36,8 +36,10 @@ namespace phi
     };
 
     DefineException(RuntimeException, Exception)
+    DefineException(CompileException, Exception)
+    DefineException(SyntaxException, CompileException)
 
-        class BinaryException : public RuntimeException
+    class BinaryException : public RuntimeException
     {
     private:
         Variant::Type _M_a;

@@ -15,7 +15,7 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerPath": "D:/User File/msys2/mingw64/bin/gdb.exe",
+            "miDebuggerPath": "D:/User File/mingw64/bin/gdb.exe",
             "preLaunchTask": "build_debug",
             "setupCommands": [
                 {
@@ -42,7 +42,7 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerPath": "D:/User File/msys2/mingw64/bin/gdb.exe",
+            "miDebuggerPath": "D:/User File/mingw64/bin/gdb.exe",
             "preLaunchTask": "build_test",
             "setupCommands": [
                 {

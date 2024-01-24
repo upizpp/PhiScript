@@ -12,6 +12,7 @@ namespace phi
             ID = 256,
             INT,
             REAL,
+            STRING,
             // operators
             AND,
             OR,
@@ -88,10 +89,17 @@ namespace phi
             explicit Word(string value, tag_t tag) : Token(tag), _M_value(value) {}
 
             static void put(const string &);
+            static void put(const string &, Tag);
             static bool has(const string &);
             static Ref<Word> get(const string &);
 
-            operator string() const { return "{" + _M_value + "}"; }
+            operator string() const
+            {
+                if (tag() == Tag::STRING)
+                    return '"' + _M_value + '"';
+                else
+                    return '{' + _M_value + '}';
+            }
         };
     } // namespace token
 

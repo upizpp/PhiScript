@@ -89,5 +89,7 @@
     ],
     "c-cpp-flylint.cppcheck.standard": [
         "c++11"
-    ]
+    ],
+    "comline-tool.command2_setting": "build -ttest",
+    "comline-tool.command1_setting": "build -trelease"
 }
