@@ -7,9 +7,37 @@ namespace phi
     struct RefCount
     {
         using counter_t = unsigned int;
-        static std::map<void*, counter_t> data;
+        static std::map<void *, counter_t> *data_ptr;
+
+        counter_t count(void *ptr)
+        {
+            return (*data_ptr)[ptr];
+        }
+
+        static void reference(void *ptr)
+        {
+            if (data_ptr == nullptr)
+                data_ptr = new std::map<void *, counter_t>();
+            if (data_ptr->find(ptr) == data_ptr->end())
+                (*data_ptr)[ptr] = 1;
+            (*data_ptr)[ptr]++;
+        }
+
+        static bool dereference(void *ptr)
+        {
+            if (!data_ptr)
+                return false;
+            if (data_ptr->find(ptr) == data_ptr->end())
+                return false;
+            --(*data_ptr)[ptr];
+            if ((*data_ptr)[ptr] == 0)
+            {
+                data_ptr->erase(ptr);
+                return true;
+            }
+            return false;
+        }
     };
-    
 
     template <typename T>
     class Reference
@@ -36,7 +64,7 @@ namespace phi
             ref._M_ptr = nullptr;
         }
         template <typename U>
-        Reference(const Reference<U> &ref) : _M_ptr(const_cast<U*>(ref.data()))
+        Reference(const Reference<U> &ref) : _M_ptr(static_cast<T *>(const_cast<U *>(ref.data())))
         {
             reference();
         }
@@ -85,12 +113,17 @@ namespace phi
         T *data() { return _M_ptr; }
         const T *data() const { return _M_ptr; }
 
-        counter_t count() { return RefCount::data[_M_ptr]; }
+        counter_t count() { return RefCount::count(_M_ptr); }
 
         T &operator*() { return *_M_ptr; }
         const T &operator*() const { return *_M_ptr; }
         T *operator->() { return _M_ptr; }
         const T *operator->() const { return _M_ptr; }
+
+        bool operator==(const Reference<T>& ref) const
+        {
+            return _M_ptr == ref._M_ptr;
+        }
 
         operator bool()
         {
@@ -101,23 +134,15 @@ namespace phi
         {
             if (!_M_ptr)
                 return;
-            if (RefCount::data.find(_M_ptr) == RefCount::data.end())
-                RefCount::data.insert({_M_ptr, 0});
-            ++RefCount::data[_M_ptr];
+            RefCount::reference(_M_ptr);
         }
 
         void dereference()
         {
             if (!_M_ptr)
                 return;
-            if (RefCount::data.find(_M_ptr) == RefCount::data.end())
-                return;
-            --RefCount::data[_M_ptr];
-            if (RefCount::data[_M_ptr] == 0)
-            {
-                RefCount::data.erase(_M_ptr);
+            if (RefCount::dereference(_M_ptr))
                 delete _M_ptr;
-            }
         }
     };
 
@@ -194,3 +219,16 @@ namespace phi
         return os;
     }
 } // namespace phi
+
+namespace std
+{
+    template <typename T>
+    struct hash<phi::Reference<T>>
+    {
+        size_t operator()(const phi::Reference<T> &ref) const
+        {
+            return std::hash<T>()(*ref);
+        }
+    };
+
+} // namespace std

@@ -4,25 +4,28 @@ namespace phi
 {
     namespace token
     {
-        map<string, Ref<Word>> Word::_M_words;
-        // {
-        //     {"if", new Word{"if", Tag::IF}},
-        //     {"else", new Word{"else", Tag::ELSE}},
-        //     {"for", new Word{"for", Tag::FOR}},
-        //     {"while", new Word{"while", Tag::WHILE}},
-        //     {"do", new Word{"do", Tag::DO}},
-        //     {"break", new Word{"break", Tag::BREAK}},
-        //     {"continue", new Word{"continue", Tag::CONTINUE}},
-        //     {"import", new Word{"continue", Tag::IMPORT}},
-        //     {"true", new Word{"true", Tag::TRUE}},
-        //     {"false", new Word{"false", Tag::FALSE}},
-        //     {"AND", new Word{"&&", Tag::AND}},
-        //     {"OR", new Word{"||", Tag::OR}},
-        //     {"EQ", new Word{"==", Tag::EQ}},
-        //     {"NE", new Word{"!=", Tag::NE}},
-        //     {"GE", new Word{">=", Tag::GE}},
-        //     {"LE", new Word{"<=", Tag::LE}},
-        // };
+#define WORD(what, tag)                   \
+    {                                     \
+        what, new Word { what, Tag::tag } \
+    }
+        map<string, Ref<Word>> Word::_M_words{
+            WORD("if", IF),
+            WORD("else", ELSE),
+            WORD("for", FOR),
+            WORD("while", WHILE),
+            WORD("do", DO),
+            WORD("break", BREAK),
+            WORD("continue", CONTINUE),
+            WORD("import", IMPORT),
+            WORD("true", TRUE),
+            WORD("false", FALSE),
+            WORD("&&", AND),
+            WORD("||", OR),
+            WORD("==", EQ),
+            WORD("!=", NE),
+            WORD(">=", GE),
+            WORD("<=", LE),
+        };
 
         void Word::put(const string &word)
         {
@@ -35,6 +38,10 @@ namespace phi
         bool Word::has(const string &word)
         {
             return _M_words.find(word) != _M_words.end();
+        }
+        size_t Word::hash() const
+        {
+            return tag() + std::hash<string>()(value());
         }
         Ref<Word> Word::get(const string &word)
         {
@@ -68,10 +75,31 @@ namespace phi
         {
             REIDENTIFY_IMPL;
         }
+        
         const Token *Token::reidentify() const
         {
 
             REIDENTIFY_IMPL;
+        }
+
+        bool Token::operator==(const Token &token) const
+        {
+            return equals(*this, token);
+        }
+        
+        size_t Token::hash() const
+        {
+            return tag();
+        }
+
+        size_t Integer::hash() const
+        {
+            return tag() + value();
+        }
+
+        size_t Real::hash() const
+        {
+            return tag() + value();
         }
     } // namespace token
 } // namespace phi
