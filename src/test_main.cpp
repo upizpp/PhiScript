@@ -5,8 +5,9 @@
 int main()
 {
     using namespace phi;
-    Lexer lexer(new FileScanner("D:\\User File\\Projects\\VSCode\\PhiScript\\src\\phi_script\\test.phi"));
-    Preprocessor preprocessor(lexer.getTokens());
+    Lexer lexer(new FileScanner("src\\phi_script\\test.phi"));
+    PreprocessRule rule("src\\phi_script\\test.pre");
+    Preprocessor preprocessor(lexer.getTokens(), rule);
     for (auto token : preprocessor.getTokens())
     {
         std::cout << *token << std::endl;

@@ -87,6 +87,7 @@ namespace phi
                 read();
             } while (std::isdigit(_M_peek));
             unget();
+            checkEOF();
             return new Real{y};
         }
 
@@ -110,6 +111,7 @@ namespace phi
             string s = os.str();
             if (!Word::has(s))
                 Word::put(s);
+            checkEOF();
             return Word::get(s);
         }
 

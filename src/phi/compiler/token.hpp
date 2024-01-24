@@ -55,7 +55,9 @@ namespace phi
             const Token *reidentify() const;
             Token *reidentify();
 
-            bool operator==(const Token& token) const;
+            bool operator==(const Token &token) const;
+
+            virtual size_t hash() const;
         };
 
         class Integer : public Token
@@ -67,8 +69,9 @@ namespace phi
             explicit Integer(integer value) : Token(Tag::INT), _M_value(value) {}
 
             integer value() const { return _M_value; }
+            size_t hash() const override;
 
-            operator string() const { return '[' + std::to_string(_M_value) + ']'; }
+            operator string() const override { return '[' + std::to_string(_M_value) + ']'; }
         };
 
         class Real : public Token
@@ -80,8 +83,9 @@ namespace phi
             explicit Real(real value) : Token(Tag::REAL), _M_value(value) {}
 
             real value() const { return _M_value; }
+            size_t hash() const override;
 
-            operator string() const { return "[" + std::to_string(_M_value) + ']'; }
+            operator string() const override { return "[" + std::to_string(_M_value) + ']'; }
         };
 
         class Word : public Token
@@ -100,6 +104,7 @@ namespace phi
             static Ref<Word> get(const string &);
 
             const string &value() const { return _M_value; }
+            size_t hash() const override;
 
             void merge(const Word &word) { _M_value += word.value(); }
 
@@ -135,7 +140,6 @@ namespace phi
         {
             return a.tag() == b.tag() && a.value() == b.value();
         }
-
     } // namespace token
 
     inline std::ostream &operator<<(std::ostream &os, const token::Token &token)
@@ -146,12 +150,21 @@ namespace phi
 
 namespace std
 {
-    template<>
+    template <>
     struct hash<phi::token::Token>
     {
         size_t operator()(const phi::token::Token &token) const
         {
-            return size_t(&token);
+            return token.hash();
+        }
+    };
+
+    template<>
+    struct equal_to<phi::Ref<phi::token::Token>>
+    {
+        bool operator()(const phi::Ref<phi::token::Token> &a, const phi::Ref<phi::token::Token> &b) const
+        {
+            return phi::token::equals(*a, *b);
         }
     };
 }

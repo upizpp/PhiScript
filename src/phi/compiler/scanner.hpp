@@ -8,8 +8,8 @@ namespace phi
     class Scanner
     {
     public:
-        virtual char get() = 0;
-        virtual char peek() = 0;
+        virtual char_t get() = 0;
+        virtual char_t peek() = 0;
         virtual void unget() = 0;
         virtual void reset() = 0;
         virtual bool eof() = 0;
@@ -21,14 +21,20 @@ namespace phi
         virtual std::istream &get_stream() = 0;
 
     public:
-        virtual char get() override { return get_stream().get(); }
-        virtual char peek() override { return get_stream().peek(); }
+        virtual char_t get() override { return get_stream().get(); }
+        virtual char_t peek() override { return get_stream().peek(); }
         virtual void unget() override { get_stream().unget(); }
         virtual bool eof() override { return get_stream().eof(); }
         virtual void reset() override
         {
             get_stream().clear();
             get_stream().seekg(0, std::ios::beg);
+        }
+        string getLine()
+        {
+            string s;
+            getline(get_stream(), s);
+            return s;
         }
     };
 

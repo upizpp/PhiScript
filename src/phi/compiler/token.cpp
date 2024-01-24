@@ -39,6 +39,10 @@ namespace phi
         {
             return _M_words.find(word) != _M_words.end();
         }
+        size_t Word::hash() const
+        {
+            return tag() + std::hash<string>()(value());
+        }
         Ref<Word> Word::get(const string &word)
         {
             return _M_words[word];
@@ -71,14 +75,31 @@ namespace phi
         {
             REIDENTIFY_IMPL;
         }
+        
         const Token *Token::reidentify() const
         {
 
             REIDENTIFY_IMPL;
         }
+
         bool Token::operator==(const Token &token) const
         {
             return equals(*this, token);
+        }
+        
+        size_t Token::hash() const
+        {
+            return tag();
+        }
+
+        size_t Integer::hash() const
+        {
+            return tag() + value();
+        }
+
+        size_t Real::hash() const
+        {
+            return tag() + value();
         }
     } // namespace token
 } // namespace phi

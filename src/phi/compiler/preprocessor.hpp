@@ -4,11 +4,16 @@
 
 namespace phi
 {
+    // TODO : PreprocessRule with arguments
     struct PreprocessRule
     {
-        unordered_map<token::Token, Ref<token::Token>> replacements;
+        PreprocessRule() {}
+        PreprocessRule(const string &path);
 
-        bool replaceable(Ref<token::Token> token) { return replacements.find(*token) != replacements.end(); }
+        unordered_map<Ref<token::Token>, token::tokens> replacements;
+
+        bool replaceable(Ref<token::Token> token) { return replacements.find(token) != replacements.end(); }
+        token::tokens &getReplacement(Ref<token::Token> token) { return replacements[token]; }
     };
 
     class Preprocessor
@@ -19,9 +24,9 @@ namespace phi
 
     public:
         Preprocessor(const token::tokens &t) : _M_tokens(t), _M_rule(nullptr) {}
-        Preprocessor(const token::tokens &t, PreprocessRule *rule) : _M_tokens(t), _M_rule(rule) {}
+        Preprocessor(const token::tokens &t, const PreprocessRule &rule) : _M_tokens(t), _M_rule(new PreprocessRule{rule}) {}
 
-        void setRule(PreprocessRule *rule) { _M_rule.reset(rule); }
+        void setRule(const PreprocessRule &rule) { _M_rule.reset(new PreprocessRule{rule}); }
 
         list<Ref<token::Token>> &getTokens();
     };

@@ -120,6 +120,11 @@ namespace phi
         T *operator->() { return _M_ptr; }
         const T *operator->() const { return _M_ptr; }
 
+        bool operator==(const Reference<T>& ref) const
+        {
+            return _M_ptr == ref._M_ptr;
+        }
+
         operator bool()
         {
             return _M_ptr;
@@ -214,3 +219,16 @@ namespace phi
         return os;
     }
 } // namespace phi
+
+namespace std
+{
+    template <typename T>
+    struct hash<phi::Reference<T>>
+    {
+        size_t operator()(const phi::Reference<T> &ref) const
+        {
+            return std::hash<T>()(*ref);
+        }
+    };
+
+} // namespace std
