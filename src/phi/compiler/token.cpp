@@ -8,6 +8,8 @@ namespace phi
     {                                     \
         what, new Word { what, Tag::tag } \
     }
+
+        map<string, Ref<string>> Word::_M_symbols;
         map<string, Ref<Word>> Word::_M_words{
             WORD("if", IF),
             WORD("else", ELSE),
@@ -17,6 +19,9 @@ namespace phi
             WORD("break", BREAK),
             WORD("continue", CONTINUE),
             WORD("import", IMPORT),
+            WORD("as", AS),
+            WORD("var", VAR),
+            WORD("eval", EVAL),
             WORD("true", TRUE),
             WORD("false", FALSE),
             WORD("&&", AND),
@@ -25,6 +30,8 @@ namespace phi
             WORD("!=", NE),
             WORD(">=", GE),
             WORD("<=", LE),
+            WORD("++", INC),
+            WORD("--", RED),
         };
 
         void Word::put(const string &word)
@@ -39,13 +46,21 @@ namespace phi
         {
             return _M_words.find(word) != _M_words.end();
         }
+        void Word::value(const string &value)
+        {
+            if (_M_symbols.find(value) == _M_symbols.end())
+            {
+                _M_symbols[value] = new string{value};
+            }
+            _M_value = _M_symbols[value];
+        }
         size_t Word::hash() const
         {
-            return tag() + std::hash<string>()(value());
+            return tag() + std::hash<string>()(*_M_value);
         }
         Ref<Word> Word::get(const string &word)
         {
-            return _M_words[word];
+            return new Word{*_M_words[word]};
         }
 
 #define REIDENTIFY_IMPL         \
@@ -53,6 +68,7 @@ namespace phi
     {                           \
     case Tag::ID:               \
     case Tag::STRING:           \
+    case Tag::VAR:              \
     case Tag::IF:               \
     case Tag::ELSE:             \
     case Tag::FOR:              \
@@ -63,6 +79,16 @@ namespace phi
     case Tag::TRUE:             \
     case Tag::FALSE:            \
     case Tag::IMPORT:           \
+    case Tag::AS:               \
+    case Tag::EVAL:             \
+    case Tag::AND:              \
+    case Tag::OR:               \
+    case Tag::LE:               \
+    case Tag::GE:               \
+    case Tag::EQ:               \
+    case Tag::NE:               \
+    case Tag::INC:              \
+    case Tag::RED:              \
         return (Word *)this;    \
     case Tag::REAL:             \
         return (Real *)this;    \
@@ -75,7 +101,7 @@ namespace phi
         {
             REIDENTIFY_IMPL;
         }
-        
+
         const Token *Token::reidentify() const
         {
 
@@ -86,7 +112,7 @@ namespace phi
         {
             return equals(*this, token);
         }
-        
+
         size_t Token::hash() const
         {
             return tag();
@@ -100,6 +126,66 @@ namespace phi
         size_t Real::hash() const
         {
             return tag() + value();
+        }
+
+        string toString(tag_t tag)
+        {
+            if (tag < 256)
+                return string(1, char(tag));
+            switch (tag)
+            {
+            case Tag::ID:
+                return "identifier";
+            case Tag::STRING:
+                return "string";
+            case Tag::INT:
+                return "integer";
+            case Tag::REAL:
+                return "real";
+            case Tag::VAR:
+                return "var";
+            case Tag::IF:
+                return "if";
+            case Tag::ELSE:
+                return "else";
+            case Tag::FOR:
+                return "for";
+            case Tag::WHILE:
+                return "while";
+            case Tag::DO:
+                return "do";
+            case Tag::BREAK:
+                return "break";
+            case Tag::CONTINUE:
+                return "continue";
+            case Tag::TRUE:
+                return "true";
+            case Tag::FALSE:
+                return "false";
+            case Tag::IMPORT:
+                return "import";
+            case Tag::AS:
+                return "as";
+            case Tag::EVAL:
+                return "eval";
+            case Tag::AND:
+                return "&&";
+            case Tag::OR:
+                return "||";
+            case Tag::EQ:
+                return "==";
+            case Tag::NE:
+                return "!=";
+            case Tag::GE:
+                return ">=";
+            case Tag::LE:
+                return "<=";
+            case Tag::INC:
+                return "++";
+            case Tag::RED:
+                return "--";
+            }
+            return "unknown";
         }
     } // namespace token
 } // namespace phi

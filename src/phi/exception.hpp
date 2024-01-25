@@ -3,15 +3,15 @@
 #include <phi/variant.hpp>
 #include <sstream>
 
-#define DefineException(name, parent)       \
-    class name : public parent              \
-    {                                       \
-    public:                                 \
-        using parent::parent;               \
-        virtual string className() override \
-        {                                   \
-            return #name;                   \
-        }                                   \
+#define DefineException(name, parent)             \
+    class name : public parent                    \
+    {                                             \
+    public:                                       \
+        using parent::parent;                     \
+        virtual string className() const override \
+        {                                         \
+            return #name;                         \
+        }                                         \
     };
 
 namespace phi
@@ -25,21 +25,21 @@ namespace phi
         Exception() = default;
         Exception(const string &what) : _M_what(what) {}
 
-        virtual string className()
+        virtual string className() const
         {
             return "Exception";
         }
-        virtual string what()
+        virtual string what() const
         {
             return _M_what;
         }
     };
 
     DefineException(RuntimeException, Exception)
-    DefineException(CompileException, Exception)
-    DefineException(SyntaxException, CompileException)
+        DefineException(CompileException, Exception)
+            DefineException(SyntaxException, CompileException)
 
-    class BinaryException : public RuntimeException
+                class BinaryException : public RuntimeException
     {
     private:
         Variant::Type _M_a;
@@ -50,12 +50,12 @@ namespace phi
 
         BinaryException(Variant::Type a, Variant::Type b) : _M_a(a), _M_b(b) {}
 
-        virtual string className() override
+        virtual string className() const override
         {
             return "BinaryException";
         }
 
-        virtual string what() override
+        virtual string what() const override
         {
             static std::ostringstream ss;
             ss.str("");
@@ -74,14 +74,14 @@ namespace phi
     public:
         using RuntimeException::RuntimeException;
 
-        UnaryException(Variant::Type t) : _M_t(t) {}
+        explicit UnaryException(Variant::Type t) : _M_t(t) {}
 
-        virtual string className() override
+        virtual string className() const override
         {
             return "UnaryException";
         }
 
-        virtual string what() override
+        virtual string what() const override
         {
             static std::ostringstream ss;
             ss.str("");
@@ -108,12 +108,12 @@ namespace phi
 
         ArgumentException(integer expected, integer actually, const string &method) : _M_expected(expected), _M_actually(actually), _M_method(method) {}
 
-        virtual string className() override
+        virtual string className() const override
         {
             return "ArgumentException";
         }
 
-        string what() override
+        string what() const override
         {
             static std::ostringstream ss;
             ss.str("");
@@ -131,14 +131,14 @@ namespace phi
     public:
         using Exception::Exception;
 
-        FileException(const string& filename) : _M_filename(filename) {}
+        FileException(const string &filename) : _M_filename(filename) {}
 
-        virtual string className() override
+        virtual string className() const override
         {
             return "FilenameException";
         }
 
-        string what() override
+        string what() const override
         {
             static std::ostringstream ss;
             ss.str("");
