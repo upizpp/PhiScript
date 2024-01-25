@@ -1,6 +1,7 @@
 .build
 .test_build
 .debug_build
+.vscode
 __pycache__
 phi.exe
 test.exe
