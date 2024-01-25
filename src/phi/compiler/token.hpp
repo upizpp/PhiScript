@@ -20,7 +20,10 @@ namespace phi
             GE,
             EQ,
             NE,
+            INC, // increase
+            RED, // reduce
             // keywords
+            VAR,
             IF,
             ELSE,
             FOR,
@@ -30,13 +33,18 @@ namespace phi
             CONTINUE,
             TRUE,
             FALSE,
-            IMPORT
+            IMPORT,
+            AS,
+            EVAL
         };
+
+        string toString(tag_t tag);
 
         class Token
         {
         private:
             tag_t _M_tag;
+            integer _M_line;
 
         public:
             Token() : _M_tag(0) {}
@@ -46,14 +54,22 @@ namespace phi
 
             virtual operator string() const
             {
-                if (_M_tag < 256)
-                    return '(' + string(1, char(_M_tag)) + ')';
-                else
-                    return '(' + std::to_string(_M_tag) + ')';
+                return '(' + token::toString(tag()) + ")\t\t\t- line: " + std::to_string(line());
+            }
+            virtual string toString() const
+            {
+                return '(' + token::toString(tag()) + ')';
             }
 
             const Token *reidentify() const;
             Token *reidentify();
+
+            Token *line(integer l)
+            {
+                _M_line = l;
+                return this;
+            }
+            integer line() const { return _M_line; }
 
             bool operator==(const Token &token) const;
 
@@ -71,7 +87,14 @@ namespace phi
             integer value() const { return _M_value; }
             size_t hash() const override;
 
-            operator string() const override { return '[' + std::to_string(_M_value) + ']'; }
+            operator string() const override
+            {
+                return '[' + std::to_string(_M_value) + "]\t\t\t- line: " + std::to_string(line());
+            }
+            virtual string toString() const
+            {
+                return '[' + std::to_string(_M_value) + ']';
+            }
         };
 
         class Real : public Token
@@ -85,35 +108,61 @@ namespace phi
             real value() const { return _M_value; }
             size_t hash() const override;
 
-            operator string() const override { return "[" + std::to_string(_M_value) + ']'; }
+            operator string() const override
+            {
+                return "[" + std::to_string(_M_value) + "]\t\t\t- line: " + std::to_string(line());
+            }
+            virtual string toString() const
+            {
+                return '[' + std::to_string(_M_value) + ']';
+            }
         };
 
         class Word : public Token
         {
         private:
-            string _M_value;
+            Ref<string> _M_value;
 
+            static map<string, Ref<string>> _M_symbols;
             static map<string, Ref<Word>> _M_words;
 
         public:
-            explicit Word(string value, tag_t tag) : Token(tag), _M_value(value) {}
+            Word(const Word &word) : Token(word.tag())
+            {
+                value(word.value());
+                line(word.line());
+            }
+            explicit Word(string v, tag_t tag) : Token(tag)
+            {
+                value(v);
+            }
 
             static void put(const string &);
             static void put(const string &, Tag);
             static bool has(const string &);
             static Ref<Word> get(const string &);
 
-            const string &value() const { return _M_value; }
+            const string &value() const { return *_M_value; }
+            void value(const string &value);
+            Ref<string> valueP() { return _M_value; }
             size_t hash() const override;
 
-            void merge(const Word &word) { _M_value += word.value(); }
+            void merge(const Word &word) { value(value() + word.value()); }
 
             operator string() const
             {
                 if (tag() == Tag::STRING)
-                    return '"' + _M_value + '"';
+                    return '"' + *_M_value + "\"\t\t\t- line: " + std::to_string(line());
                 else
-                    return '{' + _M_value + '}';
+                    return '{' + *_M_value + "}\t\t\t- line: " + std::to_string(line());
+            }
+
+            virtual string toString() const
+            {
+                if (tag() == Tag::STRING)
+                    return '"' + *_M_value + '"';
+                else
+                    return '{' + *_M_value + '}';
             }
         };
 
@@ -144,7 +193,7 @@ namespace phi
 
     inline std::ostream &operator<<(std::ostream &os, const token::Token &token)
     {
-        return os << token.reidentify()->operator std::string();
+        return os << token.reidentify()->toString();
     }
 } // namespace phi
 
@@ -159,7 +208,7 @@ namespace std
         }
     };
 
-    template<>
+    template <>
     struct equal_to<phi::Ref<phi::token::Token>>
     {
         bool operator()(const phi::Ref<phi::token::Token> &a, const phi::Ref<phi::token::Token> &b) const

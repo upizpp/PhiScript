@@ -63,7 +63,8 @@ namespace phi
         {
             ref._M_ptr = nullptr;
         }
-        template <typename U>
+        template <typename U,
+            typename = typename std::enable_if<std::is_base_of<T, U>::value || std::is_base_of<U, T>::value>::type>
         Reference(const Reference<U> &ref) : _M_ptr(static_cast<T *>(const_cast<U *>(ref.data())))
         {
             reference();

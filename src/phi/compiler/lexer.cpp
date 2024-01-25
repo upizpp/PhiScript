@@ -33,8 +33,8 @@ namespace phi
     {
         char_t peek = _M_peek;
         skipWhitespace();
-        if (!read(EOF))
-            unget();
+        unget();
+        // if (!read(EOF))
         _M_peek = peek;
     }
 
@@ -42,25 +42,29 @@ namespace phi
     {
         using R = Ref<Token>;
         static std::ostringstream os;
-        // skip whitespace
         skipWhitespace();
 
         {
             R res;
+            uinteger l = line();
             switch (_M_peek)
             {
             case '&':
-                return (res = read('&') ? R(Word::get("&&")) : R(new Token('&')), checkEOF(), res);
+                return (res = read('&') ? R(Word::get("&&")) : R(new Token('&')), checkEOF(), res)->line(l);
             case '|':
-                return (res = read('|') ? R(Word::get("||")) : R(new Token('|')), checkEOF(), res);
+                return (res = read('|') ? R(Word::get("||")) : R(new Token('|')), checkEOF(), res)->line(l);
             case '=':
-                return (res = read('=') ? R(Word::get("==")) : R(new Token('=')), checkEOF(), res);
+                return (res = read('=') ? R(Word::get("==")) : R(new Token('=')), checkEOF(), res)->line(l);
             case '!':
-                return (res = read('=') ? R(Word::get("!=")) : R(new Token('!')), checkEOF(), res);
+                return (res = read('=') ? R(Word::get("!=")) : R(new Token('!')), checkEOF(), res)->line(l);
             case '<':
-                return (res = read('=') ? R(Word::get("<=")) : R(new Token('<')), checkEOF(), res);
+                return (res = read('=') ? R(Word::get("<=")) : R(new Token('<')), checkEOF(), res)->line(l);
             case '>':
-                return (res = read('=') ? R(Word::get(">=")) : R(new Token('>')), checkEOF(), res);
+                return (res = read('=') ? R(Word::get(">=")) : R(new Token('>')), checkEOF(), res)->line(l);
+            case '+':
+                return (res = read('+') ? R(Word::get("++")) : R(new Token('+')), checkEOF(), res)->line(l);
+            case '-':
+                return (res = read('-') ? R(Word::get("--")) : R(new Token('-')), checkEOF(), res)->line(l);
             }
         }
 
@@ -75,7 +79,8 @@ namespace phi
             if (_M_peek != '.')
             {
                 unget();
-                return new Integer{x};
+                checkEOF();
+                return (new Integer{x})->line(line());
             }
             real y = x;
             real d = 10;
@@ -88,10 +93,10 @@ namespace phi
             } while (std::isdigit(_M_peek));
             unget();
             checkEOF();
-            return new Real{y};
+            return (new Real{y})->line(line());
         }
 
-        if (isalpha(_M_peek) || _M_peek == '_' || byte_length(_M_peek) > 1)
+        if (_M_peek != char_t(EOF) && (isalpha(_M_peek) || _M_peek == '_' || byte_length(_M_peek) > 1))
         {
             os.str("");
             do
@@ -111,8 +116,9 @@ namespace phi
             string s = os.str();
             if (!Word::has(s))
                 Word::put(s);
+            uinteger l = line();
             checkEOF();
-            return Word::get(s);
+            return Word::get(s)->line(l);
         }
 
 #define STRING_IMPL(terminal)                                    \
@@ -165,24 +171,31 @@ namespace phi
             os << ch;                                            \
             read();                                              \
         } while (_M_peek != terminal);                           \
+        uinteger l = line();                                     \
         checkEOF();                                              \
         string s = os.str();                                     \
         if (!Word::has(s))                                       \
             Word::put(s, Tag::STRING);                           \
-        return Word::get(s);                                     \
+        return Word::get(s)->line(l);                            \
     }
         STRING_IMPL('"');
         STRING_IMPL('\'');
 
+        uinteger l = line();
         checkEOF();
-        return new Token(_M_peek);
+        return (new Token(_M_peek))->line(l);
     }
 
     list<Ref<token::Token>> Lexer::getTokens()
     {
         list<Ref<token::Token>> tokens;
         while (!eof())
-            tokens.push_back(getNextToken());
+        {
+            auto token = getNextToken();
+            if (token->tag() == char_t(EOF))
+                break;
+            tokens.push_back(token);
+        }
         return tokens;
     }
 
