@@ -51,15 +51,16 @@ namespace phi
 
     Parser::node Parser::block()
     {
+        Ref<token::Token> tok = _M_look;
         match('{');
-        auto block = new Block{(Ref<Expr>)sequence()};
+        auto block = new Block{sequence(), tok};
         match('}');
         return block;
     }
     Parser::node Parser::sequence()
     {
         if (_M_look->tag() == '}')
-            return nullptr;
+            return new Sequence;
         if (_M_look->tag() == ';')
             return (move(), sequence());
         node x = expr();

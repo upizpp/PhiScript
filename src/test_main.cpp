@@ -12,7 +12,7 @@ int main()
         Lexer lexer(new FileScanner("D:\\User File\\Projects\\VSCode\\PhiScript\\src\\phi_script\\test.phi"));
         Preprocessor preprocessor(lexer.getTokens());
         Parser parser;
-        auto tokens = preprocessor.getTokens();
+        auto& tokens = preprocessor.getTokens();
         auto tree = parser.parse(tokens);
         if (tree)
             tree->print();

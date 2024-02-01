@@ -21,6 +21,8 @@ namespace phi
     void Sequence::print(uinteger level)
     {
         INIT;
+        if (!_M_current)
+            return;
         _M_current->print(level);
         OS << "\n";
         if (_M_next)
@@ -30,14 +32,16 @@ namespace phi
     void Block::print(uinteger level)
     {
         INIT;
-        if (_M_seq)
+        if (_M_seq && !_M_seq->isNull())
         {
             OS << "{\n";
             _M_seq->print(level + 1);
+            OS << "}";
         }
         else
-            OS << "{";
-        OS << "}";
+        {
+            OS << "{}";
+        }
     }
 
     void Unary::print(uinteger level)

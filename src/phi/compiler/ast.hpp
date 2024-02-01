@@ -51,10 +51,13 @@ namespace phi
             Ref<Expr> _M_next;
 
         public:
+            Sequence() {}
             Sequence(Ref<Expr> current, Ref<Expr> next) : _M_current(current), _M_next(next) {}
 
             Ref<Expr> current() { return _M_current; }
             Ref<Expr> next() { return _M_next; }
+
+            bool isNull() const { return !_M_current; }
 
             virtual void print(uinteger level = 0) override;
         };
@@ -62,11 +65,11 @@ namespace phi
         class Block : public Expr
         {
         private:
-            Ref<Expr> _M_seq;
+            Ref<Sequence> _M_seq;
 
         public:
             using Expr::Expr;
-            explicit Block(Ref<Expr> seq) : Expr(seq->op()), _M_seq(seq) {}
+            explicit Block(Ref<Sequence> seq, Ref<token::Token> op) : Expr(op), _M_seq(seq) {}
 
             virtual void print(uinteger level = 0) override;
         };

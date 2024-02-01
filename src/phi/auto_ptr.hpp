@@ -126,7 +126,7 @@ namespace phi
             return _M_ptr == ref._M_ptr;
         }
 
-        operator bool()
+        operator bool() const
         {
             return _M_ptr;
         }
