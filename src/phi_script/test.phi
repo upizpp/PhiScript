@@ -1,4 +1,3 @@
-if (1 == 1)
-{
-    1 2 
-}
+import a as b
+import test
+++a

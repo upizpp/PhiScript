@@ -178,8 +178,23 @@ namespace phi
 			Ref<Expr> _M_expr;
 
 		public:
-			explicit Eval(Ref<token::Token> tok, Ref<Expr> expr) : Stmt(tok), 
+			Eval(Ref<token::Token> tok, Ref<Expr> expr) : Stmt(tok), 
 				_M_expr(expr) {}
+
+			virtual void print(uinteger level = 0) override;
+		};
+
+		class Import : public Stmt
+		{
+		private:
+			Ref<token::Word> _M_module_name;
+			Ref<token::Word> _M_import_name;
+		public:
+			Import(Ref<token::Token> tok, Ref<token::Word> module_name) : Stmt(tok), _M_module_name(module_name), _M_import_name(module_name) {}
+			Import(Ref<token::Token> tok, Ref<token::Word> module_name, Ref<token::Word> import_name): Stmt(tok), _M_module_name(module_name), _M_import_name(import_name) {}
+			
+			const string& module() const { return _M_module_name->value(); }
+			const string& import() const { return _M_import_name->value(); }
 
 			virtual void print(uinteger level = 0) override;
 		};

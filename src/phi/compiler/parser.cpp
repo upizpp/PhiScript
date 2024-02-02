@@ -22,6 +22,16 @@ namespace phi
 				", expected '" + token::toString(tag) + '\'');
 	}
 
+	void Parser::match(std::set<token::tag_t> tags)
+	{
+		if (tags.find(_M_look->tag()) != tags.end())
+			move();
+		else
+			throw SyntaxException(
+				"Unexpected token " + _M_look->toString() +
+				" at line " + std::to_string(_M_look->line()));
+	}
+
 	void Parser::move()
 	{
 		++_M_it;
@@ -261,6 +271,21 @@ namespace phi
 			tok = _M_look;
 			move();
 			return new Eval{ tok, expr() };
+		case Tag::IMPORT:
+		{
+			tok = _M_look;
+			move();
+			token_t module_name = _M_look;
+			token_t import_name = module_name;
+			match({Tag::ID, Tag::STRING});
+			if (_M_look->tag() == Tag::AS)
+			{
+				move();
+				import_name = _M_look;
+				match({ Tag::ID, Tag::STRING });
+			}
+			return new Import{ tok, module_name, import_name };
+		}
 		case Tag::DELETE:
 			tok = _M_look;
 			move();

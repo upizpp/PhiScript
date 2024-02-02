@@ -1,6 +1,7 @@
 #pragma once
 #include <phi/compiler/ast.hpp>
 #include <phi/compiler/token.hpp>
+#include <set>
 
 namespace phi
 {
@@ -22,6 +23,7 @@ namespace phi
 
     private:
         void match(token::tag_t tag);
+        void match(std::set<token::tag_t> tags);
         void move();
 
         node_t block();

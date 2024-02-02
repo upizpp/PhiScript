@@ -191,4 +191,9 @@ namespace phi
         _M_operand->print(level + 1);
     }
 
+    void Import::print(uinteger level)
+    {
+        INIT;
+        OS << "import " << module() << " as " << import();
+    }
 } // namespace phi
