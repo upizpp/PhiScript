@@ -32,15 +32,25 @@ namespace phi
 
     void Comma::print(uinteger level)
     {
+        static bool title = true;
         INIT;
         if (!_M_current)
             return;
-        _M_current->print(level);
+        bool flag = false;
+        if (title)
+        {
+            OS << "Comma\n";
+            title = false;
+            flag = true;
+        }
+        _M_current->print(level + flag);
         if (_M_next)
         {
             OS << "\n";
-            _M_next->print(level);
+            _M_next->print(level + flag);
         }
+        if (flag)
+            title = true;
     }
 
     void Call::print(uinteger level)
@@ -120,9 +130,9 @@ namespace phi
     void If::print(uinteger level)
     {
         INIT;
-        OS << "if\ncond:\n";
+        OS << "if\n";
         _M_condition->print(level);
-        cout << "\nbody:\n";
+        cout << '\n';
         _M_body->print(level + 1);
     }
 
@@ -138,9 +148,9 @@ namespace phi
     void While::print(uinteger level)
     {
         INIT;
-        OS << "while\ncond:\n";
+        OS << "while\n";
         _M_condition->print(level);
-        cout << "\nbody:\n";
+        cout << '\n';
         _M_body->print(level + 1);
     }
 
@@ -156,13 +166,13 @@ namespace phi
     void For::print(uinteger level)
     {
         INIT;
-        OS << "for\ninit:\n";
+        OS << "for\n";
         _M_init->print(level);
-        cout << "\ncond:\n";
+        cout << '\n';
         _M_condition->print(level);
-        cout << "\nupdate:\n";
+        cout << '\n';
         _M_update->print(level);
-        cout << "\nbody:\n";
+        cout << '\n';
         _M_body->print(level + 1);
     }
 

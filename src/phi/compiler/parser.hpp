@@ -28,7 +28,7 @@ namespace phi
         node_t sequence();
         node_t expr();
 
-        node_t comma();
+        node_t comma(bool = true);
         node_t assign();
         node_t boolean();
         node_t bor();

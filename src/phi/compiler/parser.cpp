@@ -76,11 +76,14 @@ namespace phi
 		case ';':
 			return nullptr;
 		}
-		return comma();
+		return comma(false);
 	}
-	Parser::node_t Parser::comma()
+	Parser::node_t Parser::comma(bool required)
 	{
-		node_t x = (Node*)(new Comma{_M_look, assign(), nullptr});
+		node_t node = assign();
+		if (_M_look->tag() != ',' && !required)
+			return node;
+		node_t x = (Node*)(new Comma{_M_look, node, nullptr});
 		while (_M_look->tag() == ',')
 		{
 			token_t tok = _M_look;
@@ -226,7 +229,7 @@ namespace phi
 		{
 		case '(':
 			move();
-			x = assign();
+			x = expr();
 			match(')');
 			return x;
 		case Tag::INT:
