@@ -12,30 +12,36 @@ namespace phi
         Ref<token::Token> _M_look;
 
     public:
-        using node = Ref<ast::Node>;
+        using node_t = Ref<ast::Node>;
+        using token_t = Ref<token::Token>;
 
         Parser() : _M_tokens(nullptr) {}
 
-        node parse(token::tokens& tokens);
-        node program(const token::tokens &tokens);
+        node_t parse(token::tokens& tokens);
+        node_t program(const token::tokens &tokens);
 
     private:
         void match(token::tag_t tag);
         void move();
 
-        node block();
-        node sequence();
-        node expr();
+        node_t block();
+        node_t sequence();
+        node_t expr();
 
-        node assign();
-        node boolean();
-        node join();
-        node equality();
-        node rel();
-        node as(); // addition and subtraction
-        node md(); // Multiplication and division
-        node unary();
-        node factor();
-        node access();
+        node_t comma(bool = true);
+        node_t assign();
+        node_t boolean();
+        node_t bor();
+        node_t band();
+        node_t join();
+        node_t equality();
+        node_t rel();
+        node_t shift();
+        node_t as(); // addition and subtraction
+        node_t mdm(); // Multiplication and division and mod
+        node_t unary();
+        node_t factor();
+
+        node_t opt(node_t obj);
     };
 } // namespace phi

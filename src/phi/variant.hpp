@@ -96,6 +96,15 @@ namespace phi
         string toString() const;
         uinteger hash() const;
 
+        template<typename T>
+        T* getPtr();
+
+        template<typename T>
+        T& seeAs()
+        {
+            return *getPtr<T>();
+        }
+
 #define COMPARE_DECL(op)                      \
     bool operator op(const int &) const;      \
     bool operator op(const double &) const;   \
@@ -184,4 +193,113 @@ namespace phi
         }
     };
 
+    template<typename T>
+    struct VariantType;
+    template<>
+    struct VariantType<int>
+    {
+        static const Variant::Type value = Variant::Type::INT;
+    };
+    template<>
+    struct VariantType<integer>
+    {
+        static const Variant::Type value = Variant::Type::INT;
+    };
+    template<>
+    struct VariantType<uinteger>
+    {
+        static const Variant::Type value = Variant::Type::INT;
+    };
+    template<>
+    struct VariantType<float>
+    {
+        static const Variant::Type value = Variant::Type::REAL;
+    };
+    template<>
+    struct VariantType<real>
+    {
+        static const Variant::Type value = Variant::Type::REAL;
+    };
+    template<>
+    struct VariantType<bool>
+    {
+        static const Variant::Type value = Variant::Type::BOOL;
+    };
+    template<>
+    struct VariantType<string>
+    {
+        static const Variant::Type value = Variant::Type::STRING;
+    };
+    template<>
+    struct VariantType<char*>
+    {
+        static const Variant::Type value = Variant::Type::STRING;
+    };
+    template<>
+    struct VariantType<array>
+    {
+        static const Variant::Type value = Variant::Type::ARRAY;
+    };
+    template<typename T>
+    struct VariantType<vector<T>>
+    {
+        static const Variant::Type value = Variant::Type::REAL;
+    };
+    template<>
+    struct VariantType<dict>
+    {
+        static const Variant::Type value = Variant::Type::DICTIONARY;
+    };
+    template<>
+    struct VariantType<Object>
+    {
+        static const Variant::Type value = Variant::Type::OBJECT;
+    };
+    template<typename T>
+    struct VariantType: std::enable_if<std::is_base_of<Object, T>::value>::type
+    {
+        static const Variant::Type value = Variant::Type::OBJECT;
+    };
+    template<>
+    struct VariantType<Function>
+    {
+        static const Variant::Type value = Variant::Type::FUNCTION;
+    };
+
+    template<typename T>
+    struct TypeOf
+    {
+        static const Variant::Type value = VariantType<typename std::remove_cv<typename std::remove_reference<typename std::remove_pointer<T>::type>::type>::type>::value;
+    };
+
+
+    template<typename T>
+    T* Variant::getPtr()
+    {
+        if (type() != TypeOf<T>::value)
+            return nullptr;
+        switch (type())
+        {
+        case Type::NIL:
+            return nullptr;
+        case Type::INT:
+            return &_M_int;
+        case Type::REAL:
+            return &_M_real;
+        case Type::BOOL:
+            return &_M_bool;
+        case Type::STRING:
+            return _M_string_P;
+        case Type::DICTIONARY:
+            return _M_dict_P;
+        case Type::ARRAY:
+            return _M_array_P;
+        case Type::OBJECT:
+            return _M_obj_P;
+        case Type::FUNCTION:
+            return _M_func_P;
+        default:
+            return nullptr;
+        }
+    }
 } // namespace phi

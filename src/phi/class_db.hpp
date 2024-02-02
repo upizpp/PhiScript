@@ -114,7 +114,9 @@ namespace phi
 				try
 				{
 					using class_type = typename function_traits<F>::class_type;
-					return (static_cast<class_type*>(obj)->*f)(static_cast<typename function_traits<F>::template args<I>::type>(args.at(I))...);
+					return (static_cast<class_type*>(obj)->*f)(
+						args.at(I).seeAs<typename function_traits<F>::template args<I>::type>()...
+					);
 				}
 				catch (std::out_of_range)
 				{

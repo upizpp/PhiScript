@@ -1,4 +1,5 @@
 #include "ast.hpp"
+#include <typeinfo>
 
 #define INIT string indent = string(level * 4, ' ');
 #define OS cout << indent
@@ -29,6 +30,55 @@ namespace phi
             _M_next->print(level);
     }
 
+    void Comma::print(uinteger level)
+    {
+        static bool title = true;
+        INIT;
+        if (!_M_current)
+            return;
+        bool flag = false;
+        if (title)
+        {
+            OS << "Comma\n";
+            title = false;
+            flag = true;
+        }
+        _M_current->print(level + flag);
+        if (_M_next)
+        {
+            OS << "\n";
+            _M_next->print(level + flag);
+        }
+        if (flag)
+            title = true;
+    }
+
+    void Call::print(uinteger level)
+    {
+        INIT;
+        OS << "Call\n";
+        _M_method->print(level + 1);
+        if (_M_args)
+        {
+            cout << '\n';
+            OS << "    Args:\n";
+            _M_args->print(level + 2);
+        }
+    }
+
+    void Access::print(uinteger level)
+    {
+        INIT;
+        OS << "Access\n";
+        _M_obj->print(level + 1);
+        if (_M_args)
+        {
+            cout << '\n';
+            OS << "    Args:\n";
+            _M_args->print(level + 2);
+        }
+    }
+
     void Block::print(uinteger level)
     {
         INIT;
@@ -39,9 +89,7 @@ namespace phi
             OS << "}";
         }
         else
-        {
             OS << "{}";
-        }
     }
 
     void Unary::print(uinteger level)
@@ -82,9 +130,9 @@ namespace phi
     void If::print(uinteger level)
     {
         INIT;
-        OS << "if\ncond:\n";
+        OS << "if\n";
         _M_condition->print(level);
-        cout << "\nbody:\n";
+        cout << '\n';
         _M_body->print(level + 1);
     }
 
@@ -100,9 +148,9 @@ namespace phi
     void While::print(uinteger level)
     {
         INIT;
-        OS << "while\ncond:\n";
+        OS << "while\n";
         _M_condition->print(level);
-        cout << "\nbody:\n";
+        cout << '\n';
         _M_body->print(level + 1);
     }
 
@@ -115,16 +163,16 @@ namespace phi
         _M_else->print(level + 1);
     }
 
-    void phi::ast::For::print(uinteger level)
+    void For::print(uinteger level)
     {
         INIT;
-        OS << "for\ninit:\n";
+        OS << "for\n";
         _M_init->print(level);
-        cout << "\ncond:\n";
+        cout << '\n';
         _M_condition->print(level);
-        cout << "\nupdate:\n";
+        cout << '\n';
         _M_update->print(level);
-        cout << "\nbody:\n";
+        cout << '\n';
         _M_body->print(level + 1);
     }
 
@@ -136,4 +184,11 @@ namespace phi
         OS << "else\n";
         _M_else->print(level + 1);
     }
+    void Delete::print(uinteger level)
+    {
+        INIT;
+        OS << "delete\n";
+        _M_operand->print(level + 1);
+    }
+
 } // namespace phi

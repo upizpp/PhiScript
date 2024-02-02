@@ -22,6 +22,9 @@ namespace phi
             NE,
             INC, // increase
             RED, // reduce
+            LSHIFT,
+            RSHIFT,
+            POWER,
             // keywords
             VAR,
             IF,
@@ -35,7 +38,8 @@ namespace phi
             FALSE,
             IMPORT,
             AS,
-            EVAL
+            EVAL,
+            DELETE,
         };
 
         string toString(tag_t tag);
