@@ -36,6 +36,9 @@ namespace phi
                 _M_scanner->unget();
         }
 
+
+        Ref<token::Token> getNextTokenImpl();
+
     public:
         Lexer(Scanner *scanner) : _M_scanner(scanner), _M_line(1) {}
 

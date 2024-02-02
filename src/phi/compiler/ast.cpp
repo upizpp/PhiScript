@@ -1,4 +1,5 @@
 #include "ast.hpp"
+#include <typeinfo>
 
 #define INIT string indent = string(level * 4, ' ');
 #define OS cout << indent
@@ -29,6 +30,45 @@ namespace phi
             _M_next->print(level);
     }
 
+    void Comma::print(uinteger level)
+    {
+        INIT;
+        if (!_M_current)
+            return;
+        _M_current->print(level);
+        if (_M_next)
+        {
+            OS << "\n";
+            _M_next->print(level);
+        }
+    }
+
+    void Call::print(uinteger level)
+    {
+        INIT;
+        OS << "Call\n";
+        _M_method->print(level + 1);
+        if (_M_args)
+        {
+            cout << '\n';
+            OS << "    Args:\n";
+            _M_args->print(level + 2);
+        }
+    }
+
+    void Access::print(uinteger level)
+    {
+        INIT;
+        OS << "Access\n";
+        _M_obj->print(level + 1);
+        if (_M_args)
+        {
+            cout << '\n';
+            OS << "    Args:\n";
+            _M_args->print(level + 2);
+        }
+    }
+
     void Block::print(uinteger level)
     {
         INIT;
@@ -39,9 +79,7 @@ namespace phi
             OS << "}";
         }
         else
-        {
             OS << "{}";
-        }
     }
 
     void Unary::print(uinteger level)
@@ -115,7 +153,7 @@ namespace phi
         _M_else->print(level + 1);
     }
 
-    void phi::ast::For::print(uinteger level)
+    void For::print(uinteger level)
     {
         INIT;
         OS << "for\ninit:\n";
@@ -136,4 +174,11 @@ namespace phi
         OS << "else\n";
         _M_else->print(level + 1);
     }
+    void Delete::print(uinteger level)
+    {
+        INIT;
+        OS << "delete\n";
+        _M_operand->print(level + 1);
+    }
+
 } // namespace phi

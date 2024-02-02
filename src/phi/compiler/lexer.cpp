@@ -38,7 +38,7 @@ namespace phi
         _M_peek = peek;
     }
 
-    Ref<Token> Lexer::getNextToken()
+    Ref<Token> Lexer::getNextTokenImpl()
     {
         using R = Ref<Token>;
         static std::ostringstream os;
@@ -50,21 +50,21 @@ namespace phi
             switch (_M_peek)
             {
             case '&':
-                return (res = read('&') ? R(Word::get("&&")) : R(new Token('&')), checkEOF(), res)->line(l);
+                return res = (read('&') ? R(Word::get("&&")) : R(new Token('&'))), checkEOF(), res;
             case '|':
-                return (res = read('|') ? R(Word::get("||")) : R(new Token('|')), checkEOF(), res)->line(l);
+                return res = (read('|') ? R(Word::get("||")) : R(new Token('|'))), checkEOF(), res;
             case '=':
-                return (res = read('=') ? R(Word::get("==")) : R(new Token('=')), checkEOF(), res)->line(l);
+                return res = (read('=') ? R(Word::get("==")) : R(new Token('='))), checkEOF(), res;
             case '!':
-                return (res = read('=') ? R(Word::get("!=")) : R(new Token('!')), checkEOF(), res)->line(l);
+                return res = (read('=') ? R(Word::get("!=")) : R(new Token('!'))), checkEOF(), res;
             case '<':
-                return (res = read('=') ? R(Word::get("<=")) : R(new Token('<')), checkEOF(), res)->line(l);
+                return res = (read('=') ? R(Word::get("<=")) : read('<') ? R(Word::get("<<")) : R(new Token('<'))), checkEOF(), res;
             case '>':
-                return (res = read('=') ? R(Word::get(">=")) : R(new Token('>')), checkEOF(), res)->line(l);
+                return res = (read('=') ? R(Word::get(">=")) : read('>') ? R(Word::get(">>")) : R(new Token('>'))), checkEOF(), res;
             case '+':
-                return (res = read('+') ? R(Word::get("++")) : R(new Token('+')), checkEOF(), res)->line(l);
+                return res = (read('+') ? R(Word::get("++")) : R(new Token('+'))), checkEOF(), res;
             case '-':
-                return (res = read('-') ? R(Word::get("--")) : R(new Token('-')), checkEOF(), res)->line(l);
+                return res = (read('-') ? R(Word::get("--")) : R(new Token('-'))), checkEOF(), res;
             }
         }
 
@@ -80,7 +80,7 @@ namespace phi
             {
                 unget();
                 checkEOF();
-                return (new Integer{x})->line(line());
+                return new Integer{x};
             }
             real y = x;
             real d = 10;
@@ -93,7 +93,7 @@ namespace phi
             } while (std::isdigit(_M_peek));
             unget();
             checkEOF();
-            return (new Real{y})->line(line());
+            return new Real{y};
         }
 
         if (_M_peek != char_t(EOF) && (isalpha(_M_peek) || _M_peek == '_' || byte_length(_M_peek) > 1))
@@ -118,7 +118,7 @@ namespace phi
                 Word::put(s);
             uinteger l = line();
             checkEOF();
-            return Word::get(s)->line(l);
+            return Word::get(s);
         }
 
 #define STRING_IMPL(terminal)                                    \
@@ -176,14 +176,20 @@ namespace phi
         string s = os.str();                                     \
         if (!Word::has(s))                                       \
             Word::put(s, Tag::STRING);                           \
-        return Word::get(s)->line(l);                            \
+        return Word::get(s);                                     \
     }
         STRING_IMPL('"');
         STRING_IMPL('\'');
 
         uinteger l = line();
         checkEOF();
-        return (new Token(_M_peek))->line(l);
+        return new Token(_M_peek);
+    }
+
+    Ref<token::Token> Lexer::getNextToken()
+    {
+        uinteger l = line();
+        return getNextTokenImpl()->line(l);
     }
 
     list<Ref<token::Token>> Lexer::getTokens()
