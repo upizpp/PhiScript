@@ -64,6 +64,10 @@ namespace phi
             {
                 return '(' + token::toString(tag()) + ')';
             }
+            virtual string stringify() const
+            {
+                return token::toString(tag());
+            }
 
             const Token *reidentify() const;
             Token *reidentify();
@@ -95,9 +99,13 @@ namespace phi
             {
                 return '[' + std::to_string(_M_value) + "]\t\t\t- line: " + std::to_string(line());
             }
-            virtual string toString() const
+            virtual string toString() const override
             {
                 return '[' + std::to_string(_M_value) + ']';
+            }
+            virtual string stringify() const override
+            {
+                return std::to_string(_M_value);
             }
         };
 
@@ -116,9 +124,13 @@ namespace phi
             {
                 return "[" + std::to_string(_M_value) + "]\t\t\t- line: " + std::to_string(line());
             }
-            virtual string toString() const
+            virtual string toString() const override
             {
                 return '[' + std::to_string(_M_value) + ']';
+            }
+            virtual string stringify() const override
+            {
+                return std::to_string(_M_value);
             }
         };
 
@@ -153,7 +165,7 @@ namespace phi
 
             void merge(const Word &word) { value(value() + word.value()); }
 
-            operator string() const
+            operator string() const override
             {
                 if (tag() == Tag::STRING)
                     return '"' + *_M_value + "\"\t\t\t- line: " + std::to_string(line());
@@ -167,6 +179,11 @@ namespace phi
                     return '"' + *_M_value + '"';
                 else
                     return '{' + *_M_value + '}';
+            }
+
+            virtual string stringify() const override
+            {
+                return value();
             }
         };
 

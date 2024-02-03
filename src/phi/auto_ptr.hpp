@@ -93,6 +93,14 @@ namespace phi
             return *this;
         }
 
+        
+        T* release()
+        {
+            T* tmp = _M_ptr;
+            reset(nullptr);
+            return tmp;
+        }
+
         void reset(T *ptr)
         {
             if (_M_ptr == ptr)
@@ -121,14 +129,18 @@ namespace phi
         T *operator->() { return _M_ptr; }
         const T *operator->() const { return _M_ptr; }
 
+        operator bool() const
+        {
+            return _M_ptr;
+        }
+
         bool operator==(const Reference<T>& ref) const
         {
             return _M_ptr == ref._M_ptr;
         }
-
-        operator bool() const
+        bool operator==(const T *ptr) const
         {
-            return _M_ptr;
+            return _M_ptr == ptr;
         }
 
         void reference()
@@ -182,6 +194,13 @@ namespace phi
             return *this;
         }
 
+        T* release()
+        {
+            T* tmp = _M_ptr;
+            reset(nullptr);
+            return tmp;
+        }
+
         void reset(T *ptr)
         {
             if (_M_ptr == ptr)
@@ -207,6 +226,15 @@ namespace phi
         T *operator->() { return _M_ptr; }
         const T *operator->() const { return _M_ptr; }
 
+        bool operator==(const Owner<T> &owner) const
+        {
+            return _M_ptr == owner._M_ptr;
+        }
+        bool operator==(const T *ptr) const
+        {
+            return _M_ptr == ptr;
+        }
+
         operator bool()
         {
             return _M_ptr;
@@ -219,6 +247,87 @@ namespace phi
         os << owner.data();
         return os;
     }
+
+    template <typename T>
+    class Borrower
+    {
+    private:
+        T* _M_ptr;
+    public:
+        Borrower(Reference<T> ref): _M_ptr(ref.data()) {}
+        Borrower(Owner<T> owner): _M_ptr(owner.data()) {}
+
+        T *data() { return _M_ptr; }
+        const T *data() const { return _M_ptr; }
+        T &operator*() { return *_M_ptr; }
+        const T &operator*() const { return *_M_ptr; }
+        T *operator->() { return _M_ptr; }
+
+        void reset(T *ptr)
+        {
+            if (_M_ptr == ptr)
+                return;
+            _M_ptr = ptr;
+        }
+        void reset(const Borrower<T> &borrower)
+        {
+            if (this == &borrower)
+                return;
+            _M_ptr = borrower._M_ptr;
+        }
+        void reset(const Reference<T>& ref)
+        {
+            if (_M_ptr == ref.data())
+                return;
+            _M_ptr = ref.data();
+        }
+        void reset(const Owner<T> &owner)
+        {
+            if (_M_ptr == owner.data())
+                return;
+            _M_ptr = owner.data();
+        }
+        T* release()
+        {
+            T* tmp = _M_ptr;
+            reset(nullptr);
+            return tmp;
+        }
+
+        Borrower<T>& operator=(T *ptr)
+        {
+            reset(ptr);
+            return *this;
+        }
+        Borrower<T>& operator=(const Borrower<T> &borrower)
+        {
+            reset(borrower);
+            return *this;
+        }
+
+        operator bool()
+        {
+            return _M_ptr;
+        }
+
+        bool operator==(const Borrower<T> &borrower) const
+        {
+            return _M_ptr == borrower._M_ptr;
+        }
+        bool operator==(const T *ptr) const
+        {
+            return _M_ptr == ptr;
+        }
+
+        operator Reference<T>()
+        {
+            return Reference<T>(_M_ptr);
+        }
+        operator Owner<T>()
+        {
+            return Owner<T>(_M_ptr);
+        }
+    };
 } // namespace phi
 
 namespace std

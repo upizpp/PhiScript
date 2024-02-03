@@ -19,9 +19,10 @@ namespace phi
         Parser() : _M_tokens(nullptr) {}
 
         node_t parse(token::tokens& tokens);
-        node_t program(const token::tokens &tokens);
 
     private:
+        node_t program(const token::tokens& tokens);
+
         void match(token::tag_t tag);
         void match(std::set<token::tag_t> tags);
         void move();

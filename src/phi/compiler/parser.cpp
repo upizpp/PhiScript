@@ -1,10 +1,14 @@
 #include "parser.hpp"
 #include <phi/exception.hpp>
 
-#define THROW throw SyntaxException("Unexpected token " + _M_look->toString() + ".")
+#define THROW                                     \
+	if (_M_look == _M_tokens->back())             \
+		throw SyntaxException("Unexpected EOF."); \
+	else                                          \
+		throw SyntaxException("Unexpected token '" + _M_look->stringify() + "'.");
 #define CHECK_NONE \
-    if (!x)        \
-    THROW
+	if (!x)        \
+	THROW
 
 namespace phi
 {
@@ -15,21 +19,28 @@ namespace phi
 	{
 		if (_M_look->tag() == tag)
 			move();
+		else if (_M_look == _M_tokens->back())
+			throw SyntaxException(
+				"Unexpected EOF at line " + std::to_string(_M_look->line()) +
+				", expected '" + token::toString(tag) + '\'' + ".");
 		else
 			throw SyntaxException(
-				"Unexpected token " + _M_look->toString() +
-				" at line " + std::to_string(_M_look->line()) +
-				", expected '" + token::toString(tag) + '\'');
+				"Unexpected token '" + _M_look->stringify() +
+				"' at line " + std::to_string(_M_look->line()) +
+				", expected '" + token::toString(tag) + '\'' + ".");
 	}
 
 	void Parser::match(std::set<token::tag_t> tags)
 	{
 		if (tags.find(_M_look->tag()) != tags.end())
 			move();
+		else if (_M_look == _M_tokens->back())
+			throw SyntaxException(
+				"Unexpected EOF at line " + std::to_string(_M_look->line()) + ".");
 		else
 			throw SyntaxException(
-				"Unexpected token " + _M_look->toString() +
-				" at line " + std::to_string(_M_look->line()));
+				"Unexpected token '" + _M_look->stringify() +
+				"' at line " + std::to_string(_M_look->line()) + ".");
 	}
 
 	void Parser::move()
@@ -39,16 +50,16 @@ namespace phi
 		// throw SyntaxException("Unexpected end of program.");
 	}
 
-	Parser::node_t Parser::parse(token::tokens& tokens)
+	Parser::node_t Parser::parse(token::tokens &tokens)
 	{
 		if (tokens.empty())
 			return new Block;
-		tokens.insert(tokens.begin(), new Token('{'));
-		tokens.insert(tokens.end(), new Token('}'));
+		tokens.insert(tokens.begin(), (new Token('{'))->line(tokens.front()->line()));
+		tokens.insert(tokens.end(), (new Token('}'))->line(tokens.back()->line()));
 		return program(tokens);
 	}
 
-	Parser::node_t Parser::program(const tokens& tokens)
+	Parser::node_t Parser::program(const tokens &tokens)
 	{
 		if (tokens.empty())
 			return new Block;
@@ -63,7 +74,7 @@ namespace phi
 	{
 		token_t tok = _M_look;
 		match('{');
-		auto block = new Block{ sequence(), tok };
+		auto block = new Block{sequence(), tok};
 		match('}');
 		return block;
 	}
@@ -75,7 +86,7 @@ namespace phi
 			return (move(), sequence());
 		node_t x = expr();
 		CHECK_NONE;
-		return (Node*)(new Sequence(x, sequence()));
+		return (Node *)(new Sequence(x, sequence()));
 	}
 	Parser::node_t Parser::expr()
 	{
@@ -93,12 +104,12 @@ namespace phi
 		node_t node = assign();
 		if (_M_look->tag() != ',' && !required)
 			return node;
-		node_t x = (Node*)(new Comma{_M_look, node, nullptr});
+		node_t x = (Node *)(new Comma{_M_look, node, nullptr});
 		while (_M_look->tag() == ',')
 		{
 			token_t tok = _M_look;
 			move();
-			x = (Node*)(new Comma{tok, x, assign()});
+			x = (Node *)(new Comma{tok, x, assign()});
 		}
 		return x;
 	}
@@ -109,7 +120,7 @@ namespace phi
 		{
 			token_t tok = _M_look;
 			move();
-			x = (Node*)(new Binary(tok, x, boolean()));
+			x = (Node *)(new Binary(tok, x, boolean()));
 		}
 		return x;
 	}
@@ -120,7 +131,7 @@ namespace phi
 		{
 			token_t tok = _M_look;
 			move();
-			x = (Node*)(new Binary(tok, x, bor()));
+			x = (Node *)(new Binary(tok, x, bor()));
 		}
 		return x;
 	}
@@ -131,7 +142,7 @@ namespace phi
 		{
 			token_t tok = _M_look;
 			move();
-			x = (Node*)(new Binary(tok, x, band()));
+			x = (Node *)(new Binary(tok, x, band()));
 		}
 		return x;
 	}
@@ -142,7 +153,7 @@ namespace phi
 		{
 			token_t tok = _M_look;
 			move();
-			x = (Node*)(new Binary(tok, x, join()));
+			x = (Node *)(new Binary(tok, x, join()));
 		}
 		return x;
 	}
@@ -153,7 +164,7 @@ namespace phi
 		{
 			token_t tok = _M_look;
 			move();
-			x = (Node*)(new Binary(tok, x, equality()));
+			x = (Node *)(new Binary(tok, x, equality()));
 		}
 		return x;
 	}
@@ -164,7 +175,7 @@ namespace phi
 		{
 			token_t tok = _M_look;
 			move();
-			x = (Node*)(new Binary(tok, x, rel()));
+			x = (Node *)(new Binary(tok, x, rel()));
 		}
 		return x;
 	}
@@ -179,7 +190,7 @@ namespace phi
 		case Tag::GE:
 			token_t tok = _M_look;
 			move();
-			return (Node*)(new Binary(tok, x, shift()));
+			return (Node *)(new Binary(tok, x, shift()));
 		}
 		return x;
 	}
@@ -190,7 +201,7 @@ namespace phi
 		{
 			token_t tok = _M_look;
 			move();
-			x = (Node*)(new Binary(tok, x, as()));
+			x = (Node *)(new Binary(tok, x, as()));
 		}
 		return x;
 	}
@@ -201,7 +212,7 @@ namespace phi
 		{
 			token_t tok = _M_look;
 			move();
-			x = (Node*)(new Binary(tok, x, mdm()));
+			x = (Node *)(new Binary(tok, x, mdm()));
 		}
 		return x;
 	}
@@ -212,7 +223,7 @@ namespace phi
 		{
 			token_t tok = _M_look;
 			move();
-			x = (Node*)(new Binary(tok, x, unary()));
+			x = (Node *)(new Binary(tok, x, unary()));
 		}
 		return x;
 	}
@@ -227,7 +238,7 @@ namespace phi
 		case Tag::RED:
 			token_t tok = _M_look;
 			move();
-			return (Node*)(new Unary(tok, unary()));
+			return (Node *)(new Unary(tok, unary()));
 		}
 		return factor();
 	}
@@ -270,7 +281,7 @@ namespace phi
 		case Tag::EVAL:
 			tok = _M_look;
 			move();
-			return new Eval{ tok, expr() };
+			return new Eval{tok, expr()};
 		case Tag::IMPORT:
 		{
 			tok = _M_look;
@@ -282,9 +293,9 @@ namespace phi
 			{
 				move();
 				import_name = _M_look;
-				match({ Tag::ID, Tag::STRING });
+				match({Tag::ID, Tag::STRING});
 			}
-			return new Import{ tok, module_name, import_name };
+			return new Import{tok, module_name, import_name};
 		}
 		case Tag::DELETE:
 			tok = _M_look;
@@ -337,10 +348,10 @@ namespace phi
 			return new ForElse(tok, init, cond, update, body, else_body);
 		}
 		}
-		THROW;
+		THROW
 	}
 
-#define IS_OPT(tok)  ((tok)->tag() == '.' || (tok)->tag() == '(' || (tok)->tag() == '[')
+#define IS_OPT(tok) ((tok)->tag() == '.' || (tok)->tag() == '(' || (tok)->tag() == '[')
 
 	Parser::node_t Parser::opt(node_t obj)
 	{
@@ -353,7 +364,7 @@ namespace phi
 			move();
 			token_t symbol = _M_look;
 			match(Tag::ID);
-			x = new Access{ tok, obj, new Comma{symbol, new Constant(symbol), nullptr} };
+			x = new Access{tok, obj, new Comma{symbol, new Constant(symbol), nullptr}};
 			break;
 		}
 		case '[':
@@ -362,7 +373,7 @@ namespace phi
 			move();
 			Ref<Comma> args = _M_look->tag() != ']' ? comma() : nullptr;
 			match(']');
-			x = new Access{ tok, obj, args };
+			x = new Access{tok, obj, args};
 			break;
 		}
 		case '(':
@@ -371,7 +382,7 @@ namespace phi
 			move();
 			Ref<Comma> args = _M_look->tag() != ')' ? comma() : nullptr;
 			match(')');
-			x = new Call{ tok, obj, args };
+			x = new Call{tok, obj, args};
 			break;
 		}
 		}
