@@ -190,7 +190,7 @@ namespace phi
         Owner &operator=(const Owner &) = delete;
         Owner &operator=(Owner &&owner)
         {
-            reset(owner);
+            reset(std::move(owner));
             return *this;
         }
 

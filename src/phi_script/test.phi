@@ -1,0 +1,7 @@
+x = if (true)
+    eval if (true)
+        eval 1
+    else
+        eval 2
+else
+    eval 3

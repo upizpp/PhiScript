@@ -54,8 +54,8 @@ namespace phi
         }
         inline Ref<Variant> lookup(arg_t id) const { return _M_GCP->find(id)->second; }
         inline const vector<OPCode> &getCodes() const { return _M_codes; }
-        inline OPCode &getLastCode() { return _M_codes.back(); }
-        inline const OPCode &getLastCode() const { return _M_codes.back(); }
+        inline OPCode &top() { return _M_codes.back(); }
+        inline const OPCode &top() const { return _M_codes.back(); }
         inline arg_t label(arg_t label) const { return _M_labels.at(label); }
         inline const unordered_map<arg_t, arg_t> &labels() const { return _M_labels; }
 

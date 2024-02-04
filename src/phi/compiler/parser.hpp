@@ -27,6 +27,8 @@ namespace phi
         void match(std::set<token::tag_t> tags);
         void move();
 
+        node_t body();
+
         node_t block();
         node_t sequence();
         node_t expr();

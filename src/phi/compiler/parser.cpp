@@ -1,6 +1,6 @@
 #include "parser.hpp"
-#include <phi/exception.hpp>
 #include <new>
+#include <phi/exception.hpp>
 
 #define THROW                                     \
 	if (_M_look == _M_tokens->back())             \
@@ -71,13 +71,40 @@ namespace phi
 		return block();
 	}
 
+	Parser::node_t Parser::body()
+	{
+		if (_M_look->tag() != '{')
+		{
+			auto res = new Block;
+			auto tmp = Block::top;
+			Block::top = res;
+			auto expr_ = expr();
+			auto eval_map = std::move(res->evalMap());
+			res = new (res)Block{new Sequence{expr_, nullptr}, _M_look};
+			res->evalMap(std::move(eval_map));
+			Block::top = tmp;
+			return res;
+		}
+		return block();
+	}
+
 	Parser::node_t Parser::block()
 	{
+		auto res = new Block;
+		auto tmp = Block::top;
+		Block::top = res;
+
 		token_t tok = _M_look;
 		match('{');
-		auto block = new Block{sequence(), tok};
+		node_t seq = sequence();
+		auto eval_map = std::move(res->evalMap());
+		res = new (res) Block{seq, tok};
+		res->evalMap(std::move(eval_map));
 		match('}');
-		return block;
+
+		Block::top = tmp;
+
+		return res;
 	}
 	Parser::node_t Parser::sequence()
 	{
@@ -117,12 +144,12 @@ namespace phi
 		node_t node = boolean();
 		if (_M_look->tag() != ',' && !required)
 			return node;
-		node_t x = (Node*)(new Comma{ _M_look, node, nullptr });
+		node_t x = (Node *)(new Comma{_M_look, node, nullptr});
 		while (_M_look->tag() == ',')
 		{
 			token_t tok = _M_look;
 			move();
-			x = (Node*)(new Comma{ tok, x, boolean() });
+			x = (Node *)(new Comma{tok, x, boolean()});
 		}
 		return x;
 	}
@@ -316,6 +343,8 @@ namespace phi
 			return new Delete{tok, expr()};
 		case Tag::IF:
 		{
+			If *node = new If;
+
 			tok = _M_look;
 			move();
 			bool likely = _M_look->tag() == Tag::UNLIKELY ? false : true;
@@ -324,17 +353,18 @@ namespace phi
 			match('(');
 			x = expr();
 			match(')');
-			node_t body = expr();
+			node_t body = this->body();
 			if (_M_look->tag() != Tag::ELSE)
-				return new If(tok, likely, x, body);
+				return new (node) If(tok, likely, x, body);
 			move();
-			node_t else_body = expr();
-			return new IfElse(tok, likely, x, body, else_body);
+			node_t else_body = this->body();
+			return new (node) IfElse(tok, likely, x, body, else_body);
 		}
 		case Tag::WHILE:
 		{
-			While* node = new While;
+			While *node = new While;
 			Loop::pushLoop(node);
+
 			tok = _M_look;
 			move();
 			string name;
@@ -342,25 +372,26 @@ namespace phi
 			{
 				move();
 				token_t tmp = _M_look;
-				match({ Tag::ID, Tag::STRING });
+				match({Tag::ID, Tag::STRING});
 				name = ((Ref<Word>)tmp)->value();
 			}
 			node->name(name);
 			match('(');
 			x = expr();
 			match(')');
-			node_t body = expr();
+			node_t body = this->body();
 			Loop::pop();
 			if (_M_look->tag() != Tag::ELSE)
-				return &(new (node)While{ tok, x, body })->name(name);
+				return &(new (node) While{tok, x, body})->name(name);
 			move();
-			node_t else_body = expr();
-			return &(new (node)WhileElse{ tok, x, body, else_body })->name(name);
+			node_t else_body = this->body();
+			return &(new (node) WhileElse{tok, x, body, else_body})->name(name);
 		}
 		case Tag::FOR:
 		{
-			For* node = new For;
+			For *node = new For;
 			Loop::pushLoop(node);
+
 			tok = _M_look;
 			move();
 			string name;
@@ -368,7 +399,7 @@ namespace phi
 			{
 				move();
 				token_t tmp = _M_look;
-				match({ Tag::ID, Tag::STRING });
+				match({Tag::ID, Tag::STRING});
 				name = ((Ref<Word>)tmp)->value();
 			}
 			node->name(name);
@@ -379,13 +410,13 @@ namespace phi
 			match(';');
 			node_t update = expr();
 			match(')');
-			node_t body = expr();
+			node_t body = this->body();
 			Loop::pop();
 			if (_M_look->tag() != Tag::ELSE)
-				return &(new (node)For{ tok, init, cond, update, body })->name(name);
+				return &(new (node) For{tok, init, cond, update, body})->name(name);
 			move();
-			node_t else_body = expr();
-			return &(new (node)ForElse{tok, init, cond, update, body, else_body})->name(name);
+			node_t else_body = this->body();
+			return &(new (node) ForElse{tok, init, cond, update, body, else_body})->name(name);
 		}
 		case Tag::BREAK:
 		{
@@ -409,7 +440,7 @@ namespace phi
 				name = ((Ref<Word>)_M_look)->value();
 				move();
 			}
-			return new Continue{ tok, name };
+			return new Continue{tok, name};
 		}
 		}
 		THROW

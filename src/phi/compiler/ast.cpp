@@ -9,6 +9,8 @@ namespace phi
 {
 	using namespace ast;
 
+	Borrower<Block> Block::top;
+
 	arg_t Node::emit_label()
 	{
 		static arg_t label = 0;
@@ -23,6 +25,9 @@ namespace phi
 
 	OPCodePacker Node::push(const OPCode &code)
 	{
+		State &state = get_state();
+		if (code.opt() == OPCode::Command::CLEAR && state.top().opt() == OPCode::Command::CLEAR)
+			return OPCodePacker();
 		return get_state().push(code);
 	}
 
@@ -136,6 +141,14 @@ namespace phi
 	{
 		INIT;
 		OS << "Constant(" << *opt() << ")";
+	}
+
+	Eval::Eval(Ref<token::Token> tok, Ref<Block> expr) : Stmt(tok),
+														 _M_expr(expr), _M_block(Block::top)
+	{
+		if (!_M_block)
+			throw CompileException("Eval cannot be used without a block.");
+		Block::top->eval(this);
 	}
 
 	void Eval::print(uinteger level)
@@ -261,6 +274,20 @@ namespace phi
 		push(OPCode{OPCode::Command::PUSH_ENV});
 		_M_seq->gen();
 		push(OPCode{OPCode::Command::POP_ENV});
+		if (!_M_eval_map)
+			return;
+		list<OPCodePacker> goto_codes;
+		goto_codes.push_back(push({OPCode::Command::GOTO}));
+		for (auto &&pair : *_M_eval_map)
+		{
+			pair.second = emit_label();
+			push({OPCode::Command::POP_ENV});
+			pair.first->genExpr();
+			goto_codes.push_back(push({OPCode::Command::GOTO}));
+		}
+		arg_t exit = emit_label();
+		for (OPCodePacker& goto_code: goto_codes)
+			goto_code->value(exit);
 	}
 
 	void Sequence::gen()
@@ -319,6 +346,11 @@ namespace phi
 
 	void Eval::gen()
 	{
+		OPCodePacker* goto_code = new OPCodePacker{push({OPCode::Command::GOTO})};
+		Generator::instance()->addTask([this, goto_code](){
+			(*goto_code)->value(this->_M_block->getLabel(this));
+			delete goto_code;
+		});
 	}
 
 	void If::gen()
@@ -331,11 +363,14 @@ namespace phi
 				body
 				L0:
 			*/
-			Node::gen(_M_test);
 
+			_M_test->gen();
 			OPCodePacker if_code = push({OPCode::Command::IFFALSE});
-			Node::gen(_M_body);
-			if_code->value(emit_label()); // L0
+
+			_M_body->gen();
+			arg_t L0 = emit_label();
+			if_code->value(L0);
+			exit(L0);
 		}
 		else
 		{
@@ -346,13 +381,16 @@ namespace phi
 				L0: body
 				L1:
 			*/
-			Node::gen(_M_test);
 
+			_M_test->gen();
 			OPCodePacker if_code = push({OPCode::Command::IFTRUE});
+
 			OPCodePacker goto_code = push({OPCode::Command::GOTO});
 			if_code->value(emit_label()); // L0
-			Node::gen(_M_body);
-			goto_code->value(emit_label()); // L1
+			_M_body->gen();
+			arg_t L1 = emit_label();
+			goto_code->value(L1);
+			exit(L1);
 		}
 	}
 
@@ -368,14 +406,17 @@ namespace phi
 				L0: else_body
 				L1:
 			*/
-			Node::gen(_M_test);
 
+			_M_test->gen();
 			OPCodePacker if_code = push({OPCode::Command::IFFALSE});
-			Node::gen(_M_body);
+
+			_M_body->gen();
 			OPCodePacker goto_code = push({OPCode::Command::GOTO});
 			if_code->value(emit_label()); // L0
-			Node::gen(_M_else);
-			goto_code->value(emit_label()); // L1
+			_M_else->gen();
+			arg_t L1 = emit_label();
+			goto_code->value(L1);
+			exit(L1);
 		}
 		else
 		{
@@ -387,14 +428,17 @@ namespace phi
 				L0: body
 				L1:
 			*/
-			Node::gen(_M_test);
 
+			_M_test->gen();
 			OPCodePacker if_code = push({OPCode::Command::IFTRUE});
-			Node::gen(_M_else);
+
+			_M_else->gen();
 			OPCodePacker goto_code = push({OPCode::Command::GOTO});
 			if_code->value(emit_label()); // L0
-			Node::gen(_M_body);
-			goto_code->value(emit_label()); // L1
+			_M_body->gen();
+			arg_t L1 = emit_label();
+			goto_code->value(L1);
+			exit(L1);
 		}
 	}
 
@@ -408,15 +452,15 @@ namespace phi
 			L1:
 		*/
 		arg_t L0 = emit_label();
-		Node::gen(_M_test);
-
+		_M_test->gen();
 		OPCodePacker if_code = push({OPCode::IFFALSE});
-		Node::gen(_M_body);
+
+		_M_body->gen();
 		entry(L0);
 		push({OPCode::GOTO, L0});
 		arg_t L1 = emit_label();
 		exit(L1);
-		if_code->value(L1); // L1
+		if_code->value(L1);
 	}
 
 	void WhileElse::gen()
@@ -432,16 +476,18 @@ namespace phi
 			goto L0
 			L2:
 		*/
-		Node::gen(_M_test);
-
+		_M_test->gen();
 		OPCodePacker if_L1 = push({OPCode::Command::IFTRUE});
 		Node::gen(_M_else);
+
 		OPCodePacker goto_L2 = push({OPCode::Command::GOTO});
 		arg_t L0 = emit_label();
-		Node::gen(_M_test);
+
+		_M_test->gen();
 		OPCodePacker if_L2 = push({OPCode::Command::IFFALSE});
+
 		if_L1->value(emit_label()); // L1
-		Node::gen(_M_body);
+		_M_body->gen();
 		entry(L0);
 		push({OPCode::Command::GOTO, L0});
 		arg_t L2 = emit_label();
@@ -471,10 +517,10 @@ namespace phi
 		OPCodePacker if_code;
 		if (_M_test)
 		{
-			Node::gen(_M_test);
+			_M_test->gen();
 			if_code = push({OPCode::Command::IFFALSE});
 		}
-		Node::gen(_M_body);
+		_M_body->gen();
 
 		Node::gen(_M_update);
 
@@ -505,16 +551,16 @@ namespace phi
 		push({OPCode::Command::PUSH_ENV});
 		Node::gen(_M_init);
 
-		Node::gen(_M_test);
+		_M_test->gen();
 		OPCodePacker if_L0 = push({OPCode::Command::IFTRUE});
 		Node::gen(_M_else);
 		OPCodePacker goto_L2 = push({OPCode::Command::GOTO});
 		arg_t L1 = emit_label();
 		entry(L1);
-		Node::gen(_M_test);
+		_M_test->gen();
 		OPCodePacker if_L2 = push({OPCode::Command::IFFALSE});
 		if_L0->value(emit_label()); // L0
-		Node::gen(_M_body);
+		_M_body->gen();
 		Node::gen(_M_update);
 
 		push({OPCode::Command::GOTO, L1});
