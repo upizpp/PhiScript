@@ -26,7 +26,7 @@ namespace phi
     }
     void Evaluator::handle(const OPCode &code)
     {
-        switch (code.op())
+        switch (code.opt())
         {
         case OPCode::Command::PUSH_VAL:
         {

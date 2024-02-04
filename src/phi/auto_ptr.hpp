@@ -9,7 +9,7 @@ namespace phi
         using counter_t = unsigned int;
         static std::map<void *, counter_t> *data_ptr;
 
-        counter_t count(void *ptr)
+        static counter_t count(void *ptr)
         {
             return (*data_ptr)[ptr];
         }
@@ -254,6 +254,8 @@ namespace phi
     private:
         T* _M_ptr;
     public:
+        Borrower() : _M_ptr(nullptr) {}
+        Borrower(T *ptr) : _M_ptr(ptr) {}
         Borrower(Reference<T> ref): _M_ptr(ref.data()) {}
         Borrower(Owner<T> owner): _M_ptr(owner.data()) {}
 

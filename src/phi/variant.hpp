@@ -169,6 +169,10 @@ namespace phi
         Variant operator-() const;
         Variant operator~() const;
         Variant operator!() const;
+
+        bool equals(const Variant&);
+
+        static bool isConvertible(Type, Type);
     };
 
     inline std::ostream &operator<<(std::ostream &os, const Variant &value)

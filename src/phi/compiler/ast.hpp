@@ -1,6 +1,7 @@
 #pragma once
 #include <phi/compiler/token.hpp>
 #include <phi/typedef.hpp>
+#include <phi/runtime/state.hpp>
 
 namespace phi
 {
@@ -11,6 +12,13 @@ namespace phi
 		private:
 			uinteger _M_line;
 
+		protected:
+			arg_t emit_label();
+			State& get_state();
+			OPCodePacker push(const OPCode&);
+
+			void gen(Ref<Node>);
+
 		public:
 			Node() : _M_line(0) {}
 			explicit Node(uinteger line) : _M_line(line) {}
@@ -19,6 +27,7 @@ namespace phi
 			void line(uinteger line) { _M_line = line; }
 
 			virtual void print(uinteger level = 0);
+			virtual void gen() = 0;
 		};
 
 		class Expr : public Node
@@ -28,12 +37,12 @@ namespace phi
 
 		public:
 			using Node::Node;
-			explicit Expr(Ref<token::Token> op) : Node(op->line()), _M_operator(op) {}
+			explicit Expr(Ref<token::Token> opt) : Node(opt->line()), _M_operator(opt) {}
 
-			Ref<token::Token> op() { return _M_operator; }
-			const Ref<token::Token> op() const { return _M_operator; }
+			Ref<token::Token> opt() { return _M_operator; }
+			const Ref<token::Token> opt() const { return _M_operator; }
 
-			virtual void print(uinteger level = 0) override;
+			virtual void print(uinteger level = 0) override = 0;
 		};
 
 		class Constant : public Expr
@@ -41,6 +50,7 @@ namespace phi
 		public:
 			using Expr::Expr;
 			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
 		};
 
 		class Sequence : public Node
@@ -65,6 +75,7 @@ namespace phi
 			bool isNull() const { return !_M_current; }
 
 			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
 		};
 
 		class Block : public Expr
@@ -74,9 +85,10 @@ namespace phi
 
 		public:
 			using Expr::Expr;
-			Block(Ref<Sequence> seq, Ref<token::Token> op) : Expr(op), _M_seq(seq) {}
+			Block(Ref<Sequence> seq, Ref<token::Token> opt) : Expr(opt), _M_seq(seq) {}
 
 			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
 		};
 
 		class Comma : public Expr
@@ -85,9 +97,10 @@ namespace phi
 			Ref<Expr> _M_current;
 			Ref<Expr> _M_next;
 		public:
-			Comma(Ref<token::Token> op, Ref<Expr> current, Ref<Expr> next): Expr(op), _M_current(current), _M_next(next) {}
+			Comma(Ref<token::Token> opt, Ref<Expr> current, Ref<Expr> next): Expr(opt), _M_current(current), _M_next(next) {}
 
 			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
 		};
 
 		class Call : public Expr
@@ -96,9 +109,10 @@ namespace phi
 			Ref<Expr> _M_method;
 			Ref<Comma> _M_args;
 		public:
-			Call(Ref<token::Token> op, Ref<Expr> method, Ref<Comma> args): Expr(op), _M_method(method), _M_args(args) {}
+			Call(Ref<token::Token> opt, Ref<Expr> method, Ref<Comma> args): Expr(opt), _M_method(method), _M_args(args) {}
 			
 			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
 		};
 
 		class Access : public Expr
@@ -107,9 +121,10 @@ namespace phi
 			Ref<Expr> _M_obj;
 			Ref<Comma> _M_args;
 		public:
-			Access(Ref<token::Token> op, Ref<Expr> obj, Ref<Comma> args) : Expr(op), _M_obj(obj), _M_args(args) {}
+			Access(Ref<token::Token> opt, Ref<Expr> obj, Ref<Comma> args) : Expr(opt), _M_obj(obj), _M_args(args) {}
 
 			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
 		};
 
 		class Unary : public Expr
@@ -122,7 +137,8 @@ namespace phi
 
 			Ref<Expr> operand() { return _M_operand; }
 
-			virtual void print(uinteger level = 0);
+			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
 		};
 
 		class Binary : public Expr
@@ -138,6 +154,7 @@ namespace phi
 			Ref<Expr> right() { return _M_right; }
 
 			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
 		};
 
 		class Load : public Expr
@@ -148,9 +165,10 @@ namespace phi
 		public:
 			Load(Ref<token::Token> token, bool var) : Expr(token), _M_var(var) {}
 
-			const string& identifier() const { return (Ref<token::Word>(op()))->value(); }
+			const string& identifier() const { return (Ref<token::Word>(opt()))->value(); }
 
 			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
 		};
 
 		class Stmt : public Expr
@@ -170,6 +188,7 @@ namespace phi
 			Ref<Expr> operand() { return _M_operand; }
 
 			virtual void print(uinteger level = 0);
+			virtual void gen() override;
 		};
 
 		class Eval : public Stmt
@@ -182,6 +201,7 @@ namespace phi
 				_M_expr(expr) {}
 
 			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
 		};
 
 		class Import : public Stmt
@@ -197,19 +217,22 @@ namespace phi
 			const string& import() const { return _M_import_name->value(); }
 
 			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
 		};
 
 		class If : public Stmt
 		{
 		protected:
-			Ref<Expr> _M_condition;
+			Ref<Expr> _M_test;
 			Ref<Expr> _M_body;
+			bool _M_likely;
 
 		public:
-			If(Ref<token::Token> tok, Ref<Expr> condition, Ref<Expr> body) : Stmt(tok),
-				_M_condition(condition), _M_body(body) {}
+			If(Ref<token::Token> tok, bool likely, Ref<Expr> condition, Ref<Expr> body) : Stmt(tok),
+				_M_likely(likely), _M_test(condition), _M_body(body) {}
 
 			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
 		};
 
 		class IfElse : public If
@@ -218,23 +241,79 @@ namespace phi
 			Ref<Expr> _M_else;
 
 		public:
-			IfElse(Ref<token::Token> tok, Ref<Expr> condition, Ref<Expr> body, Ref<Expr> else_) : If(tok, condition, body),
+			IfElse(Ref<token::Token> tok, bool likely, Ref<Expr> condition, Ref<Expr> body, Ref<Expr> else_) : 
+				If(tok, likely, condition, body),
 				_M_else(else_) {}
 
 			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
 		};
 
-		class While : public Stmt
+		class Loop : public Stmt
+		{
+		public:
+			using loops_t = std::list<Borrower<Loop>>;
+		private:
+			static loops_t _M_loops;
+
+			string _M_name;
+			arg_t _M_entry;
+			arg_t _M_exit;
+		public:
+			using Stmt::Stmt;
+
+			static void pushLoop(Borrower<Loop>);
+			static void pop();
+			static Borrower<Loop> find(const string&);
+
+			const string& name() const { return _M_name; }
+			Loop& name(const string& name) { _M_name = name; return *this; }
+
+			arg_t entry() const { return _M_entry; }
+			void entry(arg_t v) { _M_entry = v; }
+			arg_t exit() const { return _M_exit; }
+			void exit(arg_t v) { _M_exit = v; }
+		};
+
+		class Controller: public Stmt
 		{
 		protected:
-			Ref<Expr> _M_condition;
+			Ref<Loop> _M_loop;
+		public:
+			Controller(Ref<token::Token> tok, const string& name);
+		};
+
+		class Break : public Controller
+		{
+		public:
+			using Controller::Controller;
+
+			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
+		};
+
+		class Continue : public Controller
+		{
+		public:
+			using Controller::Controller;
+
+			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
+		};
+
+		class While : public Loop
+		{
+		protected:
+			Ref<Expr> _M_test;
 			Ref<Expr> _M_body;
 
 		public:
-			While(Ref<token::Token> tok, Ref<Expr> condition, Ref<Expr> body) : Stmt(tok),
-				_M_condition(condition), _M_body(body) {}
+			While() {}
+			While(Ref<token::Token> tok, Ref<Expr> condition, Ref<Expr> body) : Loop(tok),
+				_M_test(condition), _M_body(body) {}
 
 			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
 		};
 
 		class WhileElse : public While
@@ -247,22 +326,25 @@ namespace phi
 				_M_else(else_) {}
 
 			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
 		};
 
-		class For : public Stmt
+		class For : public Loop
 		{
 		protected:
 			Ref<Expr> _M_init;
-			Ref<Expr> _M_condition;
+			Ref<Expr> _M_test;
 			Ref<Expr> _M_update;
 			Ref<Expr> _M_body;
 
 		public:
-			For(Ref<token::Token> tok, Ref<Expr> init, Ref<Expr> condition, Ref<Expr> update, Ref<Expr> body) : Stmt(tok),
-				_M_init(init), _M_condition(condition),
+			For() {}
+			For(Ref<token::Token> tok, Ref<Expr> init, Ref<Expr> test, Ref<Expr> update, Ref<Expr> body) : Loop(tok),
+				_M_init(init), _M_test(test),
 				_M_update(update), _M_body(body) {}
 
 			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
 		};
 
 		class ForElse : public For
@@ -275,6 +357,7 @@ namespace phi
 				_M_else(else_) {}
 
 			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
 		};
 	} // namespace ast
 } // namespace phi

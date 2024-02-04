@@ -31,8 +31,8 @@ namespace phi
         node_t sequence();
         node_t expr();
 
-        node_t comma(bool = true);
         node_t assign();
+        node_t comma(bool = true);
         node_t boolean();
         node_t bor();
         node_t band();
@@ -42,6 +42,7 @@ namespace phi
         node_t shift();
         node_t as(); // addition and subtraction
         node_t mdm(); // Multiplication and division and mod
+        node_t power();
         node_t unary();
         node_t factor();
 

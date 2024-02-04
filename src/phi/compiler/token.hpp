@@ -16,6 +16,7 @@ namespace phi
             // operators
             AND,
             OR,
+            NOT,
             LE,
             GE,
             EQ,
@@ -24,7 +25,7 @@ namespace phi
             RED, // reduce
             LSHIFT,
             RSHIFT,
-            POWER,
+            POW,
             // keywords
             VAR,
             IF,
@@ -40,6 +41,8 @@ namespace phi
             AS,
             EVAL,
             DELETE,
+            LIKELY,
+            UNLIKELY
         };
 
         string toString(tag_t tag);
@@ -47,12 +50,12 @@ namespace phi
         class Token
         {
         private:
-            tag_t _M_tag;
+            Tag _M_tag;
             integer _M_line;
 
         public:
-            Token() : _M_tag(0) {}
-            explicit Token(tag_t tag) : _M_tag(tag) {}
+            Token() : _M_tag((Tag)0) {}
+            explicit Token(tag_t tag) : _M_tag((Tag)tag) {}
 
             tag_t tag() const { return _M_tag; }
 
