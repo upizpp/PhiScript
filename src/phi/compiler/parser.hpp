@@ -19,19 +19,24 @@ namespace phi
         Parser() : _M_tokens(nullptr) {}
 
         node_t parse(token::tokens& tokens);
-        node_t program(const token::tokens &tokens);
 
     private:
+        node_t program(const token::tokens& tokens);
+
         void match(token::tag_t tag);
         void match(std::set<token::tag_t> tags);
         void move();
 
+        node_t body();
+
         node_t block();
         node_t sequence();
         node_t expr();
+        node_t exprNoComma();
 
-        node_t comma(bool = true);
         node_t assign();
+        node_t assignNoComma();
+        node_t comma(bool required = true);
         node_t boolean();
         node_t bor();
         node_t band();
@@ -41,9 +46,13 @@ namespace phi
         node_t shift();
         node_t as(); // addition and subtraction
         node_t mdm(); // Multiplication and division and mod
+        node_t power();
         node_t unary();
         node_t factor();
 
+        node_t args();
         node_t opt(node_t obj);
+        node_t pair(node_t);
+        node_t pairs();
     };
 } // namespace phi

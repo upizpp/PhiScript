@@ -65,6 +65,8 @@ namespace phi
                 return res = (read('+') ? R(Word::get("++")) : R(new Token('+'))), checkEOF(), res;
             case '-':
                 return res = (read('-') ? R(Word::get("--")) : R(new Token('-'))), checkEOF(), res;
+            case '*':
+                return res = (read('*') ? R(Word::get("**")) : R(new Token('*'))), checkEOF(), res;
             }
         }
 

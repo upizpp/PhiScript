@@ -145,6 +145,13 @@ def get_associated_files(unit: str) -> list:
                     included_path = os.path.join("src", filename)
                 else:
                     included_path = relative_path(unit, filename)
+                    it = iter(config.includes)
+                    while not os.path.isfile(included_path):
+                        try:
+                            included_path = relative_path(next(it), filename)
+                        except StopIteration:
+                            break
+
                 if os.path.isfile(included_path):
                     result.append(included_path)
                     result.extend(get_associated_files(included_path))

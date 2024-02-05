@@ -20,9 +20,11 @@ class ConfigType:
     # the output file path
     output: str = "main.exe"
     # the compile command pattern.
-    command: str = """{compiler} {unit} {extra} -c -o {output}"""
+    command: str = """{compiler} {includes} {unit} {extra} -c -o {output}"""
     # whether to run the output file.
     auto_run: bool = True
+    # the include directories
+    includes: list = []
 
     def __init__(self, config: dict) -> None:
         self._lock(config)
@@ -37,10 +39,14 @@ class ConfigType:
         self.pick("command")
         self.pick("output")
         self.pick("auto_run")
+        self.pick("includes")
         self._unlock()
          
     def get_command(self, unit: str, output: str) -> str:
-        return self.command.format(extra=self.extra, compiler=self.compiler, output=output, unit=unit)
+        return self.command.format(
+            includes = " ".join([("-I" + x) for x in self.includes ]),
+            extra=self.extra, compiler=self.compiler, output=output, unit=unit
+        )
     
     def pick(self, key: str) -> None:
         if self.__temp is None:

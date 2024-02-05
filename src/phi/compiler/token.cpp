@@ -25,10 +25,13 @@ namespace phi
 			WORD("true", TRUE),
 			WORD("false", FALSE),
 			WORD("del", DELETE),
+			WORD("likely", LIKELY),
+			WORD("unlikely", UNLIKELY),
 			WORD("&&", AND),
 			WORD("||", OR),
 			WORD("and", AND),
 			WORD("or", OR),
+			WORD("not", NOT),
 			WORD("==", EQ),
 			WORD("!=", NE),
 			WORD(">=", GE),
@@ -37,7 +40,7 @@ namespace phi
 			WORD("--", RED),
 			WORD("<<", LSHIFT),
 			WORD(">>", RSHIFT),
-			WORD("**", POWER),
+			WORD("**", POW),
 		};
 
 		void Word::put(const string &word)
@@ -155,6 +158,12 @@ namespace phi
 				return "eval";
 			case Tag::DELETE:
 				return "del";
+			case Tag::LIKELY:
+				return "likely";
+			case Tag::UNLIKELY:
+				return "unlikely";
+			case Tag::NOT:
+				return "!";
 			case Tag::AND:
 				return "&&";
 			case Tag::OR:
@@ -175,7 +184,7 @@ namespace phi
 				return "<<";
 			case Tag::RSHIFT:
 				return ">>";
-			case Tag::POWER:
+			case Tag::POW:
 				return "**";
 			}
 			return "unknown";

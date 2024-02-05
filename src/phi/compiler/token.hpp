@@ -16,6 +16,7 @@ namespace phi
             // operators
             AND,
             OR,
+            NOT,
             LE,
             GE,
             EQ,
@@ -24,7 +25,7 @@ namespace phi
             RED, // reduce
             LSHIFT,
             RSHIFT,
-            POWER,
+            POW,
             // keywords
             VAR,
             IF,
@@ -40,6 +41,8 @@ namespace phi
             AS,
             EVAL,
             DELETE,
+            LIKELY,
+            UNLIKELY
         };
 
         string toString(tag_t tag);
@@ -47,12 +50,12 @@ namespace phi
         class Token
         {
         private:
-            tag_t _M_tag;
+            Tag _M_tag;
             integer _M_line;
 
         public:
-            Token() : _M_tag(0) {}
-            explicit Token(tag_t tag) : _M_tag(tag) {}
+            Token() : _M_tag((Tag)0) {}
+            explicit Token(tag_t tag) : _M_tag((Tag)tag) {}
 
             tag_t tag() const { return _M_tag; }
 
@@ -63,6 +66,10 @@ namespace phi
             virtual string toString() const
             {
                 return '(' + token::toString(tag()) + ')';
+            }
+            virtual string stringify() const
+            {
+                return token::toString(tag());
             }
 
             const Token *reidentify() const;
@@ -95,9 +102,13 @@ namespace phi
             {
                 return '[' + std::to_string(_M_value) + "]\t\t\t- line: " + std::to_string(line());
             }
-            virtual string toString() const
+            virtual string toString() const override
             {
                 return '[' + std::to_string(_M_value) + ']';
+            }
+            virtual string stringify() const override
+            {
+                return std::to_string(_M_value);
             }
         };
 
@@ -116,9 +127,13 @@ namespace phi
             {
                 return "[" + std::to_string(_M_value) + "]\t\t\t- line: " + std::to_string(line());
             }
-            virtual string toString() const
+            virtual string toString() const override
             {
                 return '[' + std::to_string(_M_value) + ']';
+            }
+            virtual string stringify() const override
+            {
+                return std::to_string(_M_value);
             }
         };
 
@@ -153,7 +168,7 @@ namespace phi
 
             void merge(const Word &word) { value(value() + word.value()); }
 
-            operator string() const
+            operator string() const override
             {
                 if (tag() == Tag::STRING)
                     return '"' + *_M_value + "\"\t\t\t- line: " + std::to_string(line());
@@ -167,6 +182,11 @@ namespace phi
                     return '"' + *_M_value + '"';
                 else
                     return '{' + *_M_value + '}';
+            }
+
+            virtual string stringify() const override
+            {
+                return value();
             }
         };
 
