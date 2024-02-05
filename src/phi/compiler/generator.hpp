@@ -12,7 +12,7 @@ namespace phi
         using task_t = std::function<void()>;
 
     private:
-        static Borrower<Generator> _M_current;
+        static Ref<Generator> _M_current;
 
         Borrower<State> _M_state;
         Borrower<State::gcp_t> _M_GCP;
@@ -29,5 +29,7 @@ namespace phi
         arg_t push(Ref<Variant> constant);
 
         void addTask(const task_t&);
+
+        static void clearInstance() { _M_current.release(); }
     };
 } // namespace phi

@@ -1,10 +1,13 @@
 #pragma once
 #include <phi/typedef.hpp>
+#include <phi/runtime/state.hpp>
 
 namespace phi
 {
     class Function
     {
+    private:
+        Ref<State> _M_state;
     public:
         Function() {}
         Function(const Function &) = default;

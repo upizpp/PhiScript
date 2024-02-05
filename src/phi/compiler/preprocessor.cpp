@@ -5,7 +5,7 @@
 
 namespace phi
 {
-    list<Ref<token::Token>> &Preprocessor::getTokens()
+    token::tokens &Preprocessor::getTokens()
     {
         if (_M_rule)
         {

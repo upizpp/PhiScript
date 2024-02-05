@@ -194,9 +194,9 @@ namespace phi
         return getNextTokenImpl()->line(l);
     }
 
-    list<Ref<token::Token>> Lexer::getTokens()
+    tokens Lexer::getTokens()
     {
-        list<Ref<token::Token>> tokens;
+        tokens tokens;
         while (!eof())
         {
             auto token = getNextToken();
