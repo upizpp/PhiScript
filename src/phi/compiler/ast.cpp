@@ -37,11 +37,6 @@ namespace phi
 		OS << "Node";
 	}
 
-	void Expr::print(uinteger level)
-	{
-		INIT;
-	}
-
 	void Sequence::print(uinteger level)
 	{
 		INIT;
@@ -76,6 +71,29 @@ namespace phi
 			title = true;
 	}
 
+	void Args::print(uinteger level)
+	{
+		static bool title = true;
+		INIT;
+		if (!_M_current)
+			return;
+		bool flag = false;
+		if (title)
+		{
+			OS << "Args\n";
+			title = false;
+			flag = true;
+		}
+		_M_current->print(level + flag);
+		if (_M_next)
+		{
+			OS << "\n";
+			_M_next->print(level + flag);
+		}
+		if (flag)
+			title = true;
+	}
+
 	void Call::print(uinteger level)
 	{
 		INIT;
@@ -84,8 +102,8 @@ namespace phi
 		if (_M_args)
 		{
 			cout << '\n';
-			OS << "    Args:\n";
-			_M_args->print(level + 2);
+			OS << '\n';
+			_M_args->print(level + 1);
 		}
 	}
 
@@ -251,7 +269,21 @@ namespace phi
 		OS << "continue " << _M_loop->name();
 	}
 
-	void Node::gen(Ref<Node> node)
+	void Array::print(uinteger level)
+	{
+		INIT;
+		OS << "array\n";
+		_M_members->print(level + 1);
+	}
+
+	void Dictionary::print(uinteger level)
+	{
+		INIT;
+		OS << "dictionary\n";
+		_M_members->print(level + 1);
+	}
+
+	void Stmt::genStmt(Ref<Stmt> node)
 	{
 		if (!node)
 			return;
@@ -259,12 +291,38 @@ namespace phi
 		push({OPCode::Command::CLEAR});
 	}
 
+	void Array::gen()
+	{
+		push({OPCode::Command::ARGS});
+		if (_M_members)
+			_M_members->gen();
+		push({OPCode::Command::MAKE_ARRAY});
+	}
+	
+	void Dictionary::gen()
+	{
+		push({OPCode::Command::ARGS});
+		if (_M_members)
+			_M_members->gen();
+		push({OPCode::Command::MAKE_DICT});
+	}
+
 	void Call::gen()
 	{
+		push({OPCode::Command::ARGS});
+		if (_M_args)
+			_M_args->gen();
+		_M_method->gen();
+		push({OPCode::Command::CALL});
 	}
 
 	void Access::gen()
 	{
+		push({OPCode::Command::ARGS});
+		if (_M_args)
+			_M_args->gen();
+		_M_obj->gen();
+		push({OPCode::Command::ACCESS});
 	}
 
 	void Block::gen()
@@ -286,7 +344,7 @@ namespace phi
 			goto_codes.push_back(push({OPCode::Command::GOTO}));
 		}
 		arg_t exit = emit_label();
-		for (OPCodePacker& goto_code: goto_codes)
+		for (OPCodePacker &goto_code : goto_codes)
 			goto_code->value(exit);
 	}
 
@@ -337,6 +395,7 @@ namespace phi
 		case token::Tag::REAL:
 			constant = new Variant{((Ref<token::Real>)data)->value()};
 			break;
+		case token::Tag::ID:
 		case token::Tag::STRING:
 			constant = new Variant{((Ref<token::Word>)data)->value()};
 			break;
@@ -346,11 +405,11 @@ namespace phi
 
 	void Eval::gen()
 	{
-		OPCodePacker* goto_code = new OPCodePacker{push({OPCode::Command::GOTO})};
-		Generator::instance()->addTask([this, goto_code](){
+		OPCodePacker *goto_code = new OPCodePacker{push({OPCode::Command::GOTO})};
+		Generator::instance()->addTask([this, goto_code]()
+									   {
 			(*goto_code)->value(this->_M_block->getLabel(this));
-			delete goto_code;
-		});
+			delete goto_code; });
 	}
 
 	void If::gen()
@@ -478,7 +537,7 @@ namespace phi
 		*/
 		_M_test->gen();
 		OPCodePacker if_L1 = push({OPCode::Command::IFTRUE});
-		Node::gen(_M_else);
+		Stmt::genStmt(_M_else);
 
 		OPCodePacker goto_L2 = push({OPCode::Command::GOTO});
 		arg_t L0 = emit_label();
@@ -510,7 +569,7 @@ namespace phi
 		*/
 		// TODO endless loop optimization
 		push({OPCode::Command::PUSH_ENV});
-		Node::gen(_M_init);
+		Stmt::genStmt(_M_init);
 
 		arg_t L0 = emit_label();
 		entry(L0);
@@ -522,7 +581,7 @@ namespace phi
 		}
 		_M_body->gen();
 
-		Node::gen(_M_update);
+		Stmt::genStmt(_M_update);
 
 		push({OPCode::Command::GOTO, L0});
 		arg_t L1 = emit_label();
@@ -549,11 +608,11 @@ namespace phi
 			L2: pop_env
 		*/
 		push({OPCode::Command::PUSH_ENV});
-		Node::gen(_M_init);
+		Stmt::genStmt(_M_init);
 
 		_M_test->gen();
 		OPCodePacker if_L0 = push({OPCode::Command::IFTRUE});
-		Node::gen(_M_else);
+		Stmt::genStmt(_M_else);
 		OPCodePacker goto_L2 = push({OPCode::Command::GOTO});
 		arg_t L1 = emit_label();
 		entry(L1);
@@ -561,7 +620,7 @@ namespace phi
 		OPCodePacker if_L2 = push({OPCode::Command::IFFALSE});
 		if_L0->value(emit_label()); // L0
 		_M_body->gen();
-		Node::gen(_M_update);
+		Stmt::genStmt(_M_update);
 
 		push({OPCode::Command::GOTO, L1});
 		arg_t L2 = emit_label();
@@ -591,7 +650,7 @@ namespace phi
 
 	void Delete::gen()
 	{
-		Node::gen(_M_operand);
+		Stmt::genStmt(_M_operand);
 		push({OPCode::Command::DEL});
 	}
 
@@ -607,12 +666,25 @@ namespace phi
 		}
 	}
 
+	void Args::gen()
+	{
+		if (!_M_current)
+			return;
+		_M_current->gen();
+		if (_M_next)
+			_M_next->gen();
+	}
+
 	void Import::gen()
 	{
+
+		push({OPCode::Command::ALLOCATE,
+			  Generator::instance()->push(new Variant{((Ref<token::Word>)opt())->value()})});
+		push({OPCode::Command::IMPORT, Generator::instance()->push(new Variant{_M_module_name->value()})});
+		push({OPCode::Command::ASSIGN});
 	}
 
 	Loop::loops_t Loop::_M_loops;
-
 	void Loop::pushLoop(Borrower<Loop> loop)
 	{
 		_M_loops.push_back(loop);

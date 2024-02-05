@@ -40,8 +40,14 @@ namespace phi
             INC,
             RED,
 
+            ARGS,
             CALL,
             ACCESS,
+
+            MAKE_ARRAY,
+            MAKE_DICT,
+
+            IMPORT,
 
             CLEAR,
             DEL,

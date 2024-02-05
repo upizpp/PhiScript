@@ -32,9 +32,11 @@ namespace phi
         node_t block();
         node_t sequence();
         node_t expr();
+        node_t exprNoComma();
 
         node_t assign();
-        node_t comma(bool = true);
+        node_t assignNoComma();
+        node_t comma(bool required = true);
         node_t boolean();
         node_t bor();
         node_t band();
@@ -48,6 +50,9 @@ namespace phi
         node_t unary();
         node_t factor();
 
+        node_t args();
         node_t opt(node_t obj);
+        node_t pair(node_t);
+        node_t pairs();
     };
 } // namespace phi

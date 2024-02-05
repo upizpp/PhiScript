@@ -17,8 +17,6 @@ namespace phi
 			State &get_state();
 			OPCodePacker push(const OPCode &);
 
-			void gen(Ref<Node>);
-
 		public:
 			Node() : _M_line(0) {}
 			explicit Node(uinteger line) : _M_line(line) {}
@@ -41,8 +39,6 @@ namespace phi
 
 			Ref<token::Token> opt() { return _M_operator; }
 			const Ref<token::Token> opt() const { return _M_operator; }
-
-			virtual void print(uinteger level = 0) override = 0;
 		};
 
 		class Constant : public Expr
@@ -113,10 +109,24 @@ namespace phi
 		{
 		private:
 			Ref<Expr> _M_current;
-			Ref<Expr> _M_next;
+			Ref<Comma> _M_next;
 
 		public:
-			Comma(Ref<token::Token> opt, Ref<Expr> current, Ref<Expr> next) : Expr(opt), _M_current(current), _M_next(next) {}
+			Comma(Ref<token::Token> opt, Ref<Expr> current, Ref<Comma> next) : Expr(opt), _M_current(current), _M_next(next) {}
+
+			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
+		};
+		
+
+		class Args : public Expr
+		{
+		private:
+			Ref<Expr> _M_current;
+			Ref<Args> _M_next;
+
+		public:
+			Args(Ref<token::Token> opt, Ref<Expr> current, Ref<Args> next) : Expr(opt), _M_current(current), _M_next(next) {}
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
@@ -126,10 +136,10 @@ namespace phi
 		{
 		private:
 			Ref<Expr> _M_method;
-			Ref<Comma> _M_args;
+			Ref<Args> _M_args;
 
 		public:
-			Call(Ref<token::Token> opt, Ref<Expr> method, Ref<Comma> args) : Expr(opt), _M_method(method), _M_args(args) {}
+			Call(Ref<token::Token> opt, Ref<Expr> method, Ref<Args> args) : Expr(opt), _M_method(method), _M_args(args) {}
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
@@ -139,10 +149,10 @@ namespace phi
 		{
 		private:
 			Ref<Expr> _M_obj;
-			Ref<Comma> _M_args;
+			Ref<Args> _M_args;
 
 		public:
-			Access(Ref<token::Token> opt, Ref<Expr> obj, Ref<Comma> args) : Expr(opt), _M_obj(obj), _M_args(args) {}
+			Access(Ref<token::Token> opt, Ref<Expr> obj, Ref<Args> args) : Expr(opt), _M_obj(obj), _M_args(args) {}
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
@@ -192,6 +202,28 @@ namespace phi
 			virtual void gen() override;
 		};
 
+		class Array: public Expr
+		{
+		private:
+			Ref<Args> _M_members;
+		public:
+			Array(Ref<token::Token> tok, Ref<Args> members) : Expr(tok), _M_members(members) {}
+
+			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
+		};
+
+		class Dictionary: public Expr
+		{
+		private:
+			Ref<Args> _M_members;
+		public:
+			Dictionary(Ref<token::Token> tok, Ref<Args> members) : Expr(tok), _M_members(members) {}
+
+			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
+		};
+
 		class Stmt : public Expr
 		{
 		private:
@@ -203,6 +235,8 @@ namespace phi
 
 			arg_t exit() const { return _M_exit; }
 			void exit(arg_t v) { _M_exit = v; }
+
+			void genStmt(Ref<Stmt>);
 		};
 
 		class Delete : public Stmt

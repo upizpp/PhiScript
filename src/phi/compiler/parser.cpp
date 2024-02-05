@@ -80,7 +80,7 @@ namespace phi
 			Block::top = res;
 			auto expr_ = expr();
 			auto eval_map = std::move(res->evalMap());
-			res = new (res)Block{new Sequence{expr_, nullptr}, _M_look};
+			res = new (res) Block{new Sequence{expr_, nullptr}, _M_look};
 			res->evalMap(std::move(eval_map));
 			Block::top = tmp;
 			return res;
@@ -128,6 +128,18 @@ namespace phi
 		}
 		return assign();
 	}
+	Parser::node_t Parser::exprNoComma()
+	{
+		switch (_M_look->tag())
+		{
+		case '{':
+			return block();
+		case ';':
+		case ')':
+			return nullptr;
+		}
+		return assignNoComma();
+	}
 	Parser::node_t Parser::assign()
 	{
 		node_t x = comma(false);
@@ -136,6 +148,17 @@ namespace phi
 			token_t tok = _M_look;
 			move();
 			x = (Node *)(new Binary(tok, x, comma(false)));
+		}
+		return x;
+	}
+	Parser::node_t Parser::assignNoComma()
+	{
+		node_t x = boolean();
+		while (_M_look->tag() == '=')
+		{
+			token_t tok = _M_look;
+			move();
+			x = (Node *)(new Binary(tok, x, boolean()));
 		}
 		return x;
 	}
@@ -149,7 +172,7 @@ namespace phi
 		{
 			token_t tok = _M_look;
 			move();
-			x = (Node *)(new Comma{tok, x, boolean()});
+			x = (Node *)(new Comma{tok, x, new Comma{_M_look, boolean(), nullptr}});
 		}
 		return x;
 	}
@@ -293,6 +316,23 @@ namespace phi
 			x = expr();
 			match(')');
 			return x;
+		case '[':
+		{
+			tok = _M_look;
+			move();
+			Ref<Args> members = _M_look->tag() != ']' ? args() : nullptr;
+			match(']');
+			return new Array{tok, members};
+		}
+		case '{':
+		{
+			tok = _M_look;
+			move();
+			Ref<Args> members = _M_look->tag() != '}' ? pairs() : nullptr;
+			match('}');
+			return new Dictionary{tok, members};
+			
+		}
 		case Tag::INT:
 		case Tag::REAL:
 		case Tag::TRUE:
@@ -446,10 +486,23 @@ namespace phi
 		THROW
 	}
 
+    Parser::node_t Parser::args()
+    {
+        node_t node = boolean();
+		node_t x = (Node *)(new Args{_M_look, node, nullptr});
+		while (_M_look->tag() == ',')
+		{
+			token_t tok = _M_look;
+			move();
+			x = (Node *)(new Args{tok, x, new Args{_M_look, boolean(), nullptr}});
+		}
+		return x;
+    }
+
 #define IS_OPT(tok) ((tok)->tag() == '.' || (tok)->tag() == '(' || (tok)->tag() == '[')
 
-	Parser::node_t Parser::opt(node_t obj)
-	{
+    Parser::node_t Parser::opt(node_t obj)
+    {
 		node_t x;
 		switch (_M_look->tag())
 		{
@@ -459,14 +512,14 @@ namespace phi
 			move();
 			token_t symbol = _M_look;
 			match(Tag::ID);
-			x = new Access{tok, obj, new Comma{symbol, new Constant(symbol), nullptr}};
+			x = new Access{tok, obj, new Args{symbol, new Constant(symbol), nullptr}};
 			break;
 		}
 		case '[':
 		{
 			token_t tok = _M_look;
 			move();
-			Ref<Comma> args = _M_look->tag() != ']' ? comma() : nullptr;
+			Ref<Args> args = _M_look->tag() != ']' ? Parser::args() : nullptr;
 			match(']');
 			x = new Access{tok, obj, args};
 			break;
@@ -475,7 +528,7 @@ namespace phi
 		{
 			token_t tok = _M_look;
 			move();
-			Ref<Comma> args = _M_look->tag() != ')' ? comma() : nullptr;
+			Ref<Args> args = _M_look->tag() != ')' ? Parser::args() : nullptr;
 			match(')');
 			x = new Call{tok, obj, args};
 			break;
@@ -483,4 +536,27 @@ namespace phi
 		}
 		return IS_OPT(_M_look) ? opt(x) : x;
 	}
+
+    Parser::node_t Parser::pair(node_t x)
+    {
+		if (x)
+			x = new Args{_M_look, x, new Args{_M_look, expr(), nullptr}};
+		else
+			x = new Args{_M_look, expr(), nullptr};
+		match(':'),
+		x = new Args{_M_look, x, new Args{_M_look, exprNoComma(), nullptr}};
+        return x;
+    }
+    Parser::node_t Parser::pairs()
+    {
+        Ref<Args> x = new Args{_M_look, pair(nullptr), nullptr};
+		while (_M_look->tag() == ',')
+		{
+			token_t tok = _M_look;
+			move();
+			x = pair(x);
+		}
+		return x;
+		
+    }
 } // namespace phi
