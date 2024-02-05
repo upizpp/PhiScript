@@ -3,6 +3,7 @@
 #include <phi/compiler/parser.hpp>
 #include <phi/compiler/preprocessor.hpp>
 #include <phi/compiler/generator.hpp>
+#include <phi/compiler/optimizer.hpp>
 #include <iomanip>
 
 int main()
@@ -24,6 +25,7 @@ int main()
         Generator generator;
         Ref<State> state = generator.gen(tree);
         puts("OPCodes:");
+        Optimizer::optimizeSimply(*state);
         auto& codes = state->getCodes();
         for (uinteger i = 0; i < codes.size(); i++)
             std::cout << std::left << std::setw(8) << std::to_string(i) + ":" << codes[i] << std::endl;

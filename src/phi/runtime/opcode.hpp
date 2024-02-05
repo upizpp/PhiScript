@@ -72,6 +72,9 @@ namespace phi
     public:
         OPCode(Command opt, arg_t value) : _M_op(opt), _M_value(value) {}
         OPCode(Command opt) : _M_op(opt), _M_value(0) {}
+        OPCode(const OPCode&) = default;
+
+        OPCode& operator=(const OPCode&) = default;
 
         Command opt() const { return _M_op; }
         void opt(Command value) { _M_op = value; }
@@ -84,6 +87,8 @@ namespace phi
         static Command unaryToCommand(token::tag_t);
         static Command binaryToCommand(token::tag_t);
     };
+
+    using CodeSeq = vector<OPCode>;
 
     inline std::ostream& operator<<(std::ostream& os, const OPCode& code)
     {

@@ -9,12 +9,12 @@ namespace phi
     {
     private:
         uinteger _M_index;
-        Borrower<vector<OPCode>> _M_container;
+        Borrower<CodeSeq> _M_container;
 
     public:
         OPCodePacker() = default;
         OPCodePacker(const OPCodePacker&) = default;
-        OPCodePacker(Borrower<vector<OPCode>> container, uinteger index) : _M_index(index), _M_container(container) {}
+        OPCodePacker(Borrower<CodeSeq> container, uinteger index) : _M_index(index), _M_container(container) {}
 
         OPCode *operator->() { return &(*_M_container)[_M_index]; }
         const OPCode *operator->() const { return &(*_M_container)[_M_index]; }
@@ -28,7 +28,7 @@ namespace phi
 
     private:
         Ref<gcp_t> _M_GCP; // Global Constant Pool
-        vector<OPCode> _M_codes;
+        CodeSeq _M_codes;
         unordered_map<arg_t, arg_t> _M_labels;
 
         static Borrower<gcp_t> _M_globalPool;
@@ -53,8 +53,11 @@ namespace phi
             return OPCodePacker{&_M_codes, _M_codes.size() - 1};
         }
         inline Ref<Variant> lookup(arg_t id) const { return _M_GCP->find(id)->second; }
-        inline const vector<OPCode> &getCodes() const { return _M_codes; }
+        inline CodeSeq &getCodes() { return _M_codes; }
+        inline const CodeSeq &getCodes() const { return _M_codes; }
         inline OPCode &top() { return _M_codes.back(); }
+        inline OPCode& getCode(uinteger index) {return _M_codes[index] ;}
+        inline const OPCode& getCode(uinteger index) const {return _M_codes[index] ;}
         inline const OPCode &top() const { return _M_codes.back(); }
         inline arg_t label(arg_t label) const { return _M_labels.at(label); }
         inline const unordered_map<arg_t, arg_t> &labels() const { return _M_labels; }

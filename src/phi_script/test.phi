@@ -1,0 +1,3 @@
+var x = if (true) {
+    eval 1
+}
