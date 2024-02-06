@@ -297,6 +297,8 @@ namespace phi
 		case '-':
 		case '!':
 		case '~':
+		case '@':
+		case Tag::DCPY:
 		case Tag::INC:
 		case Tag::RED:
 			token_t tok = _M_look;

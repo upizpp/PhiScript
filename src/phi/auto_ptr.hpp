@@ -204,7 +204,7 @@ namespace phi
         T *release()
         {
             T *tmp = _M_ptr;
-            reset(nullptr);
+            _M_ptr = nullptr;
             return tmp;
         }
 
@@ -280,6 +280,7 @@ namespace phi
         T &operator*() { return *_M_ptr; }
         const T &operator*() const { return *_M_ptr; }
         T *operator->() { return _M_ptr; }
+        const T *operator->() const { return _M_ptr; }
 
         void reset(T *ptr)
         {

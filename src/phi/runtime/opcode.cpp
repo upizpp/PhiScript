@@ -19,7 +19,7 @@ namespace phi
 
 		string v = std::to_string(_M_value);
 		if (_M_op >= Command::LOAD && _M_op <= Command::ALLOCATE)
-			v += "(" + string(*State::lookupGlobal(_M_value)) + ")";
+			v += "(" + State::lookupGlobal(_M_value)->toString() + ")";
 		else if (_M_op >= Command::IFFALSE && _M_op <= Command::GOTO)
 			v += "(" + std::to_string(Generator::instance()->getState().label(_M_value)) + ")";
 
@@ -82,6 +82,10 @@ namespace phi
 				return "INC";
             case Command::RED:
 				return "RED";
+			case Command::COPY:
+				return "COPY";
+			case Command::DCPY:
+				return "DCPY";
             case Command::ARGS:
 				return "ARGS";
             case Command::CALL:
@@ -134,6 +138,10 @@ namespace phi
 		case '!':
 		case token::Tag::NOT:
 			return Command::NOT;
+		case '@':
+			return Command::COPY;
+		case token::Tag::DCPY:
+			return Command::DCPY;
 		case token::Tag::INC:
 			return Command::INC;
 		case token::Tag::RED:

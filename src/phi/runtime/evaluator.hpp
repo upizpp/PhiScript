@@ -4,10 +4,13 @@
 
 namespace phi
 {
+    class Environment;
+    using Env = Environment;
+
     class VariantPacker
     {
     public:
-        using source_t = Borrower<Ref<Variant>>;
+        using source_t = Borrower<std::pair<const string, Ref<Variant>>>;
 
     private:
         Ref<Variant> _M_data;
@@ -17,16 +20,24 @@ namespace phi
         VariantPacker(const VariantPacker &) = default;
         VariantPacker(const Variant &data) : _M_data(new Variant{data}) {}
         VariantPacker(Ref<Variant> data) : _M_data(data) {}
-        VariantPacker(source_t source) : _M_source(source), _M_data(*source) {}
+        VariantPacker(source_t source) : _M_source(source), _M_data(source->second) {}
+        explicit VariantPacker(bool) : _M_data(nullptr), _M_source(nullptr){};
 
         Variant &data() { return *_M_data; }
         const Variant &data() const { return *_M_data; }
 
+        const string &name() const { return _M_source->first; }
+
         Ref<Variant> pointer() { return _M_data; }
         const Ref<Variant> pointer() const { return _M_data; }
 
+        bool isArgs() const { return _M_source == nullptr && _M_data == nullptr; }
         bool isVariable() const { return _M_source != nullptr; }
-        void redirectTo(Ref<Variant> variable) { *_M_source = variable; };
+        void redirectTo(Ref<Variant> variable) { _M_source->second = variable; };
+
+        void free(Env &);
+
+        VariantPacker &assign(const VariantPacker &);
     };
 
     class Environment
@@ -45,9 +56,9 @@ namespace phi
         VariantPacker allocate(const string &);
         VariantPacker load(const string &);
         bool has(const string &) const;
-    };
 
-    using Env = Environment;
+        void free(const string &);
+    };
 
     class Evaluator
     {

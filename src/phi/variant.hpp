@@ -10,12 +10,12 @@ namespace phi
 
     struct VariantHash
     {
-        size_t operator()(const Ref<Variant> &value);
+        size_t operator()(const Ref<Variant> &value) const;
     };
 
     struct VariantEqual
     {
-        size_t operator()(const Ref<Variant> &lhs, const Ref<Variant> &rhs);
+        size_t operator()(const Ref<Variant> &lhs, const Ref<Variant> &rhs) const;
     };
 
     using array = vector<Ref<Variant>>;
@@ -66,7 +66,9 @@ namespace phi
         Variant(const char *);
         Variant(const string &);
         Variant(const array &);
+        Variant(Owner<array>&&);
         Variant(const dict &);
+        Variant(Owner<dict>&&);
         Variant(const Object &);
         Variant(const Function &);
         Variant(const Variant &);
@@ -186,7 +188,11 @@ namespace phi
         Variant operator-() const;
         Variant operator~() const;
         Variant operator!() const;
+        Variant operator++();
+        Variant operator--();
 
+        Variant copy() const;
+        Variant deepCopy() const;
 
         void convert(Type);
         inline Variant convertTo(Type type) const
@@ -196,6 +202,9 @@ namespace phi
             return tmp;
         }
         bool equals(const Variant &);
+
+        Ref<Variant> call(array& args);
+        Ref<Variant> access(array& args);
 
         static bool isConvertible(Type, Type);
     };

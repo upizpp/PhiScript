@@ -39,6 +39,8 @@ namespace phi
             REV,
             INC,
             RED,
+            COPY,
+            DCPY,
 
             ARGS,
             CALL,

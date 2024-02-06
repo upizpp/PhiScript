@@ -42,6 +42,7 @@ namespace phi
 			WORD("<<", LSHIFT),
 			WORD(">>", RSHIFT),
 			WORD("**", POW),
+			WORD("@@", DCPY),
 		};
 
 		void Word::put(const string &word)
@@ -189,6 +190,8 @@ namespace phi
 				return ">>";
 			case Tag::POW:
 				return "**";
+			case Tag::DCPY:
+				return "@@";
 			}
 			return "unknown";
 		}

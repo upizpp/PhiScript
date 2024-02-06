@@ -32,6 +32,11 @@ namespace phi
 
         static void static_register();
 
+        // TODO Object::call
+        Ref<Variant> call(array &) { return Variant::Null; }
+        // TODO Object::access
+        Ref<Variant> access(array &) { return Variant::Null; }
+
         // TODO Object::convert
         Variant convert(Variant::Type) { return *Variant::Null; }
 
@@ -71,6 +76,8 @@ namespace phi
         Variant operator!() const { return Variant(); }
         Variant operator-() const { return Variant(); }
         Variant operator~() const { return Variant(); }
+        Variant operator++() { return Variant(); }
+        Variant operator--() { return Variant(); }
 
         // TODO Object::convert
         operator integer() { return 0; }

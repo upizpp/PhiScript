@@ -58,9 +58,19 @@ namespace phi
         _M_array_P = new array{value};
     }
 
+    Variant::Variant(Owner<array>&& value) : _M_type(Type::ARRAY)
+    {
+        _M_array_P = value.release();
+    }
+
     Variant::Variant(const dict &value) : _M_type(Type::DICTIONARY)
     {
         _M_dict_P = new dict{value};
+    }
+
+    Variant::Variant(Owner<dict>&& value) : _M_type(Type::DICTIONARY)
+    {
+        _M_dict_P = value.release();
     }
 
     Variant::Variant(const Object &value) : _M_type(Type::OBJECT)
@@ -220,8 +230,8 @@ namespace phi
 
     Variant &Variant::operator=(const Variant &value)
     {
-        _M_type = value.type();
         free();
+        _M_type = value.type();
         switch (value.type())
         {
         case Type::INT:
@@ -507,7 +517,7 @@ namespace phi
         case Type::BOOL:
             return _M_bool ? "true" : "false";
         case Type::STRING:
-            return '\"' + *_M_string_P + '\"';
+            return *_M_string_P;
         case Type::ARRAY:
         {
             bool first = true;
@@ -636,7 +646,7 @@ namespace phi
         case Type::BOOL:
             return _M_bool ? "true" : "false";
         case Type::STRING:
-            return *_M_string_P;
+            return '"' + *_M_string_P + '"';
         case Type::ARRAY:
         {
             bool first = true;
@@ -1173,6 +1183,22 @@ namespace phi
             return Variant{!*_M_obj_P};
         return Variant{!bool(*this)};
     }
+
+    Variant Variant::operator++()
+    {
+        if (type() == Type::OBJECT)
+            return Variant{++*_M_obj_P};
+        convert(Type::INT);
+        return ++_M_int;
+    }
+    Variant Variant::operator--()
+    {
+        if (type() == Type::OBJECT)
+            return Variant{++*_M_obj_P};
+        convert(Type::INT);
+        return --_M_int;
+    }
+
     bool Variant::isConvertible(Type t1, Type t2)
     {
         if (t2 == Type::OBJECT)
@@ -1222,11 +1248,107 @@ namespace phi
             throw CompareException(type(), value.type());
         }
     }
-    size_t VariantHash::operator()(const Ref<Variant> &value)
+    Variant Variant::copy() const
+    {
+        return *this;
+    }
+    Variant Variant::deepCopy() const
+    {
+        Variant res;
+        switch (_M_type)
+        {
+        case Type::INT:
+            res._M_int = this->_M_int;
+            break;
+        case Type::REAL:
+            res._M_real = this->_M_real;
+            break;
+        case Type::BOOL:
+            res._M_bool = this->_M_bool;
+            break;
+        case Type::STRING:
+            res._M_string_P = new string{*this->_M_string_P};
+            break;
+        case Type::ARRAY:
+            res._M_array_P = new array{_M_array_P->size(), nullptr};
+            for (uinteger i = 0; i < _M_array_P->size(); ++i)
+                (*res._M_array_P)[i] = new Variant{(*_M_array_P)[i]->deepCopy()};
+            break;
+        case Type::DICTIONARY:
+            res._M_dict_P = new dict;
+            for (auto &&pair : *_M_dict_P)
+                res._M_dict_P->insert({new Variant{pair.first->deepCopy()}, new Variant{pair.second->deepCopy()}});
+            break;
+        case Type::OBJECT:
+            res._M_obj_P = new Object{*this->_M_obj_P};
+            break;
+        case Type::FUNCTION:
+            res._M_func_P = new Function{*this->_M_func_P};
+            break;
+        }
+        return res;
+    }
+    Ref<Variant> Variant::call(array& args)
+    {
+        switch (type())
+        {
+        case Type::FUNCTION:
+            return _M_func_P->call(args);
+        case Type::OBJECT:
+            return _M_obj_P->call(args);
+        
+        default:
+            throw RuntimeException("The variant with the type of (%s) is not callable.", stringifyType(type()).c_str());
+        }
+    }
+    Ref<Variant> Variant::access(array& args)
+    {
+        switch (type())
+        {
+        case Type::ARRAY:
+        {
+            if (args.size() == 1)
+            {
+                return _M_array_P->at((integer)*args[0]);
+            }
+            else if (args.size() >= 2 && args.size() <= 3)
+            {
+                uinteger begin = (integer)args[0];
+                uinteger end = (integer)args[1];
+                uinteger step = args.size() == 3 ? (integer)args[2] : 1;
+                array* res = new array{(uinteger)std::ceil((end - begin) / real(step)), nullptr};
+                for (uinteger i = begin; i < end; i += step)
+                    (*res)[i - begin] = (*_M_array_P)[i];
+                return new Variant{std::move(Owner<array>{res})};
+            }
+            else
+            {
+                throw ArgumentRangedException(1, 3, args.size(), __FUNCTION__);
+            }
+        }
+        case Type::DICTIONARY:
+        {
+            if (args.size() == 1)
+            {
+                return _M_dict_P->at(args[0]);
+            }
+            else
+            {
+                throw ArgumentException(1, args.size(), __FUNCTION__);
+            }
+        }
+        case Type::OBJECT:
+            return _M_obj_P->access(args);
+        
+        default:
+            throw RuntimeException("The variant with the type of (%s) is not accessible.", stringifyType(type()).c_str());
+        }
+    }
+    size_t VariantHash::operator()(const Ref<Variant> &value) const
     {
         return value->hash();
     }
-    size_t VariantEqual::operator()(const Ref<Variant> &lhs, const Ref<Variant> &rhs)
+    size_t VariantEqual::operator()(const Ref<Variant> &lhs, const Ref<Variant> &rhs) const
     {
         return *lhs == *rhs;
     }

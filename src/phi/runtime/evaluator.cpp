@@ -1,4 +1,6 @@
 #include "evaluator.hpp"
+#include <algorithm>
+#include <phi/exception.hpp>
 
 namespace phi
 {
@@ -54,6 +56,13 @@ namespace phi
         push(Variant{op operand.data()}); \
         break;                            \
     }
+#define UNARY_M_IMPL(opcode, method)            \
+    case OPCode::Command::opcode:               \
+    {                                           \
+        VariantPacker operand = pop();          \
+        push(Variant{operand.data().method()}); \
+        break;                                  \
+    }
 
     Ref<Variant> Evaluator::handle(const OPCode &code)
     {
@@ -81,6 +90,77 @@ namespace phi
             UNARY_IMPL(NOT, !)
             UNARY_IMPL(REV, ~)
             UNARY_IMPL(NEG, -)
+            UNARY_IMPL(INC, ++)
+            UNARY_IMPL(RED, --)
+            UNARY_M_IMPL(COPY, copy)
+            UNARY_M_IMPL(DCPY, deepCopy)
+        case OPCode::Command::ARGS:
+        {
+            push(VariantPacker{true});
+            break;
+        }
+        case OPCode::Command::CALL:
+        {
+            VariantPacker operand = pop();
+            array args;
+            while (!top().isArgs())
+                args.push_back(pop().pointer());
+            pop(); // pop the args flag.
+            std::reverse(args.begin(), args.end());
+            push({operand.data().call(args)});
+            break;
+        }
+        case OPCode::Command::ACCESS:
+        {
+            VariantPacker operand = pop();
+            array args;
+            while (!top().isArgs())
+                args.push_back(pop().pointer());
+            pop(); // pop the args flag.
+            std::reverse(args.begin(), args.end());
+            push({operand.data().access(args)});
+            break;
+        }
+        case OPCode::Command::MAKE_ARRAY:
+        {
+            Owner<array> temp = new array;
+            while (!top().isArgs())
+                temp->push_back(pop().pointer());
+            pop(); // pop the args flag.
+            std::reverse(temp->begin(), temp->end());
+            push(Ref<Variant>{new Variant{std::move(temp)}});
+            break;
+        }
+        case OPCode::Command::MAKE_DICT:
+        {
+            Owner<dict> temp = new dict;
+            Ref<Variant> value;
+            while (!top().isArgs())
+            {
+                if (!value)
+                {
+                    value = pop().pointer();
+                    continue;
+                }
+                temp->insert({pop().pointer(), value});
+                value = nullptr;
+            }
+            pop(); // pop the args flag.
+            push(Ref<Variant>{new Variant{std::move(temp)}});
+            break;
+        }
+        case OPCode::Command::DEL:
+        {
+            Env& env = get_env();
+            pop().free(env);
+            break;
+        }
+        case OPCode::Command::ASSIGN:
+        {
+            VariantPacker value = pop();
+            pop().assign(value);
+            break;
+        }
         case OPCode::Command::ALLOCATE:
         {
             push(allocate(*_M_state->lookup(code.value())));
@@ -123,19 +203,19 @@ namespace phi
         }
         case OPCode::Command::GOTO:
         {
-            stream_goto(code.value());
+            stream_goto(_M_state->label(code.value()));
             break;
         }
         case OPCode::Command::IFTRUE:
         {
             if (pop().data())
-                stream_goto(code.value());
+                stream_goto(_M_state->label(code.value()));
             break;
         }
         case OPCode::Command::IFFALSE:
         {
             if (!pop().data())
-                stream_goto(code.value());
+                stream_goto(_M_state->label(code.value()));
             break;
         }
         case OPCode::Command::RETURN:
@@ -155,15 +235,32 @@ namespace phi
     }
     VariantPacker Environment::allocate(const string &name)
     {
-        _M_locals[name] = new Variant;
-        return VariantPacker::source_t{&(_M_locals[name])};
+        return VariantPacker::source_t{&*_M_locals.insert({name, new Variant}).first};
     }
     VariantPacker Environment::load(const string &name)
     {
-        return _M_locals[name];
+        return VariantPacker::source_t{&*_M_locals.find(name)};
     }
     bool Environment::has(const string &name) const
     {
         return _M_locals.find(name) != _M_locals.end();
+    }
+    void Environment::free(const string &name)
+    {
+        _M_locals.erase(name);
+    }
+    void VariantPacker::free(Env &env)
+    {
+        if (!isVariable())
+            return;
+        env.free(name());
+    }
+    VariantPacker &VariantPacker::assign(const VariantPacker &other)
+    {
+        if (isVariable() && other.isVariable())
+            redirectTo(other.pointer());
+        else
+            *_M_data = other.data();
+        return *this;
     }
 } // namespace phi
