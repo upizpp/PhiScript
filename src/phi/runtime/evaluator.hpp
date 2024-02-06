@@ -54,6 +54,7 @@ namespace phi
         const value_stack &stack() const { return _M_stack; }
 
         VariantPacker allocate(const string &);
+        void setLocal(const string&, Ref<Variant>);
         VariantPacker load(const string &);
         bool has(const string &) const;
 
@@ -75,6 +76,16 @@ namespace phi
 
         void setup(const State &);
         Ref<Variant> eval();
+
+        inline Env& pushEnv()
+        {
+            _M_envs.push_back(Env());
+            return _M_envs.back();
+        }
+        inline void popEnv()
+        {
+            _M_envs.pop_back();
+        }
 
     private:
         Ref<Variant> handle(const OPCode &);

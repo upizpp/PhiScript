@@ -14,45 +14,49 @@
 #define PROPERTY(name) PROPERTY_R(name, name)
 #define PhiClass(class_name, parent_class) \
 public:                                    \
-    static void static_register();         \
-    static string className()              \
-    {                                      \
-        return #class_name;                \
-    }                                      \
-    static string parentClassName()        \
-    {                                      \
-        return #parent_class;              \
-    }                                      \
-    virtual string getClass()              \
-    {                                      \
-        return #class_name;                \
-    }                                      \
-    virtual string getParentClass()        \
-    {                                      \
-        return #parent_class;              \
-    }                                      \
+	static void static_register();         \
+	static string className()              \
+	{                                      \
+		return #class_name;                \
+	}                                      \
+	static string parentClassName()        \
+	{                                      \
+		return #parent_class;              \
+	}                                      \
+	virtual string getClass()              \
+	{                                      \
+		return #class_name;                \
+	}                                      \
+	virtual string getParentClass()        \
+	{                                      \
+		return #parent_class;              \
+	}                                      \
                                            \
 private:                                   \
-    ClassRegister<class_name, parent_class> _;
+	ClassRegister<class_name, parent_class> _;
 
 namespace phi
 {
+	using callable_t = std::function<Variant(array&)>;
+
 	struct ClassInfo
 	{
 		using type = Variant;
 		using arg_list = vector<type>;
-		using method = std::function<type(Object*, arg_list&)>;
+		using method = std::function<type(Object *, arg_list &)>;
+		using initializer_t = std::function<Object*(void)>;
 
-		ClassInfo* parent;
+		ClassInfo *parent;
 		map<string, method> methods;
-		map<string, std::pair<std::function<type(Object*)>, std::function<void(Object*, const type&)>>> properties;
+		initializer_t initializer;
+		map<string, std::pair<std::function<type(Object *)>, std::function<void(Object *, const type &)>>> properties;
 
 		ClassInfo() {}
-		ClassInfo(ClassInfo* p): parent(p) {}
+		ClassInfo(ClassInfo *p, const initializer_t& init) : parent(p), initializer(init) {}
 
-		Variant call(Object*, const string&, arg_list&);
+		Variant call(Object *, const string &, arg_list &);
 
-		method& getMethod(const string&);
+		method &getMethod(const string &);
 	};
 
 	class ClassDB
@@ -67,39 +71,63 @@ namespace phi
 		static string _M_calling;
 
 	public:
-		static void bind(const string& class_name) { _M_bound = class_name; }
-		static void registerClass(const string& class_name, const string& parent)
+		static void bind(const string &class_name) { _M_bound = class_name; }
+		static void registerClass(const ClassInfo::initializer_t& initializer, const string &class_name, const string &parent)
 		{
-			ClassInfo* parent_info = _M_classes.find(parent) != _M_classes.end() ? &_M_classes[parent] : nullptr;
-			_M_classes.insert({ class_name, ClassInfo{parent_info} });
+			ClassInfo *parent_info = _M_classes.find(parent) != _M_classes.end() ? &_M_classes[parent] : nullptr;
+			_M_classes.insert({class_name, ClassInfo{parent_info, initializer}});
 			bind(class_name);
 		}
 
 		template <typename F>
-		static void registerMethod(const string& name, const F& func)
+		static void registerMethod(const string &name, const F &func)
 		{
-			auto caller = [=](Object* obj, arg_list& args) -> type
-				{
-					using seq = gen_index_seq_t<function_traits<F>::arity>;
-					return call_impl<seq, F>::call(func, obj, args);
-				};
-			getInfo().methods.insert({ name, caller });
+			auto caller = [=](Object *obj, arg_list &args) -> type
+			{
+				using seq = gen_index_seq_t<function_traits<F>::arity>;
+				return class_call_impl<seq, F>::call(func, obj, args);
+			};
+			getInfo().methods.insert({name, caller});
 		}
 		template <typename T>
-		static void registerProperty(const string& name, size_t offset)
+		static void registerProperty(const string &name, size_t offset)
 		{
-			auto setter = [=](Object* obj, const type& value) -> void
-				{
-					char* addr = (char*)obj + offset;
-					*reinterpret_cast<T*>(addr) = static_cast<T>(value);
-				};
-			auto getter = [=](Object* obj) -> type
-				{
-					char* addr = (char*)obj + offset;
-					return type{ *reinterpret_cast<T*>(addr) };
-				};
-			getInfo().properties.insert({ name, {getter, setter} });
+			auto setter = [=](Object *obj, const type &value) -> void
+			{
+				char *addr = (char *)obj + offset;
+				*reinterpret_cast<T *>(addr) = static_cast<T>(value);
+			};
+			auto getter = [=](Object *obj) -> type
+			{
+				char *addr = (char *)obj + offset;
+				return type{*reinterpret_cast<T *>(addr)};
+			};
+			getInfo().properties.insert({name, {getter, setter}});
 		}
+
+	private:
+		friend struct class_call_impl;
+
+		template <typename I, typename F>
+		struct class_call_impl;
+
+		template <int... I, typename F>
+		struct class_call_impl<index_seq<I...>, F>
+		{
+			static type call(F f, Object *obj, arg_list &args)
+			{
+				try
+				{
+					using class_type = typename function_traits<F>::class_type;
+					return (static_cast<class_type *>(obj)->*f)(
+						args.at(I).seeAs<typename function_traits<F>::template args<I>::type>()...);
+				}
+				catch (std::out_of_range)
+				{
+					throw ArgumentException(sizeof...(I), args.size(), ClassDB::_M_calling);
+				};
+			}
+		};
 
 		friend struct call_impl;
 
@@ -109,14 +137,11 @@ namespace phi
 		template <int... I, typename F>
 		struct call_impl<index_seq<I...>, F>
 		{
-			static type call(F f, Object* obj, arg_list& args)
+			static type call(F f, arg_list &args)
 			{
 				try
 				{
-					using class_type = typename function_traits<F>::class_type;
-					return (static_cast<class_type*>(obj)->*f)(
-						args.at(I).seeAs<typename function_traits<F>::template args<I>::type>()...
-					);
+					return f(args.at(I).seeAs<typename function_traits<F>::template args<I>::type>()...);
 				}
 				catch (std::out_of_range)
 				{
@@ -125,13 +150,24 @@ namespace phi
 			}
 		};
 
-		static ClassInfo& getInfo() { return _M_classes[_M_bound]; }
+	public:
+		template<typename T>
+		static callable_t toCallable(const T&func)
+		{
+			return [=](arg_list &args) -> type
+			{
+				using seq = gen_index_seq_t<function_traits<F>::arity>;
+				return call_impl<seq, F>::call(func, args);
+			};
+		}
 
-		static type call(Object* obj, const string& method_name, arg_list args = {});
-		static void set(Object* obj, const string& property_name, const type& value);
-		static type get(Object* obj, const string& property_name);
+		static ClassInfo &getInfo() { return _M_classes[_M_bound]; }
 
-		static ClassInfo& parent(const string& class_name) { return *_M_classes[class_name].parent; }
+		static type call(Object *obj, const string &method_name, arg_list args = {});
+		static void set(Object *obj, const string &property_name, const type &value);
+		static type get(Object *obj, const string &property_name);
+
+		static ClassInfo &parent(const string &class_name) { return *_M_classes[class_name].parent; }
 	};
 
 	template <typename T, typename P>
@@ -139,7 +175,9 @@ namespace phi
 	{
 		ClassRegister()
 		{
-			ClassDB::registerClass(T::className(), P::className());
+			ClassDB::registerClass([]() -> T*{
+				return new T;
+			}, T::className(), P::className());
 			T::static_register();
 		}
 	};

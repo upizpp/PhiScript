@@ -237,6 +237,10 @@ namespace phi
     {
         return VariantPacker::source_t{&*_M_locals.insert({name, new Variant}).first};
     }
+    void Environment::setLocal(const string &name, Ref<Variant>value)
+    {
+        _M_locals[name] = value;
+    }
     VariantPacker Environment::load(const string &name)
     {
         return VariantPacker::source_t{&*_M_locals.find(name)};
