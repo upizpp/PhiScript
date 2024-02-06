@@ -27,6 +27,7 @@ namespace phi
             RSHIFT,
             POW,
             // keywords
+            RETURN,
             VAR,
             IF,
             ELSE,

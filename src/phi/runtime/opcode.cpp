@@ -24,6 +24,7 @@ namespace phi
 			v += "(" + std::to_string(Generator::instance()->getState().label(_M_value)) + ")";
 
 		os << std::left << std::setw(16) << v;
+		
 		return os.str();
 	}
 
@@ -51,8 +52,8 @@ namespace phi
 				return "LSHIFT";
             case Command::RSHIFT:
 				return "RSHIFT";
-            case Command::XOR:
-				return "XOR";
+            case Command::BXOR:
+				return "BXOR";
             case Command::LAND:
 				return "LAND";
             case Command::LOR:
@@ -117,6 +118,8 @@ namespace phi
 				return "IFTRUE";
             case Command::GOTO:
 				return "GOTO";
+			case Command::RETURN:
+				return "RETURN";
 		}
 		return "UNKNOWN";
 	}
@@ -159,12 +162,12 @@ namespace phi
 			return Command::BAND;
 		case '|':
 			return Command::BOR;
+		case '^':
+			return Command::BXOR;
 		case token::Tag::LSHIFT:
 			return Command::LSHIFT;
 		case token::Tag::RSHIFT:
 			return Command::RSHIFT;
-		case '^':
-			return Command::XOR;
 		case token::Tag::AND:
 			return Command::LAND;
 		case token::Tag::OR:

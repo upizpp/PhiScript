@@ -56,8 +56,8 @@ namespace phi
 			Ref<Sequence> _M_next;
 
 		public:
-			Sequence() {}
-			Sequence(Ref<Expr> current, Ref<Sequence> next) : _M_current(current), _M_next(next) {}
+			Sequence(Ref<token::Token> tok) : Node(tok->line()) {}
+			Sequence(Ref<token::Token> tok, Ref<Expr> current, Ref<Sequence> next) : Node(tok->line()), _M_current(current), _M_next(next) {}
 
 			Ref<Expr> current() { return _M_current; }
 			Ref<Sequence> next() { return _M_next; }
@@ -239,6 +239,20 @@ namespace phi
 			void genStmt(Ref<Stmt>);
 		};
 
+		class Return : public Stmt
+		{
+		private:
+			Ref<Expr> _M_operand;
+
+		public:
+			Return(Ref<token::Token> token, Ref<Expr> operand) : Stmt(token), _M_operand(operand) {}
+
+			Ref<Expr> operand() { return _M_operand; }
+
+			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
+		};
+
 		class Delete : public Stmt
 		{
 		private:
@@ -249,7 +263,7 @@ namespace phi
 
 			Ref<Expr> operand() { return _M_operand; }
 
-			virtual void print(uinteger level = 0);
+			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
 		};
 

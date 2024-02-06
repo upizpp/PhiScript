@@ -5,7 +5,7 @@
 namespace phi
 {
     using cmd_t = uint8_t;
-    using arg_t = uint64_t;
+    using arg_t = uint32_t;
     
     extern const arg_t STACK_TOP;
 
@@ -22,9 +22,9 @@ namespace phi
             POW,
             BAND,
             BOR,
+            BXOR,
             LSHIFT,
             RSHIFT,
-            XOR,
             LAND,
             LOR,
             ASSIGN,
@@ -63,7 +63,8 @@ namespace phi
             // stream control
             IFFALSE,
             IFTRUE,
-            GOTO
+            GOTO,
+            RETURN
         };
 
     private:

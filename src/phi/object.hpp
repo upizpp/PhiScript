@@ -32,6 +32,9 @@ namespace phi
 
         static void static_register();
 
+        // TODO Object::convert
+        Variant convert(Variant::Type) { return *Variant::Null; }
+
         // TODO: Object::toString()
         string toString() { return string(); }
 
@@ -57,11 +60,14 @@ namespace phi
         Variant operator-(const Variant &) const { return Variant(); }
         Variant operator*(const Variant &) const { return Variant(); }
         Variant operator/(const Variant &) const { return Variant(); }
+        Variant operator%(const Variant &) const { return Variant(); }
         Variant operator&(const Variant &) const { return Variant(); }
         Variant operator|(const Variant &) const { return Variant(); }
         Variant operator^(const Variant &) const { return Variant(); }
         Variant operator&&(const Variant &) const { return Variant(); }
         Variant operator||(const Variant &) const { return Variant(); }
+        Variant operator<<(const Variant &) const { return Variant(); }
+        Variant operator>>(const Variant &) const { return Variant(); }
         Variant operator!() const { return Variant(); }
         Variant operator-() const { return Variant(); }
         Variant operator~() const { return Variant(); }

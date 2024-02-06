@@ -80,7 +80,7 @@ namespace phi
 			Block::top = res;
 			auto expr_ = expr();
 			auto eval_map = std::move(res->evalMap());
-			res = new (res) Block{new Sequence{expr_, nullptr}, _M_look};
+			res = new (res) Block{new Sequence{_M_look, expr_, nullptr}, _M_look};
 			res->evalMap(std::move(eval_map));
 			Block::top = tmp;
 			return res;
@@ -109,12 +109,12 @@ namespace phi
 	Parser::node_t Parser::sequence()
 	{
 		if (_M_look->tag() == '}')
-			return new Sequence;
+			return new Sequence{_M_look};
 		if (_M_look->tag() == ';')
 			return (move(), sequence());
 		node_t x = expr();
 		CHECK_NONE;
-		return (Node *)(new Sequence(x, sequence()));
+		return (Node *)(new Sequence(_M_look, x, sequence()));
 	}
 	Parser::node_t Parser::expr()
 	{
@@ -381,6 +381,10 @@ namespace phi
 			tok = _M_look;
 			move();
 			return new Delete{tok, expr()};
+		case Tag::RETURN:
+			tok = _M_look;
+			move();
+			return new Return{tok, expr()};
 		case Tag::IF:
 		{
 			If *node = new If;
