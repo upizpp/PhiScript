@@ -1,15 +1,20 @@
 #include "variant.hpp"
+#include <cmath>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
 #include <phi/exception.hpp>
 #include <phi/function.hpp>
 #include <phi/object.hpp>
+#include <phi/type.hpp>
 #include <sstream>
 
 namespace phi
 {
+    Ref<Variant> Variant::Null = new Variant;
+
     static std::ostringstream string_os;
+
     uinteger Variant::hashSeed = (srand(time(0)), rand());
 
     Variant::Variant() : _M_type(Type::NIL)
@@ -53,9 +58,19 @@ namespace phi
         _M_array_P = new array{value};
     }
 
+    Variant::Variant(Owner<array>&& value) : _M_type(Type::ARRAY)
+    {
+        _M_array_P = value.release();
+    }
+
     Variant::Variant(const dict &value) : _M_type(Type::DICTIONARY)
     {
         _M_dict_P = new dict{value};
+    }
+
+    Variant::Variant(Owner<dict>&& value) : _M_type(Type::DICTIONARY)
+    {
+        _M_dict_P = value.release();
     }
 
     Variant::Variant(const Object &value) : _M_type(Type::OBJECT)
@@ -215,8 +230,8 @@ namespace phi
 
     Variant &Variant::operator=(const Variant &value)
     {
-        _M_type = value.type();
         free();
+        _M_type = value.type();
         switch (value.type())
         {
         case Type::INT:
@@ -294,6 +309,115 @@ namespace phi
     Variant::operator double() const
     {
         return real(*this);
+    }
+
+    void Variant::convert(Type target)
+    {
+        if (type() == target)
+            return;
+        if (target == Type::NIL)
+        {
+            _M_type = target;
+            free();
+            return;
+        }
+        switch (type())
+        {
+        case Type::INT:
+            switch (target)
+            {
+            case Type::REAL:
+                _M_real = _M_int;
+                break;
+            case Type::BOOL:
+                _M_bool = _M_int;
+                break;
+            case Type::STRING:
+                *_M_string_P = std::to_string(_M_int);
+                break;
+            default:
+                throw ConversionException{type(), target};
+            }
+            break;
+        case Type::REAL:
+            switch (target)
+            {
+            case Type::INT:
+                _M_int = _M_real;
+                break;
+            case Type::BOOL:
+                _M_bool = _M_real;
+                break;
+            case Type::STRING:
+                *_M_string_P = std::to_string(_M_real);
+                break;
+            default:
+                throw ConversionException{type(), target};
+            }
+            break;
+        case Type::BOOL:
+            switch (target)
+            {
+            case Type::INT:
+                _M_int = _M_bool;
+                break;
+            case Type::REAL:
+                _M_real = _M_bool;
+                break;
+            case Type::STRING:
+                *_M_string_P = _M_bool ? "true" : "false";
+                break;
+            default:
+                throw ConversionException{type(), target};
+            }
+            break;
+        case Type::STRING:
+            switch (target)
+            {
+            case Type::INT:
+                _M_int = std::stoull(*_M_string_P);
+                break;
+            case Type::REAL:
+                _M_real = std::stod(*_M_string_P);
+                break;
+            case Type::BOOL:
+                _M_bool = _M_string_P->empty();
+                break;
+            default:
+                throw ConversionException{type(), target};
+            }
+        case Type::ARRAY:
+        {
+            switch (target)
+            {
+            case Type::BOOL:
+                _M_bool = _M_array_P->empty();
+                break;
+            default:
+                throw ConversionException{type(), target};
+            }
+        }
+        case Type::DICTIONARY:
+        {
+            switch (target)
+            {
+            case Type::BOOL:
+                _M_bool = _M_array_P->empty();
+                break;
+            default:
+                throw ConversionException{type(), target};
+            }
+        }
+        case Type::OBJECT:
+        {
+            *this = _M_obj_P->convert(target);
+            break;
+        }
+
+        default:
+            break;
+        }
+        _M_type = target;
     }
 
     Variant::operator integer() const
@@ -393,7 +517,7 @@ namespace phi
         case Type::BOOL:
             return _M_bool ? "true" : "false";
         case Type::STRING:
-            return '\"' + *_M_string_P + '\"';
+            return *_M_string_P;
         case Type::ARRAY:
         {
             bool first = true;
@@ -522,7 +646,7 @@ namespace phi
         case Type::BOOL:
             return _M_bool ? "true" : "false";
         case Type::STRING:
-            return *_M_string_P;
+            return '"' + *_M_string_P + '"';
         case Type::ARRAY:
         {
             bool first = true;
@@ -782,125 +906,194 @@ namespace phi
     COMPARE_IMPL(<)
     COMPARE_IMPL(<=)
 
-#define CALCULATE_IMPL(op)                                    \
-    int Variant::operator op(const int &value) const          \
-    {                                                         \
-        return integer(*this) op value;                       \
-    }                                                         \
-                                                              \
-    double Variant::operator op(const double &value) const    \
-    {                                                         \
-        return real(*this) op value;                          \
-    }                                                         \
-                                                              \
-    integer Variant::operator op(const integer & value) const \
-    {                                                         \
-        return integer(*this) op value;                       \
-    }                                                         \
-                                                              \
-    real Variant::operator op(const real & value) const       \
-    {                                                         \
-        return real(*this) op value;                          \
-    }                                                         \
-                                                              \
-    bool Variant::operator op(const bool &value) const        \
-    {                                                         \
-        return bool(*this) op value;                          \
-    }                                                         \
-                                                              \
-    string Variant::operator op(const char *value) const      \
-    {                                                         \
-        return this->toString() op value;                     \
-    }                                                         \
-                                                              \
-    string Variant::operator op(const string & value) const   \
-    {                                                         \
-        return this->toString() op value;                     \
-    }                                                         \
-                                                              \
-    Variant Variant::operator op(const Object & value) const  \
-    {                                                         \
-        switch (_M_type)                                      \
-        {                                                     \
-        case Type::OBJECT:                                    \
-            return *_M_obj_P op Variant{value};               \
-        default:                                              \
-            throw CalculateException(type(), Type::OBJECT);   \
-        }                                                     \
-    }                                                         \
-                                                              \
-    Variant Variant::operator op(const Variant & value) const \
-    {                                                         \
-        switch (_M_type)                                      \
-        {                                                     \
-        case Type::INT:                                       \
-            return Variant{integer(*this) op integer(value)}; \
-        case Type::REAL:                                      \
-            return Variant{real(*this) op real(value)};       \
-        case Type::BOOL:                                      \
-            return Variant{bool(*this) op bool(value)};       \
-        case Type::STRING:                                    \
-            return Variant{*_M_string_P op value.toString()}; \
-        case Type::OBJECT:                                    \
-            return Variant{*_M_obj_P op Variant{value}};      \
-        default:                                              \
-            throw CalculateException(type(), value.type());   \
-        }                                                     \
-    }                                                         \
-    int operator op(const int &v1, const Variant &v2)         \
-    {                                                         \
-        return v1 op integer(v2);                             \
-    }                                                         \
-                                                              \
-    double operator op(const double &v1, const Variant &v2)   \
-    {                                                         \
-        return v1 op real(v2);                                \
-    }                                                         \
-                                                              \
-    integer operator op(const integer &v1, const Variant &v2) \
-    {                                                         \
-        return v1 op integer(v2);                             \
-    }                                                         \
-                                                              \
-    real operator op(const real &v1, const Variant &v2)       \
-    {                                                         \
-        return v1 op real(v2);                                \
-    }                                                         \
-                                                              \
-    bool operator op(const bool &v1, const Variant &v2)       \
-    {                                                         \
-        return v1 op bool(v2);                                \
-    }                                                         \
-                                                              \
-    string operator op(const char *v1, const Variant &v2)     \
-    {                                                         \
-        return v1 op v2.toString();                           \
-    }                                                         \
-                                                              \
-    string operator op(const string &v1, const Variant &v2)   \
-    {                                                         \
-        return v1 op v2.toString();                           \
+#define CALCULATE_IMPL(fname, op)                                  \
+    int Variant::operator op(const int &value) const               \
+    {                                                              \
+        return integer(*this) op value;                            \
+    }                                                              \
+                                                                   \
+    double Variant::operator op(const double &value) const         \
+    {                                                              \
+        return real(*this) op value;                               \
+    }                                                              \
+                                                                   \
+    integer Variant::operator op(const integer & value) const      \
+    {                                                              \
+        return integer(*this) op value;                            \
+    }                                                              \
+                                                                   \
+    real Variant::operator op(const real & value) const            \
+    {                                                              \
+        return real(*this) op value;                               \
+    }                                                              \
+                                                                   \
+    bool Variant::operator op(const bool &value) const             \
+    {                                                              \
+        return bool(*this) op value;                               \
+    }                                                              \
+                                                                   \
+    string Variant::operator op(const char *value) const           \
+    {                                                              \
+        return this->toString() op value;                          \
+    }                                                              \
+                                                                   \
+    string Variant::operator op(const string & value) const        \
+    {                                                              \
+        return this->toString() op value;                          \
+    }                                                              \
+                                                                   \
+    Variant Variant::operator op(const Object & value) const       \
+    {                                                              \
+        switch (_M_type)                                           \
+        {                                                          \
+        case Type::OBJECT:                                         \
+            return *_M_obj_P op Variant{value};                    \
+        default:                                                   \
+            throw CalculateException(type(), Type::OBJECT);        \
+        }                                                          \
+    }                                                              \
+                                                                   \
+    Variant Variant::operator op(const Variant & value) const      \
+    {                                                              \
+        return fname(value);                                       \
+    }                                                              \
+    Variant Variant::fname(const Variant &value) const             \
+    {                                                              \
+        switch (_M_type)                                           \
+        {                                                          \
+        case Type::REAL:                                           \
+        case Type::INT:                                            \
+        {                                                          \
+            Type improved = improve(type(), value.type());         \
+            Variant v1 = convertTo(improved);                      \
+            Variant v2 = value.convertTo(improved);                \
+            if (improved == Type::INT)                             \
+                return v1.seeAs<integer>() op v2.seeAs<integer>(); \
+            else if (improved == Type::REAL)                       \
+                return v1.seeAs<real>() op v2.seeAs<real>();       \
+            else                                                   \
+                throw Exception("Unexpected branches.");           \
+        }                                                          \
+        case Type::BOOL:                                           \
+            return Variant{bool(*this) op bool(value)};            \
+        case Type::STRING:                                         \
+            return Variant{*_M_string_P op value.toString()};      \
+        case Type::OBJECT:                                         \
+            return Variant{*_M_obj_P op Variant{value}};           \
+        default:                                                   \
+            throw CalculateException(type(), value.type());        \
+        }                                                          \
+    }                                                              \
+    int operator op(const int &v1, const Variant &v2)              \
+    {                                                              \
+        return v1 op integer(v2);                                  \
+    }                                                              \
+                                                                   \
+    double operator op(const double &v1, const Variant &v2)        \
+    {                                                              \
+        return v1 op real(v2);                                     \
+    }                                                              \
+                                                                   \
+    integer operator op(const integer &v1, const Variant &v2)      \
+    {                                                              \
+        return v1 op integer(v2);                                  \
+    }                                                              \
+                                                                   \
+    real operator op(const real &v1, const Variant &v2)            \
+    {                                                              \
+        return v1 op real(v2);                                     \
+    }                                                              \
+                                                                   \
+    bool operator op(const bool &v1, const Variant &v2)            \
+    {                                                              \
+        return v1 op bool(v2);                                     \
+    }                                                              \
+                                                                   \
+    string operator op(const char *v1, const Variant &v2)          \
+    {                                                              \
+        return v1 op v2.toString();                                \
+    }                                                              \
+                                                                   \
+    string operator op(const string &v1, const Variant &v2)        \
+    {                                                              \
+        return v1 op v2.toString();                                \
     }
 
-#define CALCULATE_NUM_IMPL(op)                                \
+#define CALCULATE_NUM_IMPL(fname, op)                              \
+    int Variant::operator op(const int &value) const               \
+    {                                                              \
+        return integer(*this) op value;                            \
+    }                                                              \
+                                                                   \
+    double Variant::operator op(const double &value) const         \
+    {                                                              \
+        return real(*this) op value;                               \
+    }                                                              \
+                                                                   \
+    integer Variant::operator op(const integer & value) const      \
+    {                                                              \
+        return integer(*this) op value;                            \
+    }                                                              \
+                                                                   \
+    real Variant::operator op(const real & value) const            \
+    {                                                              \
+        return real(*this) op value;                               \
+    }                                                              \
+                                                                   \
+    bool Variant::operator op(const bool &value) const             \
+    {                                                              \
+        return bool(*this) op value;                               \
+    }                                                              \
+                                                                   \
+    Variant Variant::operator op(const Object & value) const       \
+    {                                                              \
+        switch (_M_type)                                           \
+        {                                                          \
+        case Type::OBJECT:                                         \
+            return *_M_obj_P op Variant{value};                    \
+        default:                                                   \
+            throw CalculateException(type(), Type::OBJECT);        \
+        }                                                          \
+    }                                                              \
+                                                                   \
+    Variant Variant::operator op(const Variant & value) const      \
+    {                                                              \
+        return fname(value);                                       \
+    }                                                              \
+    Variant Variant::fname(const Variant &value) const             \
+    {                                                              \
+        switch (_M_type)                                           \
+        {                                                          \
+        case Type::REAL:                                           \
+        case Type::INT:                                            \
+        {                                                          \
+            Type improved = improve(type(), value.type());         \
+            Variant v1 = convertTo(improved);                      \
+            Variant v2 = value.convertTo(improved);                \
+            if (improved == Type::INT)                             \
+                return v1.seeAs<integer>() op v2.seeAs<integer>(); \
+            else if (improved == Type::REAL)                       \
+                return v1.seeAs<real>() op v2.seeAs<real>();       \
+            else                                                   \
+                throw Exception("Unexpected branches.");           \
+        }                                                          \
+        case Type::BOOL:                                           \
+            return Variant{bool(*this) op bool(value)};            \
+        case Type::OBJECT:                                         \
+            return Variant{*_M_obj_P op value};                    \
+        default:                                                   \
+            throw CalculateException(type(), value.type());        \
+        }                                                          \
+    }
+#define CALCULATE_INT_IMPL(fname, op)                         \
     int Variant::operator op(const int &value) const          \
     {                                                         \
         return integer(*this) op value;                       \
     }                                                         \
                                                               \
-    double Variant::operator op(const double &value) const    \
-    {                                                         \
-        return real(*this) op value;                          \
-    }                                                         \
-                                                              \
     integer Variant::operator op(const integer & value) const \
     {                                                         \
         return integer(*this) op value;                       \
-    }                                                         \
-                                                              \
-    real Variant::operator op(const real & value) const       \
-    {                                                         \
-        return real(*this) op value;                          \
     }                                                         \
                                                               \
     bool Variant::operator op(const bool &value) const        \
@@ -921,12 +1114,14 @@ namespace phi
                                                               \
     Variant Variant::operator op(const Variant & value) const \
     {                                                         \
+        return fname(value);                                  \
+    }                                                         \
+    Variant Variant::fname(const Variant &value) const        \
+    {                                                         \
         switch (_M_type)                                      \
         {                                                     \
         case Type::INT:                                       \
             return Variant{integer(*this) op integer(value)}; \
-        case Type::REAL:                                      \
-            return Variant{real(*this) op real(value)};       \
         case Type::BOOL:                                      \
             return Variant{bool(*this) op bool(value)};       \
         case Type::OBJECT:                                    \
@@ -935,57 +1130,24 @@ namespace phi
             throw CalculateException(type(), value.type());   \
         }                                                     \
     }
-#define CALCULATE_INT_IMPL(op)                                \
-    int Variant::operator op(const int &value) const          \
-    {                                                         \
-        return integer(*this) op value;                       \
-    }                                                         \
-                                                              \
-    integer Variant::operator op(const integer & value) const \
-    {                                                         \
-        return integer(*this) op value;                       \
-    }                                                         \
-                                                              \
-    bool Variant::operator op(const bool &value) const        \
-    {                                                         \
-        return bool(*this) op value;                          \
-    }                                                         \
-                                                              \
-    Variant Variant::operator op(const Object & value) const  \
-    {                                                         \
-        switch (_M_type)                                      \
-        {                                                     \
-        case Type::OBJECT:                                    \
-            return *_M_obj_P op Variant{value};               \
-        default:                                              \
-            throw CalculateException(type(), Type::OBJECT);   \
-        }                                                     \
-    }                                                         \
-                                                              \
-    Variant Variant::operator op(const Variant & value) const \
-    {                                                         \
-        switch (_M_type)                                      \
-        {                                                     \
-        case Type::INT:                                       \
-            return Variant{integer(*this) op integer(value)}; \
-        case Type::BOOL:                                      \
-            return Variant{bool(*this) op bool(value)};       \
-        case Type::OBJECT:                                    \
-            return Variant{*_M_obj_P op value};               \
-        default:                                              \
-            throw CalculateException(type(), value.type());   \
-        }                                                     \
-    }
 
-    CALCULATE_IMPL(+)
-    CALCULATE_NUM_IMPL(-)
-    CALCULATE_NUM_IMPL(*)
-    CALCULATE_NUM_IMPL(/)
-    CALCULATE_INT_IMPL(&)
-    CALCULATE_INT_IMPL(|)
-    CALCULATE_INT_IMPL(^)
-    CALCULATE_INT_IMPL(&&)
-    CALCULATE_INT_IMPL(||)
+    CALCULATE_IMPL(add, +)
+    CALCULATE_NUM_IMPL(sub, -)
+    CALCULATE_NUM_IMPL(mul, *)
+    CALCULATE_NUM_IMPL(div, /)
+    CALCULATE_INT_IMPL(mod, %)
+    CALCULATE_INT_IMPL(band, &)
+    CALCULATE_INT_IMPL(bor, |)
+    CALCULATE_INT_IMPL(bxor, ^)
+    CALCULATE_INT_IMPL(land, &&)
+    CALCULATE_INT_IMPL(lor, ||)
+    CALCULATE_INT_IMPL(lshift, <<)
+    CALCULATE_INT_IMPL(rshift, >>)
+
+    real Variant::power(real pow) const
+    {
+        return std::pow((real)(*this), pow);
+    }
 
     Variant Variant::operator-() const
     {
@@ -1021,6 +1183,22 @@ namespace phi
             return Variant{!*_M_obj_P};
         return Variant{!bool(*this)};
     }
+
+    Variant Variant::operator++()
+    {
+        if (type() == Type::OBJECT)
+            return Variant{++*_M_obj_P};
+        convert(Type::INT);
+        return ++_M_int;
+    }
+    Variant Variant::operator--()
+    {
+        if (type() == Type::OBJECT)
+            return Variant{++*_M_obj_P};
+        convert(Type::INT);
+        return --_M_int;
+    }
+
     bool Variant::isConvertible(Type t1, Type t2)
     {
         if (t2 == Type::OBJECT)
@@ -1069,5 +1247,109 @@ namespace phi
         default:
             throw CompareException(type(), value.type());
         }
+    }
+    Variant Variant::copy() const
+    {
+        return *this;
+    }
+    Variant Variant::deepCopy() const
+    {
+        Variant res;
+        switch (_M_type)
+        {
+        case Type::INT:
+            res._M_int = this->_M_int;
+            break;
+        case Type::REAL:
+            res._M_real = this->_M_real;
+            break;
+        case Type::BOOL:
+            res._M_bool = this->_M_bool;
+            break;
+        case Type::STRING:
+            res._M_string_P = new string{*this->_M_string_P};
+            break;
+        case Type::ARRAY:
+            res._M_array_P = new array{_M_array_P->size(), nullptr};
+            for (uinteger i = 0; i < _M_array_P->size(); ++i)
+                (*res._M_array_P)[i] = new Variant{(*_M_array_P)[i]->deepCopy()};
+            break;
+        case Type::DICTIONARY:
+            res._M_dict_P = new dict;
+            for (auto &&pair : *_M_dict_P)
+                res._M_dict_P->insert({new Variant{pair.first->deepCopy()}, new Variant{pair.second->deepCopy()}});
+            break;
+        case Type::OBJECT:
+            res._M_obj_P = new Object{*this->_M_obj_P};
+            break;
+        case Type::FUNCTION:
+            res._M_func_P = new Function{*this->_M_func_P};
+            break;
+        }
+        return res;
+    }
+    Ref<Variant> Variant::call(array& args)
+    {
+        switch (type())
+        {
+        case Type::FUNCTION:
+            return _M_func_P->call(args);
+        case Type::OBJECT:
+            return _M_obj_P->call(args);
+        
+        default:
+            throw RuntimeException("The variant with the type of (%s) is not callable.", stringifyType(type()).c_str());
+        }
+    }
+    Ref<Variant> Variant::access(array& args)
+    {
+        switch (type())
+        {
+        case Type::ARRAY:
+        {
+            if (args.size() == 1)
+            {
+                return _M_array_P->at((integer)*args[0]);
+            }
+            else if (args.size() >= 2 && args.size() <= 3)
+            {
+                uinteger begin = (integer)args[0];
+                uinteger end = (integer)args[1];
+                uinteger step = args.size() == 3 ? (integer)args[2] : 1;
+                array* res = new array{(uinteger)std::ceil((end - begin) / real(step)), nullptr};
+                for (uinteger i = begin; i < end; i += step)
+                    (*res)[i - begin] = (*_M_array_P)[i];
+                return new Variant{std::move(Owner<array>{res})};
+            }
+            else
+            {
+                throw ArgumentRangedException(1, 3, args.size(), __FUNCTION__);
+            }
+        }
+        case Type::DICTIONARY:
+        {
+            if (args.size() == 1)
+            {
+                return _M_dict_P->at(args[0]);
+            }
+            else
+            {
+                throw ArgumentException(1, args.size(), __FUNCTION__);
+            }
+        }
+        case Type::OBJECT:
+            return _M_obj_P->access(args);
+        
+        default:
+            throw RuntimeException("The variant with the type of (%s) is not accessible.", stringifyType(type()).c_str());
+        }
+    }
+    size_t VariantHash::operator()(const Ref<Variant> &value) const
+    {
+        return value->hash();
+    }
+    size_t VariantEqual::operator()(const Ref<Variant> &lhs, const Ref<Variant> &rhs) const
+    {
+        return *lhs == *rhs;
     }
 } // namespace phi

@@ -11,6 +11,7 @@ namespace phi
 
 		map<string, Ref<string>> Word::_M_symbols;
 		map<string, Ref<Word>> Word::_M_words{
+			WORD("return", RETURN),
 			WORD("if", IF),
 			WORD("else", ELSE),
 			WORD("for", FOR),
@@ -41,6 +42,7 @@ namespace phi
 			WORD("<<", LSHIFT),
 			WORD(">>", RSHIFT),
 			WORD("**", POW),
+			WORD("@@", DCPY),
 		};
 
 		void Word::put(const string &word)
@@ -152,6 +154,8 @@ namespace phi
 				return "false";
 			case Tag::IMPORT:
 				return "import";
+			case Tag::RETURN:
+				return "return";
 			case Tag::AS:
 				return "as";
 			case Tag::EVAL:
@@ -186,6 +190,8 @@ namespace phi
 				return ">>";
 			case Tag::POW:
 				return "**";
+			case Tag::DCPY:
+				return "@@";
 			}
 			return "unknown";
 		}

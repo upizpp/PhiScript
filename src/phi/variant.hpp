@@ -8,8 +8,15 @@ namespace phi
     class Function;
     class Variant;
 
-    struct VariantHash;
-    struct VariantEqual;
+    struct VariantHash
+    {
+        size_t operator()(const Ref<Variant> &value) const;
+    };
+
+    struct VariantEqual
+    {
+        size_t operator()(const Ref<Variant> &lhs, const Ref<Variant> &rhs) const;
+    };
 
     using array = vector<Ref<Variant>>;
     using dict = unordered_map<Ref<Variant>, Ref<Variant>, VariantHash, VariantEqual>;
@@ -48,6 +55,8 @@ namespace phi
         Type _M_type;
 
     public:
+        static Ref<Variant> Null;
+
         Variant();
         Variant(const int &);
         Variant(const double &);
@@ -57,7 +66,9 @@ namespace phi
         Variant(const char *);
         Variant(const string &);
         Variant(const array &);
+        Variant(Owner<array>&&);
         Variant(const dict &);
+        Variant(Owner<dict>&&);
         Variant(const Object &);
         Variant(const Function &);
         Variant(const Variant &);
@@ -96,11 +107,11 @@ namespace phi
         string toString() const;
         uinteger hash() const;
 
-        template<typename T>
-        T* getPtr();
+        template <typename T>
+        T *getPtr();
 
-        template<typename T>
-        T& seeAs()
+        template <typename T>
+        T &seeAs()
         {
             return *getPtr<T>();
         }
@@ -125,7 +136,7 @@ namespace phi
         COMPARE_DECL(<)
         COMPARE_DECL(<=)
 
-#define CALCULATE_DECL(op)                                        \
+#define CALCULATE_DECL(fname, op)                                 \
     int operator op(const int &) const;                           \
     double operator op(const double &) const;                     \
     integer operator op(const integer &) const;                   \
@@ -135,6 +146,7 @@ namespace phi
     string operator op(const string &) const;                     \
     Variant operator op(const Object &) const;                    \
     Variant operator op(const Variant &) const;                   \
+    Variant fname(const Variant &) const;                         \
     friend int operator op(const int &, const Variant &);         \
     friend double operator op(const double &, const Variant &);   \
     friend integer operator op(const integer &, const Variant &); \
@@ -142,35 +154,57 @@ namespace phi
     friend bool operator op(const bool &, const Variant &);       \
     friend string operator op(const char *, const Variant &);     \
     friend string operator op(const string &, const Variant &);
-#define CALCULATE_NUM_DECL(op)                  \
+#define CALCULATE_NUM_DECL(fname, op)           \
     int operator op(const int &) const;         \
     double operator op(const double &) const;   \
     integer operator op(const integer &) const; \
     real operator op(const real &) const;       \
     bool operator op(const bool &) const;       \
     Variant operator op(const Object &) const;  \
-    Variant operator op(const Variant &) const;
-#define CALCULATE_INT_DECL(op)                  \
+    Variant operator op(const Variant &) const; \
+    Variant fname(const Variant &) const;
+#define CALCULATE_INT_DECL(fname, op)           \
     int operator op(const int &) const;         \
     integer operator op(const integer &) const; \
     bool operator op(const bool &) const;       \
     Variant operator op(const Object &) const;  \
-    Variant operator op(const Variant &) const;
-        CALCULATE_DECL(+)
-        CALCULATE_NUM_DECL(-)
-        CALCULATE_NUM_DECL(*)
-        CALCULATE_NUM_DECL(/)
-        CALCULATE_INT_DECL(&)
-        CALCULATE_INT_DECL(|)
-        CALCULATE_INT_DECL(^)
-        CALCULATE_INT_DECL(&&)
-        CALCULATE_INT_DECL(||)
+    Variant operator op(const Variant &) const; \
+    Variant fname(const Variant &) const;
+        CALCULATE_DECL(add, +)
+        CALCULATE_NUM_DECL(sub, -)
+        CALCULATE_NUM_DECL(mul, *)
+        CALCULATE_NUM_DECL(div, /)
+        CALCULATE_INT_DECL(mod, %)
+        CALCULATE_INT_DECL(band, &)
+        CALCULATE_INT_DECL(bor, |)
+        CALCULATE_INT_DECL(bxor, ^)
+        CALCULATE_INT_DECL(land, &&)
+        CALCULATE_INT_DECL(lor, ||)
+        CALCULATE_INT_DECL(lshift, <<)
+        CALCULATE_INT_DECL(rshift, >>)
+
+        real power(real) const;
 
         Variant operator-() const;
         Variant operator~() const;
         Variant operator!() const;
+        Variant operator++();
+        Variant operator--();
 
-        bool equals(const Variant&);
+        Variant copy() const;
+        Variant deepCopy() const;
+
+        void convert(Type);
+        inline Variant convertTo(Type type) const
+        {
+            Variant tmp = Variant{*this};
+            tmp.convert(type);
+            return tmp;
+        }
+        bool equals(const Variant &);
+
+        Ref<Variant> call(array& args);
+        Ref<Variant> access(array& args);
 
         static bool isConvertible(Type, Type);
     };
@@ -181,104 +215,87 @@ namespace phi
         return os;
     }
 
-    struct VariantHash
-    {
-        size_t operator()(const Ref<Variant> &value)
-        {
-            return value->hash();
-        }
-    };
-
-    struct VariantEqual
-    {
-        size_t operator()(const Ref<Variant> &lhs, const Ref<Variant> &rhs)
-        {
-            return *lhs == *rhs;
-        }
-    };
-
-    template<typename T>
+    template <typename T>
     struct VariantType;
-    template<>
+    template <>
     struct VariantType<int>
     {
         static const Variant::Type value = Variant::Type::INT;
     };
-    template<>
+    template <>
     struct VariantType<integer>
     {
         static const Variant::Type value = Variant::Type::INT;
     };
-    template<>
+    template <>
     struct VariantType<uinteger>
     {
         static const Variant::Type value = Variant::Type::INT;
     };
-    template<>
+    template <>
     struct VariantType<float>
     {
         static const Variant::Type value = Variant::Type::REAL;
     };
-    template<>
+    template <>
     struct VariantType<real>
     {
         static const Variant::Type value = Variant::Type::REAL;
     };
-    template<>
+    template <>
     struct VariantType<bool>
     {
         static const Variant::Type value = Variant::Type::BOOL;
     };
-    template<>
+    template <>
     struct VariantType<string>
     {
         static const Variant::Type value = Variant::Type::STRING;
     };
-    template<>
-    struct VariantType<char*>
+    template <>
+    struct VariantType<char *>
     {
         static const Variant::Type value = Variant::Type::STRING;
     };
-    template<>
+    template <>
     struct VariantType<array>
     {
         static const Variant::Type value = Variant::Type::ARRAY;
     };
-    template<typename T>
+    template <typename T>
     struct VariantType<vector<T>>
     {
         static const Variant::Type value = Variant::Type::REAL;
     };
-    template<>
+    template <>
     struct VariantType<dict>
     {
         static const Variant::Type value = Variant::Type::DICTIONARY;
     };
-    template<>
+    template <>
     struct VariantType<Object>
     {
         static const Variant::Type value = Variant::Type::OBJECT;
     };
-    template<typename T>
-    struct VariantType: std::enable_if<std::is_base_of<Object, T>::value>::type
+    template <typename T>
+    struct VariantType : std::enable_if<std::is_base_of<Object, T>::value>::type
     {
         static const Variant::Type value = Variant::Type::OBJECT;
     };
-    template<>
+    template <>
     struct VariantType<Function>
     {
         static const Variant::Type value = Variant::Type::FUNCTION;
     };
 
-    template<typename T>
+    template <typename T>
     struct TypeOf
     {
         static const Variant::Type value = VariantType<typename std::remove_cv<typename std::remove_reference<typename std::remove_pointer<T>::type>::type>::type>::value;
     };
 
-
-    template<typename T>
-    T* Variant::getPtr()
+    template <typename T>
+    T *Variant::getPtr()
     {
         if (type() != TypeOf<T>::value)
             return nullptr;
@@ -287,21 +304,21 @@ namespace phi
         case Type::NIL:
             return nullptr;
         case Type::INT:
-            return &_M_int;
+            return (T*)&_M_int;
         case Type::REAL:
-            return &_M_real;
+            return (T*)&_M_real;
         case Type::BOOL:
-            return &_M_bool;
+            return (T*)&_M_bool;
         case Type::STRING:
-            return _M_string_P;
+            return (T*)_M_string_P;
         case Type::DICTIONARY:
-            return _M_dict_P;
+            return (T*)_M_dict_P;
         case Type::ARRAY:
-            return _M_array_P;
+            return (T*)_M_array_P;
         case Type::OBJECT:
-            return _M_obj_P;
+            return (T*)_M_obj_P;
         case Type::FUNCTION:
-            return _M_func_P;
+            return (T*)_M_func_P;
         default:
             return nullptr;
         }

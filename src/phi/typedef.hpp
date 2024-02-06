@@ -18,6 +18,7 @@ namespace phi
 
     using std::cout;
     using std::cin;
+    using std::endl;
 
     using integer = int64_t;
     using uinteger = uint64_t;

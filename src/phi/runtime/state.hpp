@@ -13,7 +13,7 @@ namespace phi
 
     public:
         OPCodePacker() = default;
-        OPCodePacker(const OPCodePacker&) = default;
+        OPCodePacker(const OPCodePacker &) = default;
         OPCodePacker(Borrower<CodeSeq> container, uinteger index) : _M_index(index), _M_container(container) {}
 
         OPCode *operator->() { return &(*_M_container)[_M_index]; }
@@ -30,6 +30,7 @@ namespace phi
         Ref<gcp_t> _M_GCP; // Global Constant Pool
         CodeSeq _M_codes;
         unordered_map<arg_t, arg_t> _M_labels;
+        vector<arg_t> _M_lines;
 
         static Borrower<gcp_t> _M_globalPool;
 
@@ -47,8 +48,15 @@ namespace phi
         }
         inline void emitLabel(arg_t label) { emitLabel(label, static_cast<phi::arg_t>(_M_codes.size())); }
         inline void emitLabel(arg_t label, arg_t position) { _M_labels.insert({label, position}); }
+        inline OPCodePacker push(const OPCode &code, arg_t line)
+        {
+            _M_lines.push_back(line);
+            _M_codes.push_back(code);
+            return OPCodePacker{&_M_codes, _M_codes.size() - 1};
+        }
         inline OPCodePacker push(const OPCode &code)
         {
+            _M_lines.push_back(_M_lines.back());
             _M_codes.push_back(code);
             return OPCodePacker{&_M_codes, _M_codes.size() - 1};
         }
@@ -56,11 +64,12 @@ namespace phi
         inline CodeSeq &getCodes() { return _M_codes; }
         inline const CodeSeq &getCodes() const { return _M_codes; }
         inline OPCode &top() { return _M_codes.back(); }
-        inline OPCode& getCode(uinteger index) {return _M_codes[index] ;}
-        inline const OPCode& getCode(uinteger index) const {return _M_codes[index] ;}
+        inline OPCode &getCode(uinteger index) { return _M_codes[index]; }
+        inline const OPCode &getCode(uinteger index) const { return _M_codes[index]; }
         inline const OPCode &top() const { return _M_codes.back(); }
         inline arg_t label(arg_t label) const { return _M_labels.at(label); }
         inline const unordered_map<arg_t, arg_t> &labels() const { return _M_labels; }
+        inline arg_t line(arg_t index) const { return _M_lines[index]; }
 
         ~State()
         {

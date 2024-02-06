@@ -26,7 +26,9 @@ namespace phi
             LSHIFT,
             RSHIFT,
             POW,
+            DCPY, // deep copy
             // keywords
+            RETURN,
             VAR,
             IF,
             ELSE,

@@ -2,7 +2,7 @@
 
 namespace phi
 {
-	Borrower<Generator> Generator::_M_current;
+	Ref<Generator> Generator::_M_current;
 
     Generator::~Generator()
     {

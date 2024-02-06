@@ -28,6 +28,6 @@ namespace phi
 
         void setRule(const PreprocessRule &rule) { _M_rule.reset(new PreprocessRule{rule}); }
 
-        list<Ref<token::Token>> &getTokens();
+        token::tokens &getTokens();
     };
 }

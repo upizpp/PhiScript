@@ -19,11 +19,12 @@ namespace phi
 
 		string v = std::to_string(_M_value);
 		if (_M_op >= Command::LOAD && _M_op <= Command::ALLOCATE)
-			v += "(" + string(*State::lookupGlobal(_M_value)) + ")";
+			v += "(" + State::lookupGlobal(_M_value)->toString() + ")";
 		else if (_M_op >= Command::IFFALSE && _M_op <= Command::GOTO)
 			v += "(" + std::to_string(Generator::instance()->getState().label(_M_value)) + ")";
 
 		os << std::left << std::setw(16) << v;
+		
 		return os.str();
 	}
 
@@ -51,8 +52,8 @@ namespace phi
 				return "LSHIFT";
             case Command::RSHIFT:
 				return "RSHIFT";
-            case Command::XOR:
-				return "XOR";
+            case Command::BXOR:
+				return "BXOR";
             case Command::LAND:
 				return "LAND";
             case Command::LOR:
@@ -81,6 +82,10 @@ namespace phi
 				return "INC";
             case Command::RED:
 				return "RED";
+			case Command::COPY:
+				return "COPY";
+			case Command::DCPY:
+				return "DCPY";
             case Command::ARGS:
 				return "ARGS";
             case Command::CALL:
@@ -117,6 +122,8 @@ namespace phi
 				return "IFTRUE";
             case Command::GOTO:
 				return "GOTO";
+			case Command::RETURN:
+				return "RETURN";
 		}
 		return "UNKNOWN";
 	}
@@ -131,6 +138,10 @@ namespace phi
 		case '!':
 		case token::Tag::NOT:
 			return Command::NOT;
+		case '@':
+			return Command::COPY;
+		case token::Tag::DCPY:
+			return Command::DCPY;
 		case token::Tag::INC:
 			return Command::INC;
 		case token::Tag::RED:
@@ -159,12 +170,12 @@ namespace phi
 			return Command::BAND;
 		case '|':
 			return Command::BOR;
+		case '^':
+			return Command::BXOR;
 		case token::Tag::LSHIFT:
 			return Command::LSHIFT;
 		case token::Tag::RSHIFT:
 			return Command::RSHIFT;
-		case '^':
-			return Command::XOR;
 		case token::Tag::AND:
 			return Command::LAND;
 		case token::Tag::OR:
