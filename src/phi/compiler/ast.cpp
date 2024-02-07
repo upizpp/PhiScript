@@ -65,8 +65,10 @@ namespace phi
 				push({OPCode::Command::ALLOCATE,
 					  Generator::instance()->push(new Variant{*_M_name})});
 			Function func = Compiler::load(_M_body, Compiler::globalOption ? *Compiler::globalOption : CompileOption{});
-			func.getMethod().bind(std::move(_M_binds));
-			push({OPCode::Command::LOAD_CONST, Generator::instance()->push(new Variant{func})});
+			func.getMethod().bind(_M_binds.release());
+			Ref<Variant> f_variant = new Variant{func};
+			f_variant->getPtr<Function>()->getMethod().setThis(f_variant);
+			push({OPCode::Command::LOAD_CONST, Generator::instance()->push(f_variant)});
 			if (_M_name)
 				push({OPCode::Command::ASSIGN});
 		}

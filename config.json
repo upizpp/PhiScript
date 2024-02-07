@@ -3,7 +3,7 @@
         "compiler": "g++",
         "cache": ".build",
         "scan": "src",
-        "output": "phi.exe",
+        "output": "phi",
         "extra": "-std=c++11 -O3 -Wno-switch -Wno-delete-abstract-non-virtual-dtor",
         "includes": [
             "src"
@@ -16,7 +16,7 @@
         "compiler": "g++",
         "cache": ".debug_build",
         "scan": "src",
-        "output": "debug.exe",
+        "output": "debug",
         "extra": "-g -std=c++11 -DDEBUG -Wno-switch -Wno-delete-abstract-non-virtual-dtor",
         "includes": [
             "src"
@@ -30,7 +30,7 @@
         "compiler": "g++",
         "cache": ".test_build",
         "scan": "src",
-        "output": "test.exe",
+        "output": "test",
         "extra": "-g -std=c++11 -DDEBUG -DTEST -Wno-switch -Wno-delete-abstract-non-virtual-dtor",
         "includes": [
             "src"
@@ -43,7 +43,7 @@
         "compiler": "g++",
         "cache": ".test_build",
         "scan": "src",
-        "output": "test.exe",
+        "output": "test",
         "auto_run": false,
         "extra": "-g -Isrc -std=c++11 -DDEBUG -DTEST -Wno-switch -Wno-delete-abstract-non-virtual-dtor",
         "ignore": [

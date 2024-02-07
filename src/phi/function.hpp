@@ -9,17 +9,21 @@ namespace phi
     {
     private:
         Ref<State> _M_method;
-        Owner<vector<Ref<string>>> _M_binds;
+        Ref<vector<Ref<string>>> _M_binds;
+        // closure
+        Ref<map<Ref<string>, Ref<Variant>>> _M_links;
+        Ref<Variant> _M_this;
 
     public:
         Method(const Method &method) : _M_method(method._M_method), _M_binds(method._M_binds ? new vector<Ref<string>>{*method._M_binds} : nullptr) {}
         Method(const Ref<State> &method) : _M_method(method) {}
-        Method(const Ref<State> &method, Owner<vector<Ref<string>>> &&binds) : _M_method(method), _M_binds(std::move(binds)) {}
+        Method(const Ref<State> &method, const Ref<vector<Ref<string>>> &&binds) : _M_method(method), _M_binds(binds) {}
 
         Ref<Variant> call(const array &args);
         Ref<Variant> operator()(const array &args) { return call(args); }
 
-        void bind(Owner<vector<Ref<string>>> &&binds) { _M_binds = std::move(binds); }
+        void bind(const Ref<vector<Ref<string>>> &binds) { _M_binds = binds; }
+        void setThis(Ref<Variant> new_this) { _M_this = new_this; }
     };
 
     class Function

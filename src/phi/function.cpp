@@ -19,6 +19,7 @@ namespace phi
             for (uinteger i = 0; i < size; i++)
                 env.setLocal(*(*_M_binds)[i], args[i]);
         }
+        env.setLocal("this", _M_this);
         env.setLocal("__args__", new Variant{args});
         Ref<Variant> res = evaluator.eval();
         return res;
