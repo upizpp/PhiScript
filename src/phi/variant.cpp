@@ -1287,7 +1287,7 @@ namespace phi
         case Type::OBJECT:
             return *_M_obj_P == value;
         case Type::FUNCTION:
-            if (value.type() != Type::ARRAY)
+            if (value.type() != Type::FUNCTION)
                 throw CompareException(type(), value.type());
             return _M_func_P == value._M_func_P;
         default:

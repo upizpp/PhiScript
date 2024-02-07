@@ -2,4 +2,8 @@ fn add(a, b)
 {
     return a + b 
 }
-print(add(1, 2))
+var sub = fn(a, b)
+{
+    return a - b
+}
+print(add(1, 2), sub(3, 4))

@@ -12,6 +12,9 @@ int main(int argc, char** args)
     try
     {
         Compiler compiler(new FileScanner("D:\\User File\\Projects\\VSCode\\PhiScript\\src\\phi_script\\test.phi"));
+
+        // compiler.parse()->print();
+
         Function func = compiler.load();
         
         array parsed_args{(size_t)argc, nullptr};

@@ -67,7 +67,7 @@ namespace phi
 			Function func = Compiler::load(_M_body, Compiler::globalOption ? *Compiler::globalOption : CompileOption{});
 			func.getMethod().bind(std::move(_M_binds));
 			push({OPCode::Command::LOAD_CONST, Generator::instance()->push(new Variant{func})});
-			if (_M_name);
+			if (_M_name)
 				push({OPCode::Command::ASSIGN});
 		}
 
