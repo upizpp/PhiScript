@@ -151,8 +151,8 @@ namespace phi
 		};
 
 	public:
-		template<typename T>
-		static callable_t toCallable(const T&func)
+		template<typename F>
+		static callable_t toCallable(const F&func)
 		{
 			return [=](arg_list &args) -> type
 			{
