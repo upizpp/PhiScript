@@ -115,6 +115,13 @@ namespace phi
         {
             return *getPtr<T>();
         }
+        
+        template <typename T>
+        const T &seeAs() const
+        {
+            return *getPtr<T>();
+        }
+
 
 #define COMPARE_DECL(op)                      \
     bool operator op(const int &) const;      \

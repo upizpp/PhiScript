@@ -14,8 +14,11 @@ int main(int argc, char** args)
         Compiler compiler(new FileScanner("D:\\User File\\Projects\\VSCode\\PhiScript\\src\\phi_script\\test.phi"));
         Function func = compiler.load();
         array parsed_args{(size_t)argc, nullptr};
-        Function test{ClassDB::toCallable([](Ref<Variant> what){
-            cout << (string)*what << endl;
+        Function test{ClassDB::toCallable([](integer id, RestParameters what){
+            cout << "id: " << id << '\t';
+            for (auto &&item : what)
+                cout << (string)*item << " ";
+            cout << endl;
         })};
         setGlobal("print", new Variant{test});
         for (uinteger i = 0; i < argc; ++i)

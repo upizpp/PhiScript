@@ -78,13 +78,13 @@ namespace phi
         return static_cast<typename function_traits<Function>::pointer>(lambda);
     }
 
-    template <int... Ts>
+    template <size_t... Ts>
     struct index_seq
     {
         template <typename T>
         struct append;
 
-        template <template <int...> class T, int... V>
+        template <template <size_t...> class T, size_t... V>
         struct append<T<V...>>
         {
             using type = index_seq<Ts..., V...>;
@@ -94,22 +94,22 @@ namespace phi
         using append_t = typename append<T>::type;
     };
 
-    template <int C, int E, int S = 1>
+    template <size_t C, size_t E, size_t S = 1>
     struct gen_seq
     {
         using type = typename index_seq<C>::template append_t<typename gen_seq<C + S, E, S>::type>;
     };
 
-    template <int E, int S>
+    template <size_t E, size_t S>
     struct gen_seq<E, E, S>
     {
         using type = index_seq<E>;
     };
 
-    template <int C, int E, int S = 1>
+    template <size_t C, size_t E, size_t S = 1>
     using gen_seq_t = typename gen_seq<C, E, S>::type;
 
-    template <int C>
+    template <size_t C>
     struct gen_index_seq
     {
         using type = typename gen_seq<0, C - 1, 1>::type;
@@ -121,7 +121,7 @@ namespace phi
         using type = index_seq<>;
     };
 
-    template <int C>
+    template <size_t C>
     using gen_index_seq_t = typename gen_index_seq<C>::type;
 
     template <typename T>
@@ -131,6 +131,6 @@ namespace phi
     struct FuncTraits<R(A...)>
     {
         using ret = R;
-        static constexpr int count = sizeof...(A);
+        static constexpr size_t count = sizeof...(A);
     };
 } // namespace phi

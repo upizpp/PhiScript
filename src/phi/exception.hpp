@@ -59,6 +59,13 @@ namespace phi
 
 		BinaryException(Variant::Type a, Variant::Type b) : _M_a(a), _M_b(b) {}
 
+		BinaryException& setTypes(Variant::Type a, Variant::Type b)
+		{
+			_M_a = a;
+			_M_b = b;
+			return *this;
+		}
+
 		virtual string className() const override
 		{
 			return "BinaryException";

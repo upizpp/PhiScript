@@ -55,7 +55,7 @@ namespace phi
         _M_array_P = new array{value};
     }
 
-    Variant::Variant(Owner<array>&& value) : _M_type(Type::ARRAY)
+    Variant::Variant(Owner<array> &&value) : _M_type(Type::ARRAY)
     {
         _M_array_P = value.release();
     }
@@ -65,7 +65,7 @@ namespace phi
         _M_dict_P = new dict{value};
     }
 
-    Variant::Variant(Owner<dict>&& value) : _M_type(Type::DICTIONARY)
+    Variant::Variant(Owner<dict> &&value) : _M_type(Type::DICTIONARY)
     {
         _M_dict_P = value.release();
     }
@@ -397,10 +397,24 @@ namespace phi
             switch (target)
             {
             case Type::INT:
-                _M_int = std::stoull(*_M_string_P);
+                try
+                {
+                    _M_int = std::stoull(*_M_string_P);
+                }
+                catch (const std::invalid_argument &)
+                {
+                    throw ConversionException("Cannot convert \"%s\" to INT.", _M_string_P->c_str()).setTypes(type(), target);
+                }
                 break;
             case Type::REAL:
-                _M_real = std::stod(*_M_string_P);
+                try
+                {
+                    _M_real = std::stoull(*_M_string_P);
+                }
+                catch (const std::invalid_argument &)
+                {
+                    throw ConversionException("Cannot convert \"%s\" to REAL.", _M_string_P->c_str()).setTypes(type(), target);
+                }
                 break;
             case Type::BOOL:
                 _M_bool = _M_string_P->empty();
@@ -1320,7 +1334,7 @@ namespace phi
         }
         return res;
     }
-    Ref<Variant> Variant::call(array& args)
+    Ref<Variant> Variant::call(array &args)
     {
         switch (type())
         {
@@ -1328,12 +1342,12 @@ namespace phi
             return _M_func_P->call(args);
         case Type::OBJECT:
             return _M_obj_P->call(args);
-        
+
         default:
             throw RuntimeException("The variant with the type of (%s) is not callable.", stringifyType(type()).c_str());
         }
     }
-    Ref<Variant> Variant::access(array& args)
+    Ref<Variant> Variant::access(array &args)
     {
         switch (type())
         {
@@ -1348,7 +1362,7 @@ namespace phi
                 uinteger begin = (integer)args[0];
                 uinteger end = (integer)args[1];
                 uinteger step = args.size() == 3 ? (integer)args[2] : 1;
-                array* res = new array{(uinteger)std::ceil((end - begin) / real(step)), nullptr};
+                array *res = new array{(uinteger)std::ceil((end - begin) / real(step)), nullptr};
                 for (uinteger i = begin; i < end; i += step)
                     (*res)[i - begin] = (*_M_array_P)[i];
                 return new Variant{std::move(Owner<array>{res})};
@@ -1371,7 +1385,7 @@ namespace phi
         }
         case Type::OBJECT:
             return _M_obj_P->access(args);
-        
+
         default:
             throw RuntimeException("The variant with the type of (%s) is not accessible.", stringifyType(type()).c_str());
         }

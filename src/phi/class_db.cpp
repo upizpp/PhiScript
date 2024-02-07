@@ -7,7 +7,7 @@ namespace phi
     string ClassDB::_M_bound;
     string ClassDB::_M_calling;
 
-    ClassDB::type ClassDB::call(Object* obj, const string &method_name, arg_list args)
+    ClassDB::type ClassDB::call(Object *obj, const string &method_name, arg_list args)
     {
         string class_name = obj->getClass();
         _M_calling = class_name + "::" + method_name;
@@ -21,12 +21,23 @@ namespace phi
     {
         return _M_classes[obj->getClass()].properties[property_name].first(obj);
     }
-    Variant ClassInfo::call(Object* obj, const string& method_name, arg_list& args)
+    ClassInfo::type ClassInfo::call(Object *obj, const string &method_name, arg_list &args)
     {
         return getMethod(method_name)(obj, args);
     }
-    ClassInfo::method& ClassInfo::getMethod(const string& name)
+    ClassInfo::method &ClassInfo::getMethod(const string &name)
     {
         return methods.find(name) != methods.end() ? methods[name] : parent->getMethod(name);
+    }
+
+    template <>
+    RestParameters ClassDB::ArgumentHandler::handle<RestParameters>(const array &args, size_t index)
+    {
+        array rest_args;
+        size_t rest = args.size() - index;
+        rest_args.resize(rest);
+        for (size_t i = index; i < args.size(); i++)
+            rest_args[i - index] = args[i];
+        return RestParameters{std::move(rest_args)};
     }
 } // namespace phi
