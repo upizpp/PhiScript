@@ -1,4 +1,5 @@
 #include "compiler.hpp"
+#include <phi/function.hpp>
 
 namespace phi
 {
@@ -18,6 +19,10 @@ namespace phi
             break;
         }
         return state;
+    }
+    Function Compiler::load()
+    {
+        return Function{Method{compile()}};
     }
     token::tokens Compiler::tokenize()
     {

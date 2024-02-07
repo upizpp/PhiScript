@@ -250,7 +250,7 @@ namespace phi
             return _M_ptr != ptr;
         }
 
-        operator bool()
+        operator bool() const
         {
             return _M_ptr;
         }
@@ -324,7 +324,7 @@ namespace phi
             return *this;
         }
 
-        operator bool()
+        operator bool() const
         {
             return _M_ptr;
         }

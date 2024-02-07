@@ -1,5 +1,6 @@
 #include "evaluator.hpp"
 #include <algorithm>
+#include <phi/runtime/builtin/global.hpp>
 #include <phi/exception.hpp>
 
 namespace phi
@@ -231,6 +232,8 @@ namespace phi
         while (--it != _M_envs.end())
             if (it->has(name))
                 return it->load(name);
+        if (hasGlobal(name))
+            return getGlobal(name);
         return Variant::Null;
     }
     VariantPacker Environment::allocate(const string &name)

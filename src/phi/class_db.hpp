@@ -37,7 +37,7 @@ private:                                   \
 
 namespace phi
 {
-	using callable_t = std::function<Variant(array&)>;
+	using callable_t = std::function<Ref<Variant>(const array&)>;
 
 	struct ClassInfo
 	{
@@ -108,11 +108,30 @@ namespace phi
 	private:
 		friend struct class_call_impl;
 
-		template <typename I, typename F>
+		template <typename I, typename F, typename Enabled = void>
 		struct class_call_impl;
 
 		template <int... I, typename F>
-		struct class_call_impl<index_seq<I...>, F>
+		struct class_call_impl<index_seq<I...>, F, typename std::enable_if<std::is_same<typename function_traits<F>::return_type, void>::value>::type>
+		{
+			static type call(F f, Object *obj, arg_list &args)
+			{
+				try
+				{
+					using class_type = typename function_traits<F>::class_type;
+					(static_cast<class_type *>(obj)->*f)(
+						args.at(I).seeAs<typename function_traits<F>::template args<I>::type>()...);
+					return *Variant::Null;
+				}
+				catch (std::out_of_range)
+				{
+					throw ArgumentException(sizeof...(I), args.size(), ClassDB::_M_calling);
+				};
+			}
+		};
+
+		template <int... I, typename F>
+		struct class_call_impl<index_seq<I...>, F, typename std::enable_if<!std::is_same<typename function_traits<F>::return_type, void>::value>::type>
 		{
 			static type call(F f, Object *obj, arg_list &args)
 			{
@@ -131,17 +150,19 @@ namespace phi
 
 		friend struct call_impl;
 
-		template <typename I, typename F>
+		template <typename I, typename F, typename Enabled = void>
 		struct call_impl;
 
 		template <int... I, typename F>
-		struct call_impl<index_seq<I...>, F>
+		struct call_impl<index_seq<I...>, F, 
+						typename std::enable_if<std::is_same<typename function_traits<F>::return_type, void>::value>::type>
 		{
-			static type call(F f, arg_list &args)
+			static Ref<Variant> call(F f, const array &args)
 			{
 				try
 				{
-					return f(args.at(I).seeAs<typename function_traits<F>::template args<I>::type>()...);
+					f(args.at(I)...);
+					return Variant::Null;
 				}
 				catch (std::out_of_range)
 				{
@@ -150,11 +171,27 @@ namespace phi
 			}
 		};
 
+		template <int... I, typename F>
+		struct call_impl<index_seq<I...>, F,
+				typename std::enable_if<!std::is_same<typename function_traits<F>::return_type, void>::value>::type>
+		{
+			static Ref<Variant> call(F f, const array &args)
+			{
+				try
+				{
+					return f(args.at(I)...);
+				}
+				catch (std::out_of_range)
+				{
+					throw ArgumentException(sizeof...(I), args.size(), ClassDB::_M_calling);
+				};
+			}
+		};
 	public:
 		template<typename F>
 		static callable_t toCallable(const F&func)
 		{
-			return [=](arg_list &args) -> type
+			return [=](const array &args) -> Ref<Variant>
 			{
 				using seq = gen_index_seq_t<function_traits<F>::arity>;
 				return call_impl<seq, F>::call(func, args);

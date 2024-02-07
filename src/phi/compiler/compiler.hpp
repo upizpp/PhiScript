@@ -1,4 +1,4 @@
-#pragma
+#pragma once
 #include <phi/compiler/lexer.hpp>
 #include <phi/compiler/parser.hpp>
 #include <phi/compiler/preprocessor.hpp>
@@ -30,6 +30,7 @@ namespace phi
         Compiler(Scanner* scanner, CompileOption&& option) : _M_scanner(scanner), _M_option(std::move(option)) {}
 
         Ref<State> compile();
+        Function load();
         token::tokens tokenize();
         token::tokens preprocess(const token::tokens&);
         Ref<ast::Node> parse(token::tokens&);

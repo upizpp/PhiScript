@@ -12,9 +12,6 @@
 namespace phi
 {
     Ref<Variant> Variant::Null = new Variant;
-
-    static std::ostringstream string_os;
-
     uinteger Variant::hashSeed = (srand(time(0)), rand());
 
     Variant::Variant() : _M_type(Type::NIL)
@@ -323,6 +320,31 @@ namespace phi
         }
         switch (type())
         {
+        case Type::NIL:
+            switch (target)
+            {
+            case Type::INT:
+                _M_int = 0;
+                break;
+            case Type::REAL:
+                _M_real = 0.0;
+                break;
+            case Type::BOOL:
+                _M_bool = false;
+                break;
+            case Type::STRING:
+                *_M_string_P = "";
+                break;
+            case Type::ARRAY:
+                _M_array_P = new array;
+                break;
+            case Type::DICTIONARY:
+                _M_dict_P = new dict;
+                break;
+            default:
+                throw ConversionException{type(), target};
+            }
+            break;
         case Type::INT:
             switch (target)
             {
@@ -505,6 +527,7 @@ namespace phi
 
     Variant::operator string() const
     {
+        std::ostringstream string_os;
         string_os.str("");
         switch (_M_type)
         {
@@ -520,6 +543,7 @@ namespace phi
             return *_M_string_P;
         case Type::ARRAY:
         {
+            string_os << '[';
             bool first = true;
             for (auto &&item : *_M_array_P)
             {
@@ -529,10 +553,12 @@ namespace phi
                     string_os << ", ";
                 string_os << (string)(*item);
             }
+            string_os << ']';
             return string_os.str();
         }
         case Type::DICTIONARY:
         {
+            string_os << '{';
             bool first = true;
             for (auto &&item : *_M_dict_P)
             {
@@ -542,6 +568,7 @@ namespace phi
                     string_os << ", ";
                 string_os << (string)(*item.first) << ": " << (string)(*item.second);
             }
+            string_os << '}';
             return string_os.str();
         }
         case Type::OBJECT:
@@ -634,6 +661,7 @@ namespace phi
 
     string Variant::toString() const
     {
+        std::ostringstream string_os;
         string_os.str("");
         switch (_M_type)
         {
@@ -649,6 +677,7 @@ namespace phi
             return '"' + *_M_string_P + '"';
         case Type::ARRAY:
         {
+            string_os << '[';
             bool first = true;
             for (auto &&item : *_M_array_P)
             {
@@ -658,10 +687,12 @@ namespace phi
                     string_os << ", ";
                 string_os << item->toString();
             }
+            string_os << ']';
             return string_os.str();
         }
         case Type::DICTIONARY:
         {
+            string_os << '{';
             bool first = true;
             for (auto &&item : *_M_dict_P)
             {
@@ -671,6 +702,7 @@ namespace phi
                     string_os << ", ";
                 string_os << item.first->toString() << ": " << item.second->toString();
             }
+            string_os << '}';
             return string_os.str();
         }
         case Type::OBJECT:

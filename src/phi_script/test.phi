@@ -1,9 +1,2 @@
-var s = 2
-var x = if (s == 0)
-    eval 1
-else eval if (s == 1)
-    eval 2
-else 
-    eval 3
-del s
-return x
+print("Hello World!")
+return __args__

@@ -2,31 +2,26 @@
 #include <iostream>
 #include <phi/compiler/compiler.hpp>
 #include <phi/runtime/evaluator.hpp>
+#include <phi/function.hpp>
+#include <phi/class_db.hpp>
+#include <phi/runtime/builtin/global.hpp>
 
-int main()
+int main(int argc, char** args)
 {
     using namespace phi;
     try
     {
         Compiler compiler(new FileScanner("D:\\User File\\Projects\\VSCode\\PhiScript\\src\\phi_script\\test.phi"));
-        Ref<State> state = compiler.compile();
-        puts("OPCodes:");
-        auto &codes = state->getCodes();
-        for (uinteger i = 0; i < codes.size(); i++)
-        {
-            cout << std::left << std::setw(8) << std::to_string(i) + ":" << codes[i];
-            cout << "line:  " << state->line(i) << endl;
-        }
-        auto &labels = state->labels();
-        if (!labels.empty())
-        {
-            puts("Labels:");
-            for (auto &&pair : labels)
-                cout << "L" << pair.first << ": " << pair.second << endl;
-        }
-        cout << endl;
-        Evaluator evaluator(*state);
-        Ref<Variant> res = evaluator.eval();
+        Function func = compiler.load();
+        array parsed_args{(size_t)argc, nullptr};
+        Function test{ClassDB::toCallable([](Ref<Variant> what){
+            cout << (string)*what << endl;
+        })};
+        setGlobal("print", new Variant{test});
+        for (uinteger i = 0; i < argc; ++i)
+            parsed_args[i] = new Variant{args[i]};
+        
+        Ref<Variant> res = func({new Variant(argc), new Variant(parsed_args)});
         if (res)
             cout << "result: " << *res << endl;
         Generator::clearInstance();
