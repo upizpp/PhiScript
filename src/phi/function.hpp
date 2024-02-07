@@ -17,6 +17,9 @@ namespace phi
         Method(const Ref<State> &method, Owner<vector<Ref<string>>> &&binds) : _M_method(method), _M_binds(std::move(binds)) {}
 
         Ref<Variant> call(const array &args);
+        Ref<Variant> operator()(const array &args) { return call(args); }
+
+        void bind(Owner<vector<Ref<string>>> &&binds) { _M_binds = std::move(binds); }
     };
 
     class Function
@@ -37,15 +40,18 @@ namespace phi
         Ref<Variant> call(const array &args = {});
         Ref<Variant> operator()(const array &args = {}) { return call(args); }
 
+        Method &getMethod() { return *_M_method; }
+
         bool isBuiltin() { return _M_callable; }
 
         bool operator==(const Function &func) { return this == &func; }
 
-        // TODO: Function::toString()
         string toString()
         {
-            return string();
+            std::ostringstream os;
+            os << "function: " << this;
+            return os.str();
         }
-        operator string() { return string(); }
+        operator string() { return toString(); }
     };
 } // namespace phi

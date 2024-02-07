@@ -46,6 +46,7 @@ namespace phi
         T *_M_ptr;
 
     public:
+        using value_t = T;
         using counter_t = unsigned int;
 
         Reference() : _M_ptr(nullptr)

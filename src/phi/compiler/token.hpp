@@ -29,6 +29,7 @@ namespace phi
             DCPY, // deep copy
             // keywords
             RETURN,
+            FN,
             VAR,
             IF,
             ELSE,

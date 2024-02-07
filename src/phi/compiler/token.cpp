@@ -12,6 +12,9 @@ namespace phi
 		map<string, Ref<string>> Word::_M_symbols;
 		map<string, Ref<Word>> Word::_M_words{
 			WORD("return", RETURN),
+			WORD("fn", FN),
+			WORD("func", FN),
+			WORD("function", FN),
 			WORD("if", IF),
 			WORD("else", ELSE),
 			WORD("for", FOR),
@@ -156,6 +159,8 @@ namespace phi
 				return "import";
 			case Tag::RETURN:
 				return "return";
+			case Tag::FN:
+				return "fn";
 			case Tag::AS:
 				return "as";
 			case Tag::EVAL:

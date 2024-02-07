@@ -333,7 +333,6 @@ namespace phi
 			Ref<Args> members = _M_look->tag() != '}' ? pairs() : nullptr;
 			match('}');
 			return new Dictionary{tok, members};
-			
 		}
 		case Tag::INT:
 		case Tag::REAL:
@@ -364,6 +363,30 @@ namespace phi
 			tok = _M_look;
 			move();
 			return new Eval{tok, expr()};
+		case Tag::FN:
+		{
+			tok = _M_look;
+			move();
+			Ref<string> name;
+			if (_M_look->tag() == Tag::ID)
+			{
+				name = ((Ref<Word>)_M_look)->valueP();
+				move();
+			}
+			match('(');
+			Owner<vector<Ref<string>>> binds;
+			if (_M_look->tag() != ')')
+			{
+				binds = new vector<Ref<string>>;
+				do
+				{
+					binds->push_back(((Ref<Word>)_M_look)->valueP());
+					move();
+				} while (_M_look->tag() == ',' && (move(), true));
+			}
+			match(')');
+			return new Func{tok, name, std::move(binds), block()};
+		}
 		case Tag::IMPORT:
 		{
 			tok = _M_look;
@@ -492,9 +515,9 @@ namespace phi
 		THROW
 	}
 
-    Parser::node_t Parser::args()
-    {
-        node_t node = boolean();
+	Parser::node_t Parser::args()
+	{
+		node_t node = boolean();
 		node_t x = (Node *)(new Args{_M_look, node, nullptr});
 		while (_M_look->tag() == ',')
 		{
@@ -503,12 +526,12 @@ namespace phi
 			x = (Node *)(new Args{tok, x, new Args{_M_look, boolean(), nullptr}});
 		}
 		return x;
-    }
+	}
 
 #define IS_OPT(tok) ((tok)->tag() == '.' || (tok)->tag() == '(' || (tok)->tag() == '[')
 
-    Parser::node_t Parser::opt(node_t obj)
-    {
+	Parser::node_t Parser::opt(node_t obj)
+	{
 		node_t x;
 		switch (_M_look->tag())
 		{
@@ -543,19 +566,19 @@ namespace phi
 		return IS_OPT(_M_look) ? opt(x) : x;
 	}
 
-    Parser::node_t Parser::pair(node_t x)
-    {
+	Parser::node_t Parser::pair(node_t x)
+	{
 		if (x)
 			x = new Args{_M_look, x, new Args{_M_look, expr(), nullptr}};
 		else
 			x = new Args{_M_look, expr(), nullptr};
 		match(':'),
-		x = new Args{_M_look, x, new Args{_M_look, exprNoComma(), nullptr}};
-        return x;
-    }
-    Parser::node_t Parser::pairs()
-    {
-        Ref<Args> x = new Args{_M_look, pair(nullptr), nullptr};
+			x = new Args{_M_look, x, new Args{_M_look, exprNoComma(), nullptr}};
+		return x;
+	}
+	Parser::node_t Parser::pairs()
+	{
+		Ref<Args> x = new Args{_M_look, pair(nullptr), nullptr};
 		while (_M_look->tag() == ',')
 		{
 			token_t tok = _M_look;
@@ -563,6 +586,5 @@ namespace phi
 			x = pair(x);
 		}
 		return x;
-		
-    }
+	}
 } // namespace phi

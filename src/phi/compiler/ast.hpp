@@ -105,6 +105,20 @@ namespace phi
 			}
 		};
 
+		class Func : public Expr
+		{
+		private:
+			Owner<vector<Ref<string>>> _M_binds;
+			Ref<string> _M_name;
+			Ref<Block> _M_body;
+		public:
+			Func(Ref<token::Token> opt, Ref<string> name, Owner<vector<Ref<string>>> binds, Ref<Block> body) : Expr(opt), 
+				_M_binds(std::move(binds)), _M_body(body), _M_name(name) {}
+
+			virtual void print(uinteger level = 0) override;
+			virtual void gen() override;
+		};
+
 		class Comma : public Expr
 		{
 		private:

@@ -13,9 +13,9 @@ int main(int argc, char** args)
     {
         Compiler compiler(new FileScanner("D:\\User File\\Projects\\VSCode\\PhiScript\\src\\phi_script\\test.phi"));
         Function func = compiler.load();
+        
         array parsed_args{(size_t)argc, nullptr};
-        Function test{ClassDB::toCallable([](integer id, RestParameters what){
-            cout << "id: " << id << '\t';
+        Function test{ClassDB::toCallable([](RestParameters what){
             for (auto &&item : what)
                 cout << (string)*item << " ";
             cout << endl;

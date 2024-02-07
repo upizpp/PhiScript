@@ -1,6 +1,8 @@
 #include "ast.hpp"
+#include <phi/compiler/compiler.hpp>
 #include <phi/compiler/generator.hpp>
 #include <phi/exception.hpp>
+#include <phi/function.hpp>
 
 #define INIT string indent = string(level * 4, ' ');
 #define OS cout << indent
@@ -35,6 +37,38 @@ namespace phi
 		{
 			INIT;
 			OS << "Node";
+		}
+
+		void Func::print(uinteger level)
+		{
+			INIT;
+			OS << (_M_name ? *_M_name : "Func") << '(';
+			if (_M_binds)
+			{
+				bool first = true;
+				for (auto &&item : *_M_binds)
+				{
+					if (first)
+						first = false;
+					else
+						cout << ", ";
+					cout << *item;
+				}
+			}
+			cout << ")\n";
+			_M_body->print(level + 1);
+		}
+
+		void Func::gen()
+		{
+			if (_M_name)
+				push({OPCode::Command::ALLOCATE,
+					  Generator::instance()->push(new Variant{*_M_name})});
+			Function func = Compiler::load(_M_body, Compiler::globalOption ? *Compiler::globalOption : CompileOption{});
+			func.getMethod().bind(std::move(_M_binds));
+			push({OPCode::Command::LOAD_CONST, Generator::instance()->push(new Variant{func})});
+			if (_M_name);
+				push({OPCode::Command::ASSIGN});
 		}
 
 		void Sequence::print(uinteger level)
