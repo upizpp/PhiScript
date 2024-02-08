@@ -45,6 +45,7 @@ namespace phi
 
 	DefineException(RuntimeException, Exception);
 	DefineException(ValueException, RuntimeException);
+	DefineException(LoadException, RuntimeException);
 	DefineException(CompileException, Exception);
 	DefineException(SyntaxException, CompileException);
 

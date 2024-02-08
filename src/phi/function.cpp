@@ -15,7 +15,7 @@ namespace phi
     {
         if (args.size() == 1 && args[0]->type() == Variant::Type::STRING)
         {
-            string str = args[0]->toString();
+            string str = *args[0];
             if (_M_properties.find(str) == _M_properties.end())
                 _M_properties[str] = new Variant;
             return _M_properties[str];
@@ -24,6 +24,13 @@ namespace phi
         {
             throw ArgumentException(1, args.size(), __FUNCTION__);
         }
+    }
+    Function Function::deepCopy()
+    {
+        Function res = copy();
+        for (auto &&pair : _M_properties)
+            res._M_properties[pair.first] = new Variant{pair.second->deepCopy()};
+        return res;
     }
     Ref<Variant> Method::call(const array &args)
     {

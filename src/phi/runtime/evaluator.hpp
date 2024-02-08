@@ -10,39 +10,37 @@ namespace phi
     class VariantPacker
     {
     public:
-        using source_t = Borrower<std::pair<const string, Ref<Variant>>>;
-        using access_t = Borrower<Ref<Variant>>;
+        using variable_t = Borrower<Ref<Variant>>;
 
     private:
         Ref<Variant> _M_data;
-        source_t _M_source;
-        access_t _M_access;
+        variable_t _M_source;
+        Ref<const string> _M_name;
 
     public:
         VariantPacker(const VariantPacker &) = default;
-        VariantPacker(const Variant &data) : _M_data(new Variant{data}) {}
         VariantPacker(Ref<Variant> data) : _M_data(data) {}
-        VariantPacker(access_t access) : _M_access(access), _M_data(*access) {}
-        VariantPacker(source_t source) : _M_source(source), _M_data(source->second) {}
+        VariantPacker(variable_t source) : _M_source(source), _M_data(*source) {}
+        VariantPacker(Ref<Variant> data, const string& name): _M_data(data), _M_name(new string{name}) {}
+        VariantPacker(variable_t source, const string& name) : _M_source(source), _M_data(*source), _M_name(new string(name)) {}
+        // for ARGS
         explicit VariantPacker(bool) : _M_data(nullptr), _M_source(nullptr){};
 
         Variant &data() { return *_M_data; }
         const Variant &data() const { return *_M_data; }
 
-        const string &name() const { return _M_source->first; }
+        void name(const string &name) { _M_name = new string{name}; }
+        const string &name() const { return *_M_name; }
 
         Ref<Variant> pointer() { return _M_data; }
         const Ref<Variant> pointer() const { return _M_data; }
 
-        bool isArgs() const { return _M_source == nullptr && _M_data == nullptr && _M_access == nullptr; }
-        bool isVariable() const { return _M_access != nullptr || _M_source != nullptr; }
-        bool hasName() const { return _M_source != nullptr; }
+        bool isArgs() const { return _M_source == nullptr && _M_data == nullptr; }
+        bool isVariable() const { return _M_source != nullptr; }
+        bool hasName() const { return _M_name != nullptr; }
         void redirectTo(Ref<Variant> variable)
         {
-            if (_M_source)
-                _M_source->second = variable;
-            else if (_M_access)
-                *_M_access = variable;
+            *_M_source = variable;
         };
 
         bool isNull() const { return !_M_data || _M_data && _M_data->isNull(); }
@@ -135,6 +133,6 @@ namespace phi
             return tmp;
         }
         inline VariantPacker allocate(const string &name) { return get_env().allocate(name); }
-        VariantPacker load(const string &name);
+        VariantPacker load(const string &name, bool throws = true);
     };
 } // namespace phi

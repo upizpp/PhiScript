@@ -46,6 +46,11 @@ namespace phi
         Ref<Variant> operator()(const array &args = {}) { return call(args); }
 
         Method &getMethod() { return *_M_method; }
+        void setThis(Ref<Variant> new_this) {
+            if (isBuiltin())
+                return;
+            getMethod().setThis(new_this);
+        }
 
         bool isBuiltin() { return _M_callable; }
 
@@ -60,5 +65,11 @@ namespace phi
             return os.str();
         }
         operator string() { return toString(); }
+
+        Function copy()
+        {
+            return *this;
+        }
+        Function deepCopy();
     };
 } // namespace phi

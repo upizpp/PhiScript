@@ -31,38 +31,38 @@ namespace phi
                 return res;
             }
         }
-        return nullptr;
+        return Variant::Null;
     }
 
-#define BINARY_IMPL(opcode, op)                     \
-    case OPCode::Command::opcode:                   \
-    {                                               \
-        VariantPacker right = pop();                \
-        VariantPacker left = pop();                 \
-        push(Variant{left.data() op right.data()}); \
-        break;                                      \
+#define BINARY_IMPL(opcode, op)                                        \
+    case OPCode::Command::opcode:                                      \
+    {                                                                  \
+        VariantPacker right = pop();                                   \
+        VariantPacker left = pop();                                    \
+        push(Ref<Variant>{new Variant{left.data() op right.data()}}); \
+        break;                                                         \
     }
-#define BINARY_M_IMPL(opcode, method)                    \
-    case OPCode::Command::opcode:                        \
-    {                                                    \
-        VariantPacker right = pop();                     \
-        VariantPacker left = pop();                      \
-        push(Variant{left.data().method(right.data())}); \
-        break;                                           \
+#define BINARY_M_IMPL(opcode, method)                                       \
+    case OPCode::Command::opcode:                                           \
+    {                                                                       \
+        VariantPacker right = pop();                                        \
+        VariantPacker left = pop();                                         \
+        push(Ref<Variant>{new Variant{left.data().method(right.data())}}); \
+        break;                                                              \
     }
-#define UNARY_IMPL(opcode, op)            \
-    case OPCode::Command::opcode:         \
-    {                                     \
-        VariantPacker operand = pop();    \
-        push(Variant{op operand.data()}); \
-        break;                            \
+#define UNARY_IMPL(opcode, op)                               \
+    case OPCode::Command::opcode:                            \
+    {                                                        \
+        VariantPacker operand = pop();                       \
+        push(Ref<Variant>{new Variant{op operand.data()}}); \
+        break;                                               \
     }
-#define UNARY_M_IMPL(opcode, method)            \
-    case OPCode::Command::opcode:               \
-    {                                           \
-        VariantPacker operand = pop();          \
-        push(Variant{operand.data().method()}); \
-        break;                                  \
+#define UNARY_M_IMPL(opcode, method)                               \
+    case OPCode::Command::opcode:                                  \
+    {                                                              \
+        VariantPacker operand = pop();                             \
+        push(Ref<Variant>{new Variant{operand.data().method()}}); \
+        break;                                                     \
     }
 
     Ref<Variant> Evaluator::handle(const OPCode &code)
@@ -121,7 +121,7 @@ namespace phi
                 args.push_back(pop().pointer());
             pop(); // pop the args flag.
             std::reverse(args.begin(), args.end());
-            push({VariantPacker::access_t{&operand.data().access(args)}});
+            push({VariantPacker::variable_t{&operand.data().access(args)}});
             break;
         }
         case OPCode::Command::MAKE_ARRAY:
@@ -162,8 +162,6 @@ namespace phi
         {
             VariantPacker value = pop();
             VariantPacker operand = pop();
-            if (!operand.isVariable())
-                throw OperateNullException{operand, "assign"};
             operand.assign(value);
             break;
         }
@@ -179,7 +177,7 @@ namespace phi
         }
         case OPCode::Command::LOAD_CONST:
         {
-            push(*_M_state->lookup(code.value()));
+            push(_M_state->lookup(code.value()));
             break;
         }
         case OPCode::Command::PUSH_VAL:
@@ -231,7 +229,7 @@ namespace phi
         }
         return nullptr;
     }
-    VariantPacker Evaluator::load(const string &name)
+    VariantPacker Evaluator::load(const string &name, bool throws)
     {
         auto it = _M_envs.end();
         while (--it != _M_envs.end())
@@ -239,21 +237,24 @@ namespace phi
                 return it->load(name);
         if (name != "this")
         {
-            VariantPacker this_ = load("this");
+            VariantPacker this_ = load("this", false);
             if (!this_.isNull())
             {
-                Ref<Variant>& value = this_->access({new Variant{name}});
+                Ref<Variant> &value = this_->access({new Variant{name}});
                 if (!value->isNull())
                     return value;
             }
         }
         if (hasGlobal(name))
-            return getGlobalPair(name);
-        return Variant::Null;
+            return getGlobal(name);
+        if (throws)
+            throw LoadException{"Attempt to load a unallocated variable. (\"%s\")", name.c_str()};
+        else
+            return {Variant::Null, name};
     }
     VariantPacker Environment::allocate(const string &name)
     {
-        return VariantPacker::source_t{&*_M_locals.insert({name, new Variant}).first};
+        return {VariantPacker::variable_t{&_M_locals.insert({name, new Variant}).first->second}, name};
     }
     void Environment::setLocal(const string &name, Ref<Variant> value)
     {
@@ -261,7 +262,7 @@ namespace phi
     }
     VariantPacker Environment::load(const string &name)
     {
-        return VariantPacker::source_t{&*_M_locals.find(name)};
+        return {VariantPacker::variable_t{&_M_locals[name]}, name};
     }
     bool Environment::has(const string &name) const
     {
@@ -279,7 +280,7 @@ namespace phi
     }
     VariantPacker &VariantPacker::assign(const VariantPacker &other)
     {
-        if (isVariable() && other.isVariable())
+        if (isVariable())
             redirectTo(other.pointer());
         else
             *_M_data = other.data();

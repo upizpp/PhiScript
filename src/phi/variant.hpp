@@ -214,6 +214,7 @@ namespace phi
         {
             return type() == Type::NIL;
         }
+        void checkThis();
 
         Ref<Variant> call(const array& args);
         Ref<Variant>& access(const array& args);

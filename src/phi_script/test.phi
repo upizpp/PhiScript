@@ -1,6 +1,19 @@
-fn test()
+fn f()
 {
-    x
-    print("Hello")
+    fn g()
+    {
+        ++x
+    }
+    g.x = 0
+    return @@g
 }
-test()
+var f1 = f()
+var f2 = f()
+print(f1.x)
+print(f2.x)
+f1()
+print(f1.x)
+print(f2.x)
+f2()
+print(f1.x)
+print(f2.x)

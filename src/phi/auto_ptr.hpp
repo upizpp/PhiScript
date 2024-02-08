@@ -7,23 +7,28 @@ namespace phi
     struct RefCount
     {
         using counter_t = unsigned int;
-        static std::map<void *, counter_t> *data_ptr;
+        static std::map<const void *, counter_t> *data_ptr;
 
-        static counter_t count(void *ptr)
+        static counter_t count(const void *ptr)
         {
             return (*data_ptr)[ptr];
         }
 
-        static void reference(void *ptr)
+        static bool has(const void *ptr)
+        {
+            return data_ptr && data_ptr->find(ptr) != data_ptr->end();
+        }
+
+        static void reference(const void *ptr)
         {
             if (data_ptr == nullptr)
-                data_ptr = new std::map<void *, counter_t>();
+                data_ptr = new std::map<const void *, counter_t>();
             if (data_ptr->find(ptr) == data_ptr->end())
                 (*data_ptr)[ptr] = 1;
             (*data_ptr)[ptr]++;
         }
 
-        static bool dereference(void *ptr)
+        static bool dereference(const void *ptr)
         {
             if (!data_ptr)
                 return false;
@@ -48,6 +53,11 @@ namespace phi
     public:
         using value_t = T;
         using counter_t = unsigned int;
+
+        static bool hasReference(const T *ptr)
+        {
+            return RefCount::has(ptr);
+        }
 
         Reference() : _M_ptr(nullptr)
         {

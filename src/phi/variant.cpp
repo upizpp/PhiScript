@@ -1301,6 +1301,7 @@ namespace phi
     Variant Variant::deepCopy() const
     {
         Variant res;
+        res._M_type = type();
         switch (_M_type)
         {
         case Type::INT:
@@ -1329,7 +1330,7 @@ namespace phi
             res._M_obj_P = new Object{*this->_M_obj_P};
             break;
         case Type::FUNCTION:
-            res._M_func_P = new Function{*this->_M_func_P};
+            res._M_func_P = new Function{std::move(this->_M_func_P->deepCopy())};
             break;
         }
         return res;
@@ -1339,6 +1340,7 @@ namespace phi
         switch (type())
         {
         case Type::FUNCTION:
+            checkThis();
             return _M_func_P->call(args);
         case Type::OBJECT:
             return _M_obj_P->call(args);
@@ -1347,7 +1349,13 @@ namespace phi
             throw RuntimeException("The variant with the type of (%s) is not callable.", stringifyType(type()).c_str());
         }
     }
-    Ref<Variant>& Variant::access(const array &args)
+    void Variant::checkThis()
+    {
+        if (type() != Type::FUNCTION)
+            return;
+        _M_func_P->setThis(this);
+    }
+    Ref<Variant> &Variant::access(const array &args)
     {
         switch (type())
         {
