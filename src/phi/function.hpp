@@ -15,7 +15,7 @@ namespace phi
         Ref<Variant> _M_this;
 
     public:
-        Method(const Method &method) : _M_method(method._M_method), _M_binds(method._M_binds ? new vector<Ref<string>>{*method._M_binds} : nullptr) {}
+        Method(const Method &method) = default;
         Method(const Ref<State> &method) : _M_method(method) {}
         Method(const Ref<State> &method, const Ref<vector<Ref<string>>> &&binds) : _M_method(method), _M_binds(binds) {}
 
@@ -31,6 +31,7 @@ namespace phi
     private:
         Ref<Method> _M_method;
         Ref<callable_t> _M_callable;
+        map<string, Ref<Variant>> _M_properties;
 
     public:
         Function() {}
@@ -47,6 +48,8 @@ namespace phi
         Method &getMethod() { return *_M_method; }
 
         bool isBuiltin() { return _M_callable; }
+
+        Ref<Variant>& access(const array &);
 
         bool operator==(const Function &func) { return this == &func; }
 

@@ -48,6 +48,30 @@ namespace phi
 	DefineException(CompileException, Exception);
 	DefineException(SyntaxException, CompileException);
 
+	class VariantPacker;
+	class OperateNullException: public RuntimeException
+	{
+	private:
+		string _M_value;
+		string _M_operation;
+	public:
+		//using RuntimeException::RuntimeException;
+		OperateNullException(const VariantPacker& value, const string& operation);
+
+		virtual string className() const override
+		{
+			return "OperateNullException";
+		}
+		virtual string what() const override
+		{
+			static std::ostringstream ss;
+			ss.str("");
+			ss << "Attempt to " << _M_operation << " a null value. " << _M_value << endl;
+			ss << RuntimeException::what();
+			return ss.str();
+		}
+	};
+
 	class BinaryException : public RuntimeException
 	{
 	private:

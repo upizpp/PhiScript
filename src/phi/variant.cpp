@@ -1334,7 +1334,7 @@ namespace phi
         }
         return res;
     }
-    Ref<Variant> Variant::call(array &args)
+    Ref<Variant> Variant::call(const array &args)
     {
         switch (type())
         {
@@ -1347,26 +1347,26 @@ namespace phi
             throw RuntimeException("The variant with the type of (%s) is not callable.", stringifyType(type()).c_str());
         }
     }
-    Ref<Variant> Variant::access(array &args)
+    Ref<Variant>& Variant::access(const array &args)
     {
         switch (type())
         {
         case Type::ARRAY:
         {
-            if (args.size() == 1)
+            if (args.size() == 1 && args[0]->type() == Type::INT)
             {
                 return _M_array_P->at((integer)*args[0]);
             }
-            else if (args.size() >= 2 && args.size() <= 3)
-            {
-                uinteger begin = (integer)args[0];
-                uinteger end = (integer)args[1];
-                uinteger step = args.size() == 3 ? (integer)args[2] : 1;
-                array *res = new array{(uinteger)std::ceil((end - begin) / real(step)), nullptr};
-                for (uinteger i = begin; i < end; i += step)
-                    (*res)[i - begin] = (*_M_array_P)[i];
-                return new Variant{std::move(Owner<array>{res})};
-            }
+            // else if (args.size() >= 2 && args.size() <= 3)
+            // {
+            //     uinteger begin = (integer)args[0];
+            //     uinteger end = (integer)args[1];
+            //     uinteger step = args.size() == 3 ? (integer)args[2] : 1;
+            //     array *res = new array{(uinteger)std::ceil((end - begin) / real(step)), nullptr};
+            //     for (uinteger i = begin; i < end; i += step)
+            //         (*res)[i - begin] = (*_M_array_P)[i];
+            //     return new Variant{std::move(Owner<array>{res})};
+            // }
             else
             {
                 throw ArgumentRangedException(1, 3, args.size(), __FUNCTION__);
@@ -1375,16 +1375,14 @@ namespace phi
         case Type::DICTIONARY:
         {
             if (args.size() == 1)
-            {
                 return _M_dict_P->at(args[0]);
-            }
             else
-            {
                 throw ArgumentException(1, args.size(), __FUNCTION__);
-            }
         }
         case Type::OBJECT:
             return _M_obj_P->access(args);
+        case Type::FUNCTION:
+            return _M_func_P->access(args);
 
         default:
             throw RuntimeException("The variant with the type of (%s) is not accessible.", stringifyType(type()).c_str());

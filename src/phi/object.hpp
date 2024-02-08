@@ -33,9 +33,9 @@ namespace phi
         static void static_register();
 
         // TODO Object::call
-        Ref<Variant> call(array &) { return Variant::Null; }
+        Ref<Variant> call(const array &) { return Variant::Null; }
         // TODO Object::access
-        Ref<Variant> access(array &) { return Variant::Null; }
+        Ref<Variant>& access(const array &) { return Variant::Null; }
 
         // TODO Object::convert
         Variant convert(Variant::Type) { return *Variant::Null; }

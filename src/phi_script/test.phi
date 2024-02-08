@@ -1,6 +1,6 @@
-fn fib(n)
+fn test()
 {
-    if (n <= 2) return 1
-    return this(n - 1) + this(n - 2)
+    x
+    print("Hello")
 }
-print(fib(10))
+test()

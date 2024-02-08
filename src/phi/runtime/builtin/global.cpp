@@ -16,6 +16,10 @@ namespace phi
     {
         return phiGlobal[name];
     }
+    Borrower<std::pair<const string, Ref<Variant>>> getGlobalPair(const string& name)
+    {
+        return &*phiGlobal.find(name);
+    }
     bool hasGlobal(const string &name)
     {
         return phiGlobal.find(name) != phiGlobal.end();

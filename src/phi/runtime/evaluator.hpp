@@ -11,15 +11,18 @@ namespace phi
     {
     public:
         using source_t = Borrower<std::pair<const string, Ref<Variant>>>;
+        using access_t = Borrower<Ref<Variant>>;
 
     private:
         Ref<Variant> _M_data;
         source_t _M_source;
+        access_t _M_access;
 
     public:
         VariantPacker(const VariantPacker &) = default;
         VariantPacker(const Variant &data) : _M_data(new Variant{data}) {}
         VariantPacker(Ref<Variant> data) : _M_data(data) {}
+        VariantPacker(access_t access) : _M_access(access), _M_data(*access) {}
         VariantPacker(source_t source) : _M_source(source), _M_data(source->second) {}
         explicit VariantPacker(bool) : _M_data(nullptr), _M_source(nullptr){};
 
@@ -31,13 +34,27 @@ namespace phi
         Ref<Variant> pointer() { return _M_data; }
         const Ref<Variant> pointer() const { return _M_data; }
 
-        bool isArgs() const { return _M_source == nullptr && _M_data == nullptr; }
-        bool isVariable() const { return _M_source != nullptr; }
-        void redirectTo(Ref<Variant> variable) { _M_source->second = variable; };
+        bool isArgs() const { return _M_source == nullptr && _M_data == nullptr && _M_access == nullptr; }
+        bool isVariable() const { return _M_access != nullptr || _M_source != nullptr; }
+        bool hasName() const { return _M_source != nullptr; }
+        void redirectTo(Ref<Variant> variable)
+        {
+            if (_M_source)
+                _M_source->second = variable;
+            else if (_M_access)
+                *_M_access = variable;
+        };
+
+        bool isNull() const { return !_M_data || _M_data && _M_data->isNull(); }
 
         void free(Env &);
 
         VariantPacker &assign(const VariantPacker &);
+
+        Variant *operator->() { return _M_data.data(); }
+        const Variant *operator->() const { return _M_data.data(); }
+        Variant &operator*() { return *_M_data; }
+        const Variant &operator*() const { return *_M_data; }
     };
 
     class Environment
@@ -54,7 +71,7 @@ namespace phi
         const value_stack &stack() const { return _M_stack; }
 
         VariantPacker allocate(const string &);
-        void setLocal(const string&, Ref<Variant>);
+        void setLocal(const string &, Ref<Variant>);
         VariantPacker load(const string &);
         bool has(const string &) const;
 
@@ -77,7 +94,7 @@ namespace phi
         void setup(const State &);
         Ref<Variant> eval();
 
-        inline Env& pushEnv()
+        inline Env &pushEnv()
         {
             _M_envs.push_back(Env());
             return _M_envs.back();

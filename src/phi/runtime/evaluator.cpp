@@ -1,7 +1,7 @@
 #include "evaluator.hpp"
 #include <algorithm>
-#include <phi/runtime/builtin/global.hpp>
 #include <phi/exception.hpp>
+#include <phi/runtime/builtin/global.hpp>
 
 namespace phi
 {
@@ -103,6 +103,8 @@ namespace phi
         case OPCode::Command::CALL:
         {
             VariantPacker operand = pop();
+            if (operand->isNull())
+                throw OperateNullException{operand, "call"};
             array args;
             while (!top().isArgs())
                 args.push_back(pop().pointer());
@@ -119,7 +121,7 @@ namespace phi
                 args.push_back(pop().pointer());
             pop(); // pop the args flag.
             std::reverse(args.begin(), args.end());
-            push({operand.data().access(args)});
+            push({VariantPacker::access_t{&operand.data().access(args)}});
             break;
         }
         case OPCode::Command::MAKE_ARRAY:
@@ -152,14 +154,17 @@ namespace phi
         }
         case OPCode::Command::DEL:
         {
-            Env& env = get_env();
+            Env &env = get_env();
             pop().free(env);
             break;
         }
         case OPCode::Command::ASSIGN:
         {
             VariantPacker value = pop();
-            pop().assign(value);
+            VariantPacker operand = pop();
+            if (!operand.isVariable())
+                throw OperateNullException{operand, "assign"};
+            operand.assign(value);
             break;
         }
         case OPCode::Command::ALLOCATE:
@@ -232,15 +237,25 @@ namespace phi
         while (--it != _M_envs.end())
             if (it->has(name))
                 return it->load(name);
+        if (name != "this")
+        {
+            VariantPacker this_ = load("this");
+            if (!this_.isNull())
+            {
+                Ref<Variant>& value = this_->access({new Variant{name}});
+                if (!value->isNull())
+                    return value;
+            }
+        }
         if (hasGlobal(name))
-            return getGlobal(name);
+            return getGlobalPair(name);
         return Variant::Null;
     }
     VariantPacker Environment::allocate(const string &name)
     {
         return VariantPacker::source_t{&*_M_locals.insert({name, new Variant}).first};
     }
-    void Environment::setLocal(const string &name, Ref<Variant>value)
+    void Environment::setLocal(const string &name, Ref<Variant> value)
     {
         _M_locals[name] = value;
     }

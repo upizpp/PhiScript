@@ -210,8 +210,13 @@ namespace phi
         }
         bool equals(const Variant &);
 
-        Ref<Variant> call(array& args);
-        Ref<Variant> access(array& args);
+        bool isNull() const
+        {
+            return type() == Type::NIL;
+        }
+
+        Ref<Variant> call(const array& args);
+        Ref<Variant>& access(const array& args);
 
         static bool isConvertible(Type, Type);
     };
