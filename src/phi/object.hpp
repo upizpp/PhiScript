@@ -8,6 +8,7 @@ namespace phi
     {
     private:
         map<string, Ref<Variant>> _M_properties;
+
     public:
         Object() {}
         Object(const Object &) = default;
@@ -22,71 +23,102 @@ namespace phi
         {
             return "";
         }
-        virtual string getClass()
+        virtual string getClass() const
         {
             return "Object";
         }
-        virtual string getParentClass()
+        virtual string getParentClass() const
         {
             return "";
         }
 
         static void static_register();
 
-        void set(const string&, Ref<Variant>);
-        Ref<Variant> get(const string&);
+        void set(const string &, Ref<Variant>);
+        Ref<Variant> get(const string &);
 
-        // TODO Object::call
-        Ref<Variant> call(const array &) { return Variant::Null; }
+        bool hasProperty(const string &) const;
+
+        Ref<Variant> call(const array &);
+        Ref<Variant> call(const string &, const array & = {});
 
         VariantPacker access(const array &args);
 
-        // TODO Object::convert
-        Variant convert(Variant::Type) { return *Variant::Null; }
+        Variant convert(Variant::Type);
 
-        // TODO: Object::toString()
-        string toString() { return string(); }
+        string toString();
+        uinteger hash();
 
-        // TODO: Object::hash()
-        uinteger hash() { return uinteger(this); }
+        bool operator==(const Object &obj) const
+        {
+            Variant temp{std::move(Owner<Object>{const_cast<Object*>(&obj)})};
+            bool res = this->operator==(temp);
+            temp.release();
+            return res;
+        }
+        bool operator==(const Variant &) const;
+        bool operator!=(const Object &obj) const
+        {
+            Variant temp{std::move(Owner<Object>{const_cast<Object*>(&obj)})};
+            bool res = this->operator!=(temp);
+            temp.release();
+            return res;
+        }
+        bool operator!=(const Variant &) const;
+        bool operator>(const Object &obj) const
+        {
+            Variant temp{std::move(Owner<Object>{const_cast<Object*>(&obj)})};
+            bool res = this->operator>(temp);
+            temp.release();
+            return res;
+        }
+        bool operator>(const Variant &) const;
+        bool operator>=(const Object &obj) const
+        {
+            Variant temp{std::move(Owner<Object>{const_cast<Object*>(&obj)})};
+            bool res = this->operator>=(temp);
+            temp.release();
+            return res;
+        }
+        bool operator>=(const Variant &) const;
+        bool operator<(const Object &obj) const
+        {
+            Variant temp{std::move(Owner<Object>{const_cast<Object*>(&obj)})};
+            bool res = this->operator<(temp);
+            temp.release();
+            return res;
+        }
+        bool operator<(const Variant &) const;
+        bool operator<=(const Object &obj) const
+        {
+            Variant temp{std::move(Owner<Object>{const_cast<Object*>(&obj)})};
+            bool res = this->operator<=(temp);
+            temp.release();
+            return res;
+        }
+        bool operator<=(const Variant &) const;
 
-        //  TODO: Object::compare
-        bool operator==(const Object &) const { return false; }
-        bool operator==(const Variant &) const { return false; }
-        bool operator!=(const Object &) const { return false; }
-        bool operator!=(const Variant &) const { return false; }
-        bool operator>(const Object &) const { return false; }
-        bool operator>(const Variant &) const { return false; }
-        bool operator>=(const Object &) const { return false; }
-        bool operator>=(const Variant &) const { return false; }
-        bool operator<(const Object &) const { return false; }
-        bool operator<(const Variant &) const { return false; }
-        bool operator<=(const Object &) const { return false; }
-        bool operator<=(const Variant &) const { return false; }
+        Variant operator+(const Variant &) const;
+        Variant operator-(const Variant &) const;
+        Variant operator*(const Variant &) const;
+        Variant operator/(const Variant &) const;
+        Variant operator%(const Variant &) const;
+        Variant operator&(const Variant &) const;
+        Variant operator|(const Variant &) const;
+        Variant operator^(const Variant &) const;
+        Variant operator&&(const Variant &) const;
+        Variant operator||(const Variant &) const;
+        Variant operator<<(const Variant &) const;
+        Variant operator>>(const Variant &) const;
+        Variant operator!() const;
+        Variant operator-() const;
+        Variant operator~() const;
+        Variant operator++();
+        Variant operator--();
 
-        // TODO: Object::calculate
-        Variant operator+(const Variant &) const { return Variant(); }
-        Variant operator-(const Variant &) const { return Variant(); }
-        Variant operator*(const Variant &) const { return Variant(); }
-        Variant operator/(const Variant &) const { return Variant(); }
-        Variant operator%(const Variant &) const { return Variant(); }
-        Variant operator&(const Variant &) const { return Variant(); }
-        Variant operator|(const Variant &) const { return Variant(); }
-        Variant operator^(const Variant &) const { return Variant(); }
-        Variant operator&&(const Variant &) const { return Variant(); }
-        Variant operator||(const Variant &) const { return Variant(); }
-        Variant operator<<(const Variant &) const { return Variant(); }
-        Variant operator>>(const Variant &) const { return Variant(); }
-        Variant operator!() const { return Variant(); }
-        Variant operator-() const { return Variant(); }
-        Variant operator~() const { return Variant(); }
-        Variant operator++() { return Variant(); }
-        Variant operator--() { return Variant(); }
-
-        // TODO Object::convert
-        operator integer() { return 0; }
-        operator real() { return 0.0; }
-        operator bool() { return true; }
-        operator string() { return string(); }
+        operator integer();
+        operator real();
+        operator bool();
+        operator string();
     };
 } // namespace phi

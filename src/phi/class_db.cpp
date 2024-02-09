@@ -7,7 +7,7 @@ namespace phi
     string ClassDB::_M_bound;
     string ClassDB::_M_calling;
 
-    ClassDB::type ClassDB::call(Object *obj, const string &method_name, arg_list args)
+    ClassDB::type ClassDB::call(Object *obj, const string &method_name, const array& args)
     {
         string class_name = obj->getClass();
         _M_calling = class_name + "::" + method_name;
@@ -21,17 +21,25 @@ namespace phi
     {
         return _M_classes[obj->getClass()].properties[property_name].first(obj);
     }
-    bool ClassDB::hasProperty(Object *obj, const string &property_name)
+    bool ClassDB::hasProperty(const Object *obj, const string &property_name)
     {
         return _M_classes[obj->getClass()].hasProperty(property_name);
     }
-    ClassInfo::type ClassInfo::call(Object *obj, const string &method_name, arg_list &args)
+    bool ClassDB::hasMethod(const Object *obj, const string &method_name)
+    {
+        return _M_classes[obj->getClass()].hasMethod(method_name);
+    }
+    ClassInfo::type ClassInfo::call(Object *obj, const string &method_name, const array &args)
     {
         return getMethod(method_name)(obj, args);
     }
     bool ClassInfo::hasProperty(const string &name)
     {
         return properties.find(name) != properties.end();
+    }
+    bool ClassInfo::hasMethod(const string &name)
+    {
+        return methods.find(name) != methods.end();
     }
     ClassInfo::method &ClassInfo::getMethod(const string &name)
     {

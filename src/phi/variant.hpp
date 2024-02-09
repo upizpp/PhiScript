@@ -71,6 +71,7 @@ namespace phi
         Variant(const dict &);
         Variant(Owner<dict>&&);
         Variant(const Object &);
+        Variant(Owner<Object>&&);
         Variant(const Function &);
         Variant(const Variant &);
         Variant(Variant &&);
@@ -202,6 +203,12 @@ namespace phi
         Variant copy() const;
         Variant deepCopy() const;
 
+        void release()
+        {
+            _M_int = 0;
+            _M_type = Type::NIL;
+        }
+
         void convert(Type);
         inline Variant convertTo(Type type) const
         {
@@ -217,7 +224,7 @@ namespace phi
         }
         void checkThis();
 
-        Ref<Variant> call(const array& args);
+        Ref<Variant> call(const array& args = {});
         VariantPacker access(const array& args);
 
         static bool isConvertible(Type, Type);

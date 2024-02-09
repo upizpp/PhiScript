@@ -6,16 +6,16 @@
 #include <phi/exception.hpp>
 #include <phi/function.hpp>
 #include <phi/object.hpp>
+#include <phi/runtime/evaluator.hpp>
 #include <phi/type.hpp>
 #include <sstream>
-#include <phi/runtime/evaluator.hpp>
 
 namespace phi
 {
     Ref<Variant> Variant::Null = new Variant;
     uinteger Variant::hashSeed = (srand(time(0)), rand());
 
-    Variant::Variant() : _M_type(Type::NIL)
+    Variant::Variant() : _M_type(Type::NIL), _M_int(0)
     {
     }
 
@@ -31,54 +31,48 @@ namespace phi
     {
     }
 
-    Variant::Variant(const integer &value) : _M_type(Type::INT)
+    Variant::Variant(const integer &value) : _M_type(Type::INT), _M_int(value)
     {
-        _M_int = value;
     }
 
-    Variant::Variant(const real &value) : _M_type(Type::REAL)
+    Variant::Variant(const real &value) : _M_type(Type::REAL), _M_real(value)
     {
-        _M_real = value;
     }
 
-    Variant::Variant(const bool &value) : _M_type(Type::BOOL)
+    Variant::Variant(const bool &value) : _M_type(Type::BOOL), _M_bool(value)
     {
-        _M_bool = value;
     }
 
-    Variant::Variant(const string &value) : _M_type(Type::STRING)
+    Variant::Variant(const string &value) : _M_type(Type::STRING), _M_string_P(new string{value})
     {
-        _M_string_P = new string{value};
     }
 
-    Variant::Variant(const array &value) : _M_type(Type::ARRAY)
+    Variant::Variant(const array &value) : _M_type(Type::ARRAY), _M_array_P(new array{value})
     {
-        _M_array_P = new array{value};
     }
 
-    Variant::Variant(Owner<array> &&value) : _M_type(Type::ARRAY)
+    Variant::Variant(Owner<array> &&value) : _M_type(Type::ARRAY), _M_array_P(value.release())
     {
-        _M_array_P = value.release();
     }
 
-    Variant::Variant(const dict &value) : _M_type(Type::DICTIONARY)
+    Variant::Variant(const dict &value) : _M_type(Type::DICTIONARY), _M_dict_P(new dict{value})
     {
-        _M_dict_P = new dict{value};
     }
 
-    Variant::Variant(Owner<dict> &&value) : _M_type(Type::DICTIONARY)
+    Variant::Variant(Owner<dict> &&value) : _M_type(Type::DICTIONARY), _M_dict_P(value.release())
     {
-        _M_dict_P = value.release();
     }
 
-    Variant::Variant(const Object &value) : _M_type(Type::OBJECT)
+    Variant::Variant(const Object &value) : _M_type(Type::OBJECT), _M_obj_P(new Object{value})
     {
-        _M_obj_P = new Object{value};
     }
 
-    Variant::Variant(const Function &value) : _M_type(Type::FUNCTION)
+    Variant::Variant(Owner<Object> &&value) : _M_type(Type::OBJECT), _M_obj_P(value.release())
     {
-        _M_func_P = new Function{value};
+    }
+
+    Variant::Variant(const Function &value) : _M_type(Type::FUNCTION), _M_func_P(new Function{value})
+    {
     }
 
     Variant::Variant(const Variant &value) : _M_type(value.type())

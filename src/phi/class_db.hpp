@@ -24,11 +24,11 @@ public:                                    \
 	{                                      \
 		return #parent_class;              \
 	}                                      \
-	virtual string getClass()              \
+	virtual string getClass() const        \
 	{                                      \
 		return #class_name;                \
 	}                                      \
-	virtual string getParentClass()        \
+	virtual string getParentClass() const  \
 	{                                      \
 		return #parent_class;              \
 	}                                      \
@@ -44,7 +44,7 @@ namespace phi
 	{
 		using type = Variant;
 		using arg_list = vector<type>;
-		using method = std::function<type(Object *, arg_list &)>;
+		using method = std::function<type(Object *, const array &)>;
 		using initializer_t = std::function<Object *(void)>;
 
 		ClassInfo *parent;
@@ -55,9 +55,10 @@ namespace phi
 		ClassInfo() {}
 		ClassInfo(ClassInfo *p, const initializer_t &init) : parent(p), initializer(init) {}
 
-		type call(Object *, const string &, arg_list &);
-		bool hasProperty(const string&);
+		type call(Object *, const string &, const array &);
 
+		bool hasProperty(const string &);
+		bool hasMethod(const string &);
 		method &getMethod(const string &);
 	};
 
@@ -197,17 +198,33 @@ namespace phi
 			return [=](const array &args) -> Ref<Variant>
 			{
 				using seq = gen_index_seq_t<function_traits<F>::arity>;
-				Ref<Variant> temp = call_impl<seq, F>::call(func, args);
-				return temp;
+				return call_impl<seq, F>::call(func, args);
+			};
+		}
+		template <typename F>
+		static callable_t toCallable(Object *obj, const F &func)
+		{
+			return [=](const array &args) -> Ref<Variant>
+			{
+				using seq = gen_index_seq_t<function_traits<F>::arity>;
+				return class_call_impl<seq, F>::call(func, obj, args);
+			};
+		}
+		static callable_t toCallable(Object *obj, const string &func)
+		{
+			return [=](const array &args) -> Ref<Variant>
+			{
+				return new Variant{ClassDB::call(obj, func, args)};
 			};
 		}
 
 		static ClassInfo &getInfo() { return _M_classes[_M_bound]; }
 
-		static type call(Object *obj, const string &method_name, arg_list args = {});
+		static type call(Object *obj, const string &method_name, const array &args = {});
 		static void set(Object *obj, const string &property_name, const type &value);
 		static type get(Object *obj, const string &property_name);
-		static bool hasProperty(Object *obj, const string &property_name);
+		static bool hasProperty(const Object *obj, const string &property_name);
+		static bool hasMethod(const Object *obj, const string &method_name);
 
 		static ClassInfo &parent(const string &class_name) { return *_M_classes[class_name].parent; }
 	};
