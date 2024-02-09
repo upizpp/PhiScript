@@ -7,6 +7,7 @@ namespace phi
     class Object;
     class Function;
     class Variant;
+    class VariantPacker;
 
     struct VariantHash
     {
@@ -217,7 +218,7 @@ namespace phi
         void checkThis();
 
         Ref<Variant> call(const array& args);
-        Ref<Variant>& access(const array& args);
+        VariantPacker access(const array& args);
 
         static bool isConvertible(Type, Type);
     };

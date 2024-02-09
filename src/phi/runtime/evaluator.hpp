@@ -1,5 +1,6 @@
 #pragma once
 #include <phi/runtime/state.hpp>
+#include <phi/object.hpp>
 #include <stack>
 
 namespace phi
@@ -16,6 +17,7 @@ namespace phi
         Ref<Variant> _M_data;
         variable_t _M_source;
         Ref<const string> _M_name;
+        
 
     public:
         VariantPacker(const VariantPacker &) = default;

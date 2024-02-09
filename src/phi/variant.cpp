@@ -8,6 +8,7 @@
 #include <phi/object.hpp>
 #include <phi/type.hpp>
 #include <sstream>
+#include <phi/runtime/evaluator.hpp>
 
 namespace phi
 {
@@ -1355,7 +1356,7 @@ namespace phi
             return;
         _M_func_P->setThis(this);
     }
-    Ref<Variant> &Variant::access(const array &args)
+    VariantPacker Variant::access(const array &args)
     {
         switch (type())
         {
@@ -1390,7 +1391,7 @@ namespace phi
         case Type::OBJECT:
             return _M_obj_P->access(args);
         case Type::FUNCTION:
-            return _M_func_P->access(args);
+            return VariantPacker::variable_t{&_M_func_P->access(args)};
 
         default:
             throw RuntimeException("The variant with the type of (%s) is not accessible.", stringifyType(type()).c_str());

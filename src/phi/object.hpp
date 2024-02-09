@@ -7,6 +7,7 @@ namespace phi
     class Object
     {
     private:
+        map<string, Ref<Variant>> _M_properties;
     public:
         Object() {}
         Object(const Object &) = default;
@@ -32,10 +33,13 @@ namespace phi
 
         static void static_register();
 
+        void set(const string&, Ref<Variant>);
+        Ref<Variant> get(const string&);
+
         // TODO Object::call
         Ref<Variant> call(const array &) { return Variant::Null; }
-        // TODO Object::access
-        Ref<Variant>& access(const array &) { return Variant::Null; }
+
+        VariantPacker access(const array &args);
 
         // TODO Object::convert
         Variant convert(Variant::Type) { return *Variant::Null; }

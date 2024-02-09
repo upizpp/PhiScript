@@ -56,6 +56,7 @@ namespace phi
 		ClassInfo(ClassInfo *p, const initializer_t &init) : parent(p), initializer(init) {}
 
 		type call(Object *, const string &, arg_list &);
+		bool hasProperty(const string&);
 
 		method &getMethod(const string &);
 	};
@@ -206,6 +207,7 @@ namespace phi
 		static type call(Object *obj, const string &method_name, arg_list args = {});
 		static void set(Object *obj, const string &property_name, const type &value);
 		static type get(Object *obj, const string &property_name);
+		static bool hasProperty(Object *obj, const string &property_name);
 
 		static ClassInfo &parent(const string &class_name) { return *_M_classes[class_name].parent; }
 	};

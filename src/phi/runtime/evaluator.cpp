@@ -132,7 +132,7 @@ namespace phi
                 args.push_back(pop().pointer());
             pop(); // pop the args flag.
             std::reverse(args.begin(), args.end());
-            push({VariantPacker::variable_t{&operand.data().access(args)}});
+            push(operand->access(args));
             break;
         }
         case OPCode::Command::MAKE_ARRAY:
@@ -251,7 +251,7 @@ namespace phi
             VariantPacker this_ = load("this", false);
             if (!this_.isNull())
             {
-                Ref<Variant> &value = this_->access({new Variant{name}});
+                VariantPacker value = this_->access({new Variant{name}});
                 if (!value->isNull())
                     return value;
             }
@@ -291,7 +291,9 @@ namespace phi
     }
     VariantPacker &VariantPacker::assign(const VariantPacker &other)
     {
-        if (isVariable())
+        if (hasName() && _M_data->type() == Variant::Type::OBJECT)
+            _M_data->seeAs<Object>().set(*_M_name, other.pointer());
+        else if (isVariable() && other.isVariable())
             redirectTo(other.pointer());
         else
             *_M_data = other.data();

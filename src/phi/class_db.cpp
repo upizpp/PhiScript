@@ -21,9 +21,17 @@ namespace phi
     {
         return _M_classes[obj->getClass()].properties[property_name].first(obj);
     }
+    bool ClassDB::hasProperty(Object *obj, const string &property_name)
+    {
+        return _M_classes[obj->getClass()].hasProperty(property_name);
+    }
     ClassInfo::type ClassInfo::call(Object *obj, const string &method_name, arg_list &args)
     {
         return getMethod(method_name)(obj, args);
+    }
+    bool ClassInfo::hasProperty(const string &name)
+    {
+        return properties.find(name) != properties.end();
     }
     ClassInfo::method &ClassInfo::getMethod(const string &name)
     {
