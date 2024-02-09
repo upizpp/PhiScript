@@ -6,7 +6,7 @@ namespace phi
     Ref<Variant> Function::call(const array &args)
     {
         if (isBuiltin())
-            return new Variant{(*_M_callable)(args)};
+            return (*_M_callable)(args);
         else
             return _M_method->call(args);
     }

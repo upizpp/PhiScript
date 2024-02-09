@@ -95,6 +95,17 @@ namespace phi
             UNARY_IMPL(RED, --)
             UNARY_M_IMPL(COPY, copy)
             UNARY_M_IMPL(DCPY, deepCopy)
+        case OPCode::Command::CLOSURE_BIND:
+        {
+            VariantPacker value = pop();
+            VariantPacker func = pop();
+            if (func->type() != Variant::Type::FUNCTION)
+                throw CompilerException{"Bad OPCode::Command::CLOSURE_BIND. (Not a function)"};
+            Ref<Variant> rename = _M_state->lookup(code.value());
+            func->access({rename}) = value.pointer();
+            push(func);
+            break;
+        }
         case OPCode::Command::ARGS:
         {
             push(VariantPacker{true});
@@ -162,7 +173,7 @@ namespace phi
         {
             VariantPacker value = pop();
             VariantPacker operand = pop();
-            operand.assign(value);
+            push(operand.assign(value));
             break;
         }
         case OPCode::Command::ALLOCATE:
@@ -177,7 +188,7 @@ namespace phi
         }
         case OPCode::Command::LOAD_CONST:
         {
-            push(_M_state->lookup(code.value()));
+            push(Ref<Variant>{new Variant{_M_state->lookup(code.value())->deepCopy()}});
             break;
         }
         case OPCode::Command::PUSH_VAL:
@@ -185,7 +196,7 @@ namespace phi
             push(_M_state->lookup(code.value()));
             break;
         }
-        case OPCode::Command::POP_VAL:
+        case OPCode::Command::POP_TOP:
         {
             pop();
             break;

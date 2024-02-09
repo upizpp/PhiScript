@@ -13,17 +13,21 @@ int main(int argc, char** args)
     {
         Compiler compiler(new FileScanner("D:\\User File\\Projects\\VSCode\\PhiScript\\src\\phi_script\\test.phi"));
 
-        // compiler.parse()->print();
+        // compiler.parse()->print(), cout << endl;
 
         Function func = compiler.load();
         
         array parsed_args{(size_t)argc, nullptr};
-        Function test{ClassDB::toCallable([](RestParameters what){
+        Function print{ClassDB::toCallable([](RestParameters what){
             for (auto &&item : what)
                 cout << (string)*item << " ";
             cout << endl;
         })};
-        setGlobal("print", new Variant{test});
+        Function id{ClassDB::toCallable([](Ref<Variant> value){
+            return new Variant{(integer)value.data()};
+        })};
+        setGlobal("print", new Variant{print});
+        setGlobal("id", new Variant{id});
         for (uinteger i = 0; i < argc; ++i)
             parsed_args[i] = new Variant{args[i]};
         

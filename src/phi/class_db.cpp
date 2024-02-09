@@ -31,7 +31,7 @@ namespace phi
     }
 
     template <>
-    RestParameters ClassDB::ArgumentHandler::handle<RestParameters>(const array &args, size_t index)
+    RestParameters ClassDB::ArgumentHandler::handleImpl<RestParameters>(const array &args, size_t index)
     {
         array rest_args;
         size_t rest = args.size() - index;
@@ -39,5 +39,11 @@ namespace phi
         for (size_t i = index; i < args.size(); i++)
             rest_args[i - index] = args[i];
         return RestParameters{std::move(rest_args)};
+    }
+
+    template <>
+    Ref<Variant> ClassDB::ArgumentHandler::handleImpl<Ref<Variant>>(const array &args, size_t index)
+    {
+        return args[index];
     }
 } // namespace phi

@@ -1,19 +1,17 @@
-fn f()
-{
-    fn g()
-    {
-        ++x
-    }
-    g.x = 0
-    return @@g
+fn f() {
+    var obj = fn ();
+    obj.x = 0
+    obj.show = ()[obj] => print(obj.x)
+    obj.increase = ()[obj] => ++obj.x
+    return obj
 }
-var f1 = f()
-var f2 = f()
-print(f1.x)
-print(f2.x)
-f1()
-print(f1.x)
-print(f2.x)
-f2()
-print(f1.x)
-print(f2.x)
+var o1 = f()
+var o2 = f()
+o1.show()
+o2.show()
+o1.increase()
+o1.show()
+o2.show()
+o2.increase()
+o1.show()
+o2.show()

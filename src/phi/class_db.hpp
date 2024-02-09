@@ -112,7 +112,14 @@ namespace phi
 			size_t requiredCount;
 
 			template <typename T>
-			T handle(const array &args, size_t index)
+			typename std::remove_cv<typename std::remove_reference<T>::type>::type handle(const array &args, size_t index)
+			{
+				return handleImpl<typename std::remove_cv<typename std::remove_reference<T>::type>::type>(args, index);
+			}
+
+		private:
+			template <typename T>
+			T handleImpl(const array &args, size_t index)
 			{
 				if (index >= args.size())
 					throw ArgumentException(requiredCount, args.size(), ClassDB::_M_calling);
@@ -189,7 +196,8 @@ namespace phi
 			return [=](const array &args) -> Ref<Variant>
 			{
 				using seq = gen_index_seq_t<function_traits<F>::arity>;
-				return call_impl<seq, F>::call(func, args);
+				Ref<Variant> temp = call_impl<seq, F>::call(func, args);
+				return temp;
 			};
 		}
 
@@ -202,8 +210,10 @@ namespace phi
 		static ClassInfo &parent(const string &class_name) { return *_M_classes[class_name].parent; }
 	};
 
-    template <>
-    RestParameters ClassDB::ArgumentHandler::handle<RestParameters>(const array &args, size_t index);
+	template <>
+	RestParameters ClassDB::ArgumentHandler::handleImpl<RestParameters>(const array &args, size_t index);
+	template <>
+	Ref<Variant> ClassDB::ArgumentHandler::handleImpl<Ref<Variant>>(const array &args, size_t index);
 
 	template <typename T, typename P>
 	struct ClassRegister

@@ -54,7 +54,7 @@ namespace phi
             case '|':
                 return res = (read('|') ? R(Word::get("||")) : R(new Token('|'))), checkEOF(), res;
             case '=':
-                return res = (read('=') ? R(Word::get("==")) : R(new Token('='))), checkEOF(), res;
+                return res = (read('=') ? R(Word::get("==")) : read('>') ? R(Word::get("=>")) : R(new Token('='))), checkEOF(), res;
             case '!':
                 return res = (read('=') ? R(Word::get("!=")) : R(new Token('!'))), checkEOF(), res;
             case '<':

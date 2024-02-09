@@ -69,6 +69,12 @@ namespace phi
 			Ref<Variant> f_variant = new Variant{func};
 			f_variant->getPtr<Function>()->setThis(f_variant);
 			push({OPCode::Command::LOAD_CONST, Generator::instance()->push(f_variant)});
+			if (_M_capture)
+				for (auto &&value : *_M_capture)
+				{
+					value.second->gen();
+					push({OPCode::Command::CLOSURE_BIND, Generator::instance()->push(new Variant{*value.first})});
+				}
 			if (_M_name)
 				push({OPCode::Command::ASSIGN});
 		}
@@ -282,6 +288,8 @@ namespace phi
 
 		void Return::print(uinteger level)
 		{
+			if (!_M_operand)
+				return;
 			INIT;
 			OS << "return\n";
 			_M_operand->print(level + 1);
@@ -699,6 +707,8 @@ namespace phi
 
 		void Return::gen()
 		{
+			if (!_M_operand)
+				return;
 			_M_operand->gen();
 			push({OPCode::Command::RETURN});
 		}

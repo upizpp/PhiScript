@@ -27,6 +27,7 @@ namespace phi
             RSHIFT,
             POW,
             DCPY, // deep copy
+            ARROW, // =>
             // keywords
             RETURN,
             FN,

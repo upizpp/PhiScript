@@ -49,6 +49,25 @@ namespace phi
 	DefineException(CompileException, Exception);
 	DefineException(SyntaxException, CompileException);
 
+	class CompilerException: public RuntimeException
+	{
+	public:
+		using RuntimeException::RuntimeException;
+		
+		virtual string className() const override
+		{
+			return "CompilerException";
+		}
+
+		virtual string what() const override
+		{
+			static std::ostringstream ss;
+			ss.str("");
+			ss << "This exception is caused by a compiler bug, please report it.\n" << RuntimeException::what();
+			return ss.str();
+		}
+	};
+
 	class VariantPacker;
 	class OperateNullException: public RuntimeException
 	{

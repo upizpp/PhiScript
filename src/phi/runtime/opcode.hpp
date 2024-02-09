@@ -54,12 +54,14 @@ namespace phi
             CLEAR,
             DEL,
 
+            CLOSURE_BIND,
+
             LOAD,
             LOAD_CONST,
             ALLOCATE,
             // env control
             PUSH_VAL,
-            POP_VAL,
+            POP_TOP,
             PUSH_ENV,
             POP_ENV,
             // stream control

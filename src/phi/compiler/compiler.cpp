@@ -7,6 +7,7 @@ namespace phi
 
     Ref<State> Compiler::compile()
     {
+        _M_scanner->reset();
         Preprocessor preprocessor(tokenize());
         token::tokens &tokens = preprocessor.getTokens();
         Ref<State> state = gen(parse(tokens));

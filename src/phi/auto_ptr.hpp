@@ -152,6 +152,22 @@ namespace phi
         {
             return _M_ptr == ptr;
         }
+        bool operator>(const Reference<T> &ref) const
+        {
+            return _M_ptr > ref._M_ptr;
+        }
+        bool operator>(const T *ptr) const
+        {
+            return _M_ptr > ptr;
+        }
+        bool operator<(const Reference<T> &ref) const
+        {
+            return _M_ptr < ref._M_ptr;
+        }
+        bool operator<(const T *ptr) const
+        {
+            return _M_ptr < ptr;
+        }
         bool operator!=(const Reference<T> &ref) const
         {
             return _M_ptr != ref._M_ptr;
@@ -159,6 +175,14 @@ namespace phi
         bool operator!=(const T *ptr) const
         {
             return _M_ptr != ptr;
+        }
+        size_t operator-(const Reference<T> &ref) const
+        {
+            return _M_ptr - ref._M_ptr;
+        }
+        size_t operator-(const T *ptr) const
+        {
+            return _M_ptr - ptr;
         }
 
         void reference()
@@ -191,6 +215,8 @@ namespace phi
         T *_M_ptr;
 
     public:
+        using value_t = T;
+
         Owner() : _M_ptr(nullptr) {}
         Owner(T *ptr) : _M_ptr(ptr) {}
         Owner(const Owner &) = delete;
@@ -366,6 +392,15 @@ namespace phi
             return Owner<T>(_M_ptr);
         }
     };
+
+    template <typename T>
+    struct ReferenceLess
+    {
+        bool operator()(const Reference<T> &lhs, const Reference<T> &rhs) const
+        {
+            return *lhs < *rhs;
+        }
+    };
 } // namespace phi
 
 namespace std
@@ -378,5 +413,4 @@ namespace std
             return std::hash<T>()(*ref);
         }
     };
-
 } // namespace std

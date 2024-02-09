@@ -6,7 +6,7 @@
 	if (_M_look == _M_tokens->back())             \
 		throw SyntaxException("Unexpected EOF."); \
 	else                                          \
-		throw SyntaxException("Unexpected token '" + _M_look->stringify() + "'.");
+		throw SyntaxException("Unexpected token '" + _M_look->stringify() + "'.")
 #define CHECK_NONE \
 	if (!x)        \
 	THROW
@@ -48,7 +48,12 @@ namespace phi
 	{
 		++_M_it;
 		_M_look = _M_it != _M_tokens->end() ? *_M_it : nullptr;
-		// throw SyntaxException("Unexpected end of program.");
+	}
+
+	void Parser::back()
+	{
+		--_M_it;
+		_M_look = _M_it != _M_tokens->end() ? *_M_it : nullptr;
 	}
 
 	Parser::node_t Parser::parse(token::tokens &tokens)
@@ -106,6 +111,42 @@ namespace phi
 
 		return res;
 	}
+	Parser::node_t Parser::blockOrExpr()
+	{
+		if (_M_look->tag() == '{')
+			return block();
+		auto res = new Block;
+		auto tmp = Block::top;
+		Block::top = res;
+
+		token_t tok = _M_look;
+		node_t seq = new Sequence{_M_look, expr(), nullptr};
+		auto eval_map = std::move(res->evalMap());
+		res = new (res) Block{seq, tok};
+		res->evalMap(std::move(eval_map));
+
+		Block::top = tmp;
+
+		return res;
+	}
+	Parser::node_t Parser::blockOrReturn()
+	{
+		if (_M_look->tag() == '{')
+			return block();
+		auto res = new Block;
+		auto tmp = Block::top;
+		Block::top = res;
+
+		token_t tok = _M_look;
+		node_t seq = new Sequence{_M_look, _M_look->tag() == Tag::RETURN ? expr() : new Return{tok, expr()}, nullptr};
+		auto eval_map = std::move(res->evalMap());
+		res = new (res) Block{seq, tok};
+		res->evalMap(std::move(eval_map));
+
+		Block::top = tmp;
+
+		return res;
+	}
 	Parser::node_t Parser::sequence()
 	{
 		if (_M_look->tag() == '}')
@@ -113,7 +154,6 @@ namespace phi
 		if (_M_look->tag() == ';')
 			return (move(), sequence());
 		node_t x = expr();
-		CHECK_NONE;
 		return (Node *)(new Sequence(_M_look, x, sequence()));
 	}
 	Parser::node_t Parser::expr()
@@ -142,12 +182,12 @@ namespace phi
 	}
 	Parser::node_t Parser::assign()
 	{
-		node_t x = comma(false);
+		node_t x = commaLambda(false);
 		while (_M_look->tag() == '=')
 		{
 			token_t tok = _M_look;
 			move();
-			x = (Node *)(new Binary(tok, x, comma(false)));
+			x = (Node *)(new Binary(tok, x, commaLambda(false)));
 		}
 		return x;
 	}
@@ -162,8 +202,12 @@ namespace phi
 		}
 		return x;
 	}
-	Parser::node_t Parser::comma(bool required)
+	Parser::node_t Parser::commaLambda(bool required)
 	{
+		token_t first = _M_look;
+		Owner<vector<Ref<string>>> binds;
+		if (_M_look->tag() == Tag::ID)
+			(binds = new vector<Ref<string>>)->push_back(((Ref<Word>)_M_look)->valueP());
 		node_t node = boolean();
 		if (_M_look->tag() != ',' && !required)
 			return node;
@@ -172,8 +216,11 @@ namespace phi
 		{
 			token_t tok = _M_look;
 			move();
+			if (binds)
+				binds->push_back(((Ref<Word>)_M_look)->valueP());
 			x = (Node *)(new Comma{tok, x, new Comma{_M_look, boolean(), nullptr}});
 		}
+		((Comma *)x.data())->setIdentifiers(std::move(binds));
 		return x;
 	}
 	Parser::node_t Parser::boolean()
@@ -307,6 +354,12 @@ namespace phi
 		}
 		return factor();
 	}
+
+	static bool isLambda(Parser::node_t x)
+	{
+		return !x || x && x->type() == Node::Type::COMMA;
+	}
+
 	Parser::node_t Parser::factor()
 	{
 		node_t x;
@@ -314,9 +367,42 @@ namespace phi
 		switch (_M_look->tag())
 		{
 		case '(':
+			tok = _M_look;
 			move();
 			x = expr();
 			match(')');
+			if (isLambda(x) && _M_look->tag() == '[')
+			{
+				token_t begin;
+				Func::capture_t captured;
+				move();
+				captured = capture();
+				if (_M_look->tag() != ']')
+				{
+					while (_M_look != begin)
+						back();
+					return x;
+				}
+				move();
+				match(Tag::ARROW);
+				Owner<vector<Ref<string>>> binds = x && x->type() == Node::COMMA ? std::move(((Ref<Comma>)x)->getIdentifiers()) : nullptr;
+				return new Func{tok, nullptr, std::move(binds), std::move(captured), blockOrReturn()};
+			}
+			if (_M_look->tag() == Tag::ARROW)
+			{
+				if (!isLambda(x))
+					THROW;
+				move();
+				Owner<vector<Ref<string>>> binds = x && x->type() == Node::COMMA ? std::move(((Ref<Comma>)x)->getIdentifiers()) : nullptr;
+				return new Func{tok, nullptr, std::move(binds), nullptr, blockOrReturn()};
+			}
+			switch (_M_look->tag())
+			{
+			case '(':
+			case '[':
+			case '.':
+				return opt(x);
+			}
 			return x;
 		case '[':
 		{
@@ -351,6 +437,9 @@ namespace phi
 			case '[':
 			case '.':
 				return opt(new Load(tok, false));
+			case Tag::ARROW:
+				move();
+				return new Func{tok, nullptr, new vector<Ref<string>>{((Ref<Word>)tok)->valueP()}, nullptr, blockOrReturn()};
 			default:
 				return new Load(tok, false);
 			}
@@ -367,6 +456,13 @@ namespace phi
 		{
 			tok = _M_look;
 			move();
+			Func::capture_t captured;
+			if (_M_look->tag() == '[')
+			{
+				move();
+				captured = capture();
+				match(']');
+			}
 			Ref<string> name;
 			if (_M_look->tag() == Tag::ID)
 			{
@@ -376,16 +472,10 @@ namespace phi
 			match('(');
 			Owner<vector<Ref<string>>> binds;
 			if (_M_look->tag() != ')')
-			{
-				binds = new vector<Ref<string>>;
-				do
-				{
-					binds->push_back(((Ref<Word>)_M_look)->valueP());
-					move();
-				} while (_M_look->tag() == ',' && (move(), true));
-			}
+				binds = arg_list();
 			match(')');
-			return new Func{tok, name, std::move(binds), block()};
+			if (_M_look->tag() == Tag::ARROW) move();
+			return new Func{tok, name, std::move(binds), std::move(captured), blockOrReturn()};
 		}
 		case Tag::IMPORT:
 		{
@@ -512,7 +602,7 @@ namespace phi
 			return new Continue{tok, name};
 		}
 		}
-		THROW
+		THROW;
 	}
 
 	Parser::node_t Parser::args()
@@ -586,5 +676,34 @@ namespace phi
 			x = pair(x);
 		}
 		return x;
+	}
+	Owner<vector<Ref<string>>> Parser::arg_list()
+	{
+		auto res = new vector<Ref<string>>;
+		do
+		{
+			res->push_back(((Ref<Word>)_M_look)->valueP());
+			move();
+		} while (_M_look->tag() == ',' && (move(), true));
+		return res;
+	}
+	Func::capture_t Parser::capture()
+	{
+		Func::capture_t capture = new Func::capture_t::value_t;
+		do
+		{
+			Ref<token::Word> rename = _M_look;
+			match(Tag::ID);
+			if (_M_look->tag() == ':')
+			{
+				move();
+				(*capture)[rename->valueP()] = exprNoComma();
+			}
+			else
+			{
+				(*capture)[rename->valueP()] = new Load(rename, false);
+			}
+		} while (_M_look->tag() == ',' && (move(), true));
+		return capture;
 	}
 } // namespace phi

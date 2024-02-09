@@ -31,6 +31,7 @@ namespace phi
 			WORD("del", DELETE),
 			WORD("likely", LIKELY),
 			WORD("unlikely", UNLIKELY),
+			WORD("=>", ARROW),
 			WORD("&&", AND),
 			WORD("||", OR),
 			WORD("and", AND),
@@ -171,6 +172,8 @@ namespace phi
 				return "likely";
 			case Tag::UNLIKELY:
 				return "unlikely";
+			case Tag::ARROW:
+				return "=>";
 			case Tag::NOT:
 				return "!";
 			case Tag::AND:

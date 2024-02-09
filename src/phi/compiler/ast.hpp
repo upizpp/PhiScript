@@ -9,6 +9,44 @@ namespace phi
 	{
 		class Node
 		{
+		public:
+			enum Type
+			{
+				NODE,
+				EXPR,
+				CONSTANT,
+				SEQUENCE,
+				BLOCK,
+				FUNC,
+				COMMA,
+				ARGS,
+				CALL,
+				ACCESS,
+				UNARY,
+				BINARY,
+				LOAD,
+				ARRAY,
+				DICTIONARY,
+				STMT,
+				RETURN,
+				DELETE,
+				EVAL,
+				IMPORT,
+				IF,
+				IFELSE,
+				LOOP,
+				CONTROLLER,
+				BREAK,
+				CONTINUE,
+				WHILE,
+				WHILEELSE,
+				FOR,
+				FORELSE
+			};
+			virtual Type type()
+			{
+				return Type::NODE;
+			}
 		private:
 			uinteger _M_line;
 
@@ -39,6 +77,10 @@ namespace phi
 
 			Ref<token::Token> opt() { return _M_operator; }
 			const Ref<token::Token> opt() const { return _M_operator; }
+			virtual Type type() override
+			{
+				return Type::EXPR;
+			}
 		};
 
 		class Constant : public Expr
@@ -47,6 +89,10 @@ namespace phi
 			using Expr::Expr;
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::CONSTANT;
+			}
 		};
 
 		class Sequence : public Node
@@ -72,6 +118,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::SEQUENCE;
+			}
 		};
 
 		class Eval;
@@ -90,6 +140,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::BLOCK;
+			}
 
 			Owner<map<Eval *, arg_t>> &evalMap() { return _M_eval_map; }
 			void evalMap(Owner<map<Eval *, arg_t>> m) { _M_eval_map = std::move(m); }
@@ -107,16 +161,23 @@ namespace phi
 
 		class Func : public Expr
 		{
+		public:
+			using capture_t = Owner<map<Ref<string>, Ref<Expr>, ReferenceLess<string>>>;
 		private:
 			Owner<vector<Ref<string>>> _M_binds;
 			Ref<string> _M_name;
 			Ref<Block> _M_body;
+			capture_t _M_capture;
 		public:
-			Func(Ref<token::Token> opt, Ref<string> name, Owner<vector<Ref<string>>> binds, Ref<Block> body) : Expr(opt), 
-				_M_binds(std::move(binds)), _M_body(body), _M_name(name) {}
+			Func(Ref<token::Token> opt, Ref<string> name, Owner<vector<Ref<string>>>&& binds, capture_t&& closure, Ref<Block> body) : Expr(opt), 
+				_M_binds(std::move(binds)), _M_capture(std::move(closure)), _M_body(body), _M_name(name) {}
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::FUNC;
+			}
 		};
 
 		class Comma : public Expr
@@ -124,12 +185,20 @@ namespace phi
 		private:
 			Ref<Expr> _M_current;
 			Ref<Comma> _M_next;
+			Owner<vector<Ref<string>>> _M_identifiers;
 
 		public:
 			Comma(Ref<token::Token> opt, Ref<Expr> current, Ref<Comma> next) : Expr(opt), _M_current(current), _M_next(next) {}
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::COMMA;
+			}
+
+			void setIdentifiers(Owner<vector<Ref<string>>> ids) { _M_identifiers = std::move(ids); }
+			Owner<vector<Ref<string>>> &getIdentifiers() { return _M_identifiers; }
 		};
 		
 
@@ -144,6 +213,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::ARGS;
+			}
 		};
 
 		class Call : public Expr
@@ -157,6 +230,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::CALL;
+			}
 		};
 
 		class Access : public Expr
@@ -170,6 +247,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::ACCESS;
+			}
 		};
 
 		class Unary : public Expr
@@ -184,6 +265,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::UNARY;
+			}
 		};
 
 		class Binary : public Expr
@@ -200,6 +285,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::BINARY;
+			}
 		};
 
 		class Load : public Expr
@@ -214,6 +303,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::LOAD;
+			}
 		};
 
 		class Array: public Expr
@@ -225,6 +318,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::ARRAY;
+			}
 		};
 
 		class Dictionary: public Expr
@@ -236,6 +333,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::DICTIONARY;
+			}
 		};
 
 		class Stmt : public Expr
@@ -245,6 +346,10 @@ namespace phi
 
 		public:
 			using Expr::Expr;
+			virtual Type type() override
+			{
+				return Type::STMT;
+			}
 			Stmt() = default;
 
 			arg_t exit() const { return _M_exit; }
@@ -265,6 +370,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::RETURN;
+			}
 		};
 
 		class Delete : public Stmt
@@ -279,6 +388,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::DELETE;
+			}
 		};
 
 		class Eval : public Stmt
@@ -292,6 +405,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::EVAL;
+			}
 
 			void genExpr() { _M_expr->gen(); }
 		};
@@ -311,6 +428,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::IMPORT;
+			}
 		};
 
 		class If : public Stmt
@@ -327,6 +448,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::IF;
+			}
 		};
 
 		class IfElse : public If
@@ -340,6 +465,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::IFELSE;
+			}
 		};
 
 		class Loop : public Stmt
@@ -355,6 +484,10 @@ namespace phi
 
 		public:
 			using Stmt::Stmt;
+			virtual Type type() override
+			{
+				return Type::LOOP;
+			}
 
 			static void pushLoop(Borrower<Loop>);
 			static void pop();
@@ -387,6 +520,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::CONTROLLER;
+			}
 		};
 
 		class Continue : public Controller
@@ -396,6 +533,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::CONTINUE;
+			}
 		};
 
 		class While : public Loop
@@ -411,6 +552,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::WHILE;
+			}
 		};
 
 		class WhileElse : public While
@@ -424,6 +569,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::WHILEELSE;
+			}
 		};
 
 		class For : public Loop
@@ -442,6 +591,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::FOR;
+			}
 		};
 
 		class ForElse : public For
@@ -455,6 +608,10 @@ namespace phi
 
 			virtual void print(uinteger level = 0) override;
 			virtual void gen() override;
+			virtual Type type() override
+			{
+				return Type::FORELSE;
+			}
 		};
 	} // namespace ast
 } // namespace phi

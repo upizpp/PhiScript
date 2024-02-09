@@ -26,17 +26,20 @@ namespace phi
         void match(token::tag_t tag);
         void match(std::set<token::tag_t> tags);
         void move();
+        void back();
 
         node_t body();
 
         node_t block();
+        node_t blockOrExpr();
+        node_t blockOrReturn();
         node_t sequence();
         node_t expr();
         node_t exprNoComma();
 
         node_t assign();
         node_t assignNoComma();
-        node_t comma(bool required = true);
+        node_t commaLambda(bool required = true);
         node_t boolean();
         node_t bor();
         node_t band();
@@ -54,5 +57,8 @@ namespace phi
         node_t opt(node_t obj);
         node_t pair(node_t);
         node_t pairs();
+
+        Owner<vector<Ref<string>>> arg_list();
+        ast::Func::capture_t capture();
     };
 } // namespace phi

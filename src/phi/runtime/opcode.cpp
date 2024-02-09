@@ -110,8 +110,8 @@ namespace phi
 				return "ALLOCATE";
             case Command::PUSH_VAL:
 				return "PUSH_VAL";
-            case Command::POP_VAL:
-				return "POP_VAL";
+            case Command::POP_TOP:
+				return "POP_TOP";
             case Command::PUSH_ENV:
 				return "PUSH_ENV";
             case Command::POP_ENV:
