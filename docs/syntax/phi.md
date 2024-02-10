@@ -26,8 +26,8 @@ Existing operators:
 | ~            | is replaced by                |
 | @            | copy                          |
 | @@           | Deep copy                     |
-| ++           | The prefix of is increased by |
-| --           | The prefix of is reduced by   |
+| ++           | Prefix self increasing |
+| --           | Prefix self reduction   |
 
 ### binary expression
 
