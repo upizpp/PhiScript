@@ -4,7 +4,7 @@ In PhiScript, there are several basic ideas:
 
 1. Everything is an expression
 2. Everything is a quote
-3. ~~ Everything is left binding (known defect) ~~
+3. ~~Everything is left binding (known defect)~~
 
 ## expression
 
@@ -266,14 +266,14 @@ Syntax:
 fn[x1: e1, x2: e2, ...]  (arg1, arg2, arg3, ...)
     body
 ```
-The function takes an expression from the capture list (i.e., the contents of '[]') as an internal argument to the function, where $x_n$is the key and $e_n$is the value, that is, $x_n$can be used as a variable directly inside the function.
-When $x_n$and $e_n$are identical in expression and both sides are an identifier, it can be shortened directly to an identifier, and its semantics can also be understood as capturing external specified variables.
-For $x_n$in the capture list, you can also use the 'this' identifier, accessed as follows:' this.xxx '.
+The function takes an expression from the capture list (i.e., the contents of '[]') as an internal argument to the function, where $x_n$ is the key and $e_n$ is the value, that is, $x_n$ can be used as a variable directly inside the function.  
+When $x_n$  and $e_n$ are identical in expression and both sides are an identifier, it can be shortened directly to an identifier, and its semantics can also be understood as capturing external specified variables.  
+For $x_n$ in the capture list, you can also use the 'this' identifier, accessed as follows:' this.xxx '.
 
 
 #### function recursion
-Due to implementation issues, the internal environment of a function is isolated from the outside, and to call other functions or use external variables, you need to use a function closure.
-If you want to call yourself to achieve recursion, use the 'this' identifier.
+Due to implementation issues, the internal environment of a function is isolated from the outside, and to call other functions or use external variables, you need to use a function closure.  
+If you want to call yourself to achieve recursion, use the 'this' identifier.  
 Take the following example:
 ```phi
 fn fib(n)
