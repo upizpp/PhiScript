@@ -29,6 +29,7 @@ namespace phi
             DCPY, // deep copy
             ARROW, // =>
             // keywords
+            PASS,
             RETURN,
             FN,
             VAR,

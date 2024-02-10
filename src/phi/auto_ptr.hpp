@@ -44,6 +44,9 @@ namespace phi
         }
     };
 
+    template<typename T>
+    class Owner;
+
     template <typename T>
     class Reference
     {
@@ -109,6 +112,11 @@ namespace phi
             T *tmp = _M_ptr;
             reset(nullptr);
             return tmp;
+        }
+
+        Owner<T> borrow()
+        {
+            return Owner<T>{_M_ptr};
         }
 
         void reset(T *ptr)

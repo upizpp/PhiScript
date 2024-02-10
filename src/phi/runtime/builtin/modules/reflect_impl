@@ -1,0 +1,19 @@
+#undef FIELD_METHOD
+#define FIELD_METHOD(name, return_t, ...) METHOD(name)
+#undef FIELD_PROPERTY
+#define FIELD_PROPERTY(name, type) PROPERTY(name)
+
+namespace phi
+{
+    namespace modules
+    {
+        Ref<CLASS_NAME> CLASS_NAME::instance = new CLASS_NAME;
+
+        #undef CLASS
+        #define CLASS CLASS_NAME
+        void CLASS_NAME::static_register()
+        {
+            MESSAGE_BODY
+        }
+    } // namespace modules
+} // namespace phi

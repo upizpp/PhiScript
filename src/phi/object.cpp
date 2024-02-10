@@ -13,20 +13,20 @@ namespace phi
     }
     void Object::set(const string &property, Ref<Variant> value)
     {
-        if (ClassDB::hasProperty(this, property))
-            ClassDB::set(this, property, *value);
+        if (Singleton<ClassDB>::instance()->hasProperty(this, property))
+            Singleton<ClassDB>::instance()->set(this, property, *value);
         else
             _M_properties[property] = value;
     }
     Ref<Variant> Object::get(const string &property)
     {
-        return new Variant{ClassDB::get(this, property)};
+        return new Variant{Singleton<ClassDB>::instance()->get(this, property)};
     }
     bool Object::hasProperty(const string &name) const
     {
         return _M_properties.find(name) != _M_properties.end() ||
-               ClassDB::hasMethod(this, name) ||
-               ClassDB::hasProperty(this, name);
+               Singleton<ClassDB>::instance()->hasMethod(this, name) ||
+               Singleton<ClassDB>::instance()->hasProperty(this, name);
     }
     Ref<Variant> Object::call(const array &args)
     {
@@ -45,10 +45,10 @@ namespace phi
         if (args.size() == 1 && args[0]->type() == Variant::Type::STRING)
         {
             string str = *args[0];
-            if (ClassDB::hasProperty(this, str))
+            if (Singleton<ClassDB>::instance()->hasProperty(this, str))
                 return {new Variant{get(str)}, str};
-            else if (ClassDB::hasMethod(this, str))
-                return Ref<Variant>{new Variant{Function{ClassDB::toCallable(this, str)}}};
+            else if (Singleton<ClassDB>::instance()->hasMethod(this, str))
+                return Ref<Variant>{new Variant{Function{Singleton<ClassDB>::instance()->toCallable(this, str)}}};
             if (_M_properties.find(str) == _M_properties.end())
                 _M_properties[str] = new Variant;
             return _M_properties[str];
@@ -257,26 +257,30 @@ namespace phi
     Object::operator integer()
     {
         if (!hasProperty("__int__"))
-            throw RuntimeException("The object is not calculable.");
+            throw RuntimeException("The object is not convertible.");
         return *const_cast<Object *>(this)->call("__int__");
     }
     Object::operator real()
     {
 
         if (!hasProperty("__real__"))
-            throw RuntimeException("The object is not calculable.");
+            throw RuntimeException("The object is not convertible.");
         return *const_cast<Object *>(this)->call("__real__");
     }
     Object::operator bool()
     {
         if (!hasProperty("__bool__"))
-            throw RuntimeException("The object is not calculable.");
+            throw RuntimeException("The object is not convertible.");
         return *const_cast<Object *>(this)->call("__bool__");
     }
     Object::operator string()
     {
         if (!hasProperty("__stringify__"))
-            throw RuntimeException("The object is not calculable.");
+        {
+            std::ostringstream os;
+            os << "object: " << this;
+            return os.str();
+        }
         return *const_cast<Object *>(this)->call("__stringify__");
     }
 } // namespace phi

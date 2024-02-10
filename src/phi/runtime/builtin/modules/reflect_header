@@ -1,0 +1,30 @@
+#include <phi/runtime/builtin/modules/module_db.hpp>
+
+#ifndef CLASS_NAME
+#define CLASS_NAME Test
+#define MODULE_NAME "test"
+#define MESSAGE_BODY
+#endif
+#define FIELD_METHOD(name, return_t, ...) return_t name(__VA_ARGS__);
+#define FIELD_PROPERTY(name, type) type name;
+
+namespace phi
+{
+    namespace modules
+    {
+        class CLASS_NAME : public Object
+        {
+            PhiClass(CLASS_NAME, Object) public : static Ref<CLASS_NAME> instance;
+
+            MESSAGE_BODY
+        };
+
+        ModuleRegister _{
+            MODULE_NAME,
+            []() -> Ref<Object>
+            {
+                return CLASS_NAME::instance;
+            },
+        };
+    } // namespace modules
+} // namespace phi

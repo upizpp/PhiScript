@@ -31,6 +31,7 @@ namespace phi
 			WORD("del", DELETE),
 			WORD("likely", LIKELY),
 			WORD("unlikely", UNLIKELY),
+			WORD("pass", PASS),
 			WORD("=>", ARROW),
 			WORD("&&", AND),
 			WORD("||", OR),
@@ -136,6 +137,8 @@ namespace phi
 				return "integer";
 			case Tag::REAL:
 				return "real";
+			case Tag::PASS:
+				return "pass";
 			case Tag::VAR:
 				return "var";
 			case Tag::IF:

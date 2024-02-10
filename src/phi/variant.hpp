@@ -37,6 +37,7 @@ namespace phi
             ARRAY,
             DICTIONARY,
             OBJECT,
+            BORROWED_OBJECT,
             FUNCTION,
             MAX
         };
@@ -111,6 +112,12 @@ namespace phi
 
         template <typename T>
         T *getPtr();
+        
+        template <typename T>
+        T *get()
+        {
+            return (T*)_M_int;
+        }
 
         template <typename T>
         T &seeAs()
@@ -320,28 +327,29 @@ namespace phi
     {
         if (type() != TypeOf<T>::value)
             return nullptr;
-        switch (type())
-        {
-        case Type::NIL:
-            return nullptr;
-        case Type::INT:
-            return (T*)&_M_int;
-        case Type::REAL:
-            return (T*)&_M_real;
-        case Type::BOOL:
-            return (T*)&_M_bool;
-        case Type::STRING:
-            return (T*)_M_string_P;
-        case Type::DICTIONARY:
-            return (T*)_M_dict_P;
-        case Type::ARRAY:
-            return (T*)_M_array_P;
-        case Type::OBJECT:
-            return (T*)_M_obj_P;
-        case Type::FUNCTION:
-            return (T*)_M_func_P;
-        default:
-            return nullptr;
-        }
+        return get<T>();
+        // switch (type())
+        // {
+        // case Type::NIL:
+        //     return nullptr;
+        // case Type::INT:
+        //     return (T*)&_M_int;
+        // case Type::REAL:
+        //     return (T*)&_M_real;
+        // case Type::BOOL:
+        //     return (T*)&_M_bool;
+        // case Type::STRING:
+        //     return (T*)_M_string_P;
+        // case Type::DICTIONARY:
+        //     return (T*)_M_dict_P;
+        // case Type::ARRAY:
+        //     return (T*)_M_array_P;
+        // case Type::OBJECT:
+        //     return (T*)_M_obj_P;
+        // case Type::FUNCTION:
+        //     return (T*)_M_func_P;
+        // default:
+        //     return nullptr;
+        // }
     }
 } // namespace phi

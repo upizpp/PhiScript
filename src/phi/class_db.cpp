@@ -3,10 +3,6 @@
 
 namespace phi
 {
-    map<string, ClassInfo> ClassDB::_M_classes;
-    string ClassDB::_M_bound;
-    string ClassDB::_M_calling;
-
     ClassDB::type ClassDB::call(Object *obj, const string &method_name, const array& args)
     {
         string class_name = obj->getClass();
