@@ -18,16 +18,16 @@ Syntax:
 
 Existing operators:
 
-| The operator | explains                      |
-| ------------ | ----------------------------- |
-| -            | monocular subtraction         |
-| !            | is the opposite of            |
-| not          | is the inverse of             |
-| ~            | is replaced by                |
-| @            | copy                          |
-| @@           | Deep copy                     |
+| The operator | explains               |
+| ------------ | ---------------------- |
+| -            | monocular subtraction  |
+| !            | is the opposite of     |
+| not          | is the inverse of      |
+| ~            | is replaced by         |
+| @            | copy                   |
+| @@           | Deep copy              |
 | ++           | Prefix self increasing |
-| --           | Prefix self reduction   |
+| --           | Prefix self reduction  |
 
 ### binary expression
 
