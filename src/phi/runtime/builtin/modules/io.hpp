@@ -4,10 +4,10 @@
 #define CLASS_NAME IOLib
 #undef MODULE_NAME
 #define MODULE_NAME "io"
-
+#undef MESSAGE_BODY
 #define MESSAGE_BODY                          \
     FIELD_METHOD(print, void, RestParameters) \
-    FIELD_METHOD(input, string, string)       \
-    FIELD_METHOD(get_number, integer, string)
+    FIELD_METHOD(input, string, const string&)       \
+    FIELD_METHOD(get_number, real, const string&, OptionalRef<const string>)
 
 #include "reflect_header"

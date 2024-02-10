@@ -1,3 +1,5 @@
+#include <phi/runtime/builtin/modules/string.hpp>
+// // The order is immutable!
 #include "io.hpp"
 #include "reflect_impl"
 
@@ -12,7 +14,7 @@ namespace phi
             cout << endl;
         }
 
-        string CLASS_NAME::input(string msg)
+        string CLASS_NAME::input(const string& msg)
         {
             cout << msg;
             string tmp;
@@ -20,9 +22,14 @@ namespace phi
             return tmp;
         }
 
-        integer CLASS_NAME::get_number(string msg)
+        real CLASS_NAME::get_number(const string& msg, OptionalRef<const string> error_msg)
         {
-            return 0;
+            OPT_DEFAULT(error_msg, "Invalid number, please enter again: ");
+
+            string tmp = input(msg);
+            while (!StringLib::instance->is_number(tmp))
+                tmp = input(*error_msg);
+            return std::stold(tmp);
         }
     } // namespace modules
 

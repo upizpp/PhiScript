@@ -9,6 +9,8 @@ namespace phi
         
         bool CLASS_NAME::is_number(const string &str)
         {
+            if (str.empty())
+                return false;
             bool point = false;
             for (size_t i = 0; i < str.length(); ++i)
                 if (str[i] == '.')

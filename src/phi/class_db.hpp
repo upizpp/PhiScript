@@ -7,6 +7,7 @@
 #include <phi/traits.hpp>
 #include <phi/typedef.hpp>
 #include <phi/variant.hpp>
+#include <phi/optional.hpp>
 
 #define METHOD_R(name, rename) Singleton<ClassDB>::instance()->registerMethod(#rename, &CLASS::name);
 #define METHOD(name) METHOD_R(name, name)
@@ -149,6 +150,46 @@ namespace phi
 					if (index >= args.size())
 						throw ArgumentException(requiredCount, args.size(), Singleton<ClassDB>::instance()->_M_calling);
 					return args[index]->seeAs<T>();
+				}
+			};
+			template <typename T>
+			struct HandleImpl<Optional<T>>
+			{
+				Optional<T> operator()(size_t requiredCount, const array &args, size_t index)
+				{
+					if (index >= args.size())
+						return Optional<T>(nullptr);
+					return args[index]->seeAs<T>();
+				}
+			};
+			template <typename T>
+			struct HandleImpl<Optional<const T>>
+			{
+				Optional<const T> operator()(size_t requiredCount, const array &args, size_t index)
+				{
+					if (index >= args.size())
+						return Optional<const T>(nullptr);
+					return args[index]->seeAs<T>();
+				}
+			};
+			template <typename T>
+			struct HandleImpl<OptionalRef<T>>
+			{
+				OptionalRef<T> operator()(size_t requiredCount, const array &args, size_t index)
+				{
+					if (index >= args.size())
+						return OptionalRef<T>(nullptr);
+					return &args[index]->seeAs<T>();
+				}
+			};
+			template <typename T>
+			struct HandleImpl<OptionalRef<const T>>
+			{
+				OptionalRef<const T> operator()(size_t requiredCount, const array &args, size_t index)
+				{
+					if (index >= args.size())
+						return OptionalRef<const T>(nullptr);
+					return &args[index]->seeAs<T>();
 				}
 			};
 		};

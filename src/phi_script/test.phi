@@ -1,4 +1,4 @@
 import io
-var x = io.input("Please enter a string: ")
-print(x.is_number())
+var x = io.get_number("Please enter a number: ", "Please enter again: ")
+print(x)
 return x
