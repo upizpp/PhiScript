@@ -1,3 +1,4 @@
 import io
 var x = io.input("Please enter a string: ")
+print(x.is_number())
 return x

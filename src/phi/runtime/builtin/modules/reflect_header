@@ -18,13 +18,5 @@ namespace phi
 
             MESSAGE_BODY
         };
-
-        ModuleRegister _{
-            MODULE_NAME,
-            []() -> Ref<Object>
-            {
-                return CLASS_NAME::instance;
-            },
-        };
     } // namespace modules
 } // namespace phi

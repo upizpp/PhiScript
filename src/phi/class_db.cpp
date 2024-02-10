@@ -41,21 +41,4 @@ namespace phi
     {
         return methods.find(name) != methods.end() ? methods[name] : parent->getMethod(name);
     }
-
-    template <>
-    RestParameters ClassDB::ArgumentHandler::handleImpl<RestParameters>(const array &args, size_t index)
-    {
-        array rest_args;
-        size_t rest = args.size() - index;
-        rest_args.resize(rest);
-        for (size_t i = index; i < args.size(); i++)
-            rest_args[i - index] = args[i];
-        return RestParameters{std::move(rest_args)};
-    }
-
-    template <>
-    Ref<Variant> ClassDB::ArgumentHandler::handleImpl<Ref<Variant>>(const array &args, size_t index)
-    {
-        return args[index];
-    }
 } // namespace phi

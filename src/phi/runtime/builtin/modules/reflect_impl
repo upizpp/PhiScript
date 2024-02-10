@@ -15,5 +15,10 @@ namespace phi
         {
             MESSAGE_BODY
         }
+
+        static ModuleRegister _{
+            MODULE_NAME,
+            CLASS_NAME::instance,
+        };
     } // namespace modules
 } // namespace phi

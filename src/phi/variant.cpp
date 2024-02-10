@@ -6,6 +6,7 @@
 #include <phi/exception.hpp>
 #include <phi/function.hpp>
 #include <phi/object.hpp>
+#include <phi/runtime/builtin/modules/module_db.hpp>
 #include <phi/runtime/evaluator.hpp>
 #include <phi/type.hpp>
 #include <sstream>
@@ -1391,6 +1392,25 @@ namespace phi
     }
     VariantPacker Variant::access(const array &args)
     {
+        if (args.size() == 1 && args[0]->type() == Type::STRING)
+        {
+            Ref<Object> module_inst;
+            if (Singleton<modules::ModuleDB>::instance()->has(type()))
+            {
+                module_inst = Singleton<modules::ModuleDB>::instance()->get(type());
+                if (module_inst->hasProperty(args[0]->seeAs<string>()))
+                {
+                    VariantPacker result = module_inst->access(args);
+                    if (result->type() == Type::FUNCTION)
+                    {
+                        if (!Ref<Variant>::hasReference(this))
+                            throw CompilerException("The variant has no reference. (Variant::access)");
+                        result->seeAs<Function>().bind(0, this);
+                    }
+                    return result;
+                };
+            }
+        }
         switch (type())
         {
         case Type::ARRAY:
@@ -1399,16 +1419,16 @@ namespace phi
             {
                 return _M_array_P->at((integer)*args[0]);
             }
-            // else if (args.size() >= 2 && args.size() <= 3)
-            // {
-            //     uinteger begin = (integer)args[0];
-            //     uinteger end = (integer)args[1];
-            //     uinteger step = args.size() == 3 ? (integer)args[2] : 1;
-            //     array *res = new array{(uinteger)std::ceil((end - begin) / real(step)), nullptr};
-            //     for (uinteger i = begin; i < end; i += step)
-            //         (*res)[i - begin] = (*_M_array_P)[i];
-            //     return new Variant{std::move(Owner<array>{res})};
-            // }
+            else if (args.size() >= 2 && args.size() <= 3)
+            {
+                uinteger begin = (integer)args[0];
+                uinteger end = (integer)args[1];
+                uinteger step = args.size() == 3 ? (integer)args[2] : 1;
+                array *res = new array{(uinteger)std::ceil((end - begin) / real(step)), nullptr};
+                for (uinteger i = begin; i < end; i += step)
+                    (*res)[i - begin] = (*_M_array_P)[i];
+                return Ref<Variant>{new Variant{std::move(Owner<array>{res})}};
+            }
             else
             {
                 throw ArgumentRangedException(1, 3, args.size(), __FUNCTION__);

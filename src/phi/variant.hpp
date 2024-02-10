@@ -19,6 +19,9 @@ namespace phi
         size_t operator()(const Ref<Variant> &lhs, const Ref<Variant> &rhs) const;
     };
 
+    template <typename T>
+    struct TypeOf;
+
     using array = vector<Ref<Variant>>;
     using dict = unordered_map<Ref<Variant>, Ref<Variant>, VariantHash, VariantEqual>;
 
@@ -68,11 +71,11 @@ namespace phi
         Variant(const char *);
         Variant(const string &);
         Variant(const array &);
-        Variant(Owner<array>&&);
+        Variant(Owner<array> &&);
         Variant(const dict &);
-        Variant(Owner<dict>&&);
+        Variant(Owner<dict> &&);
         Variant(const Object &);
-        Variant(Owner<Object>&&);
+        Variant(Owner<Object> &&);
         Variant(const Function &);
         Variant(const Variant &);
         Variant(Variant &&);
@@ -111,12 +114,29 @@ namespace phi
         uinteger hash() const;
 
         template <typename T>
-        T *getPtr();
-        
+        T *getPtr()
+        {
+            if (type() != TypeOf<T>::value)
+                return nullptr;
+            return get<T>();
+        }
+        template <typename T>
+        const T *getPtr() const
+        {
+            if (type() != TypeOf<T>::value)
+                return nullptr;
+            return get<T>();
+        }
+
         template <typename T>
         T *get()
         {
-            return (T*)_M_int;
+            return (T *)_M_int;
+        }
+        template <typename T>
+        const T *get() const
+        {
+            return (T *)_M_int;
         }
 
         template <typename T>
@@ -124,13 +144,12 @@ namespace phi
         {
             return *getPtr<T>();
         }
-        
+
         template <typename T>
         const T &seeAs() const
         {
             return *getPtr<T>();
         }
-
 
 #define COMPARE_DECL(op)                      \
     bool operator op(const int &) const;      \
@@ -231,8 +250,8 @@ namespace phi
         }
         void checkThis();
 
-        Ref<Variant> call(const array& args = {});
-        VariantPacker access(const array& args);
+        Ref<Variant> call(const array &args = {});
+        VariantPacker access(const array &args);
 
         static bool isConvertible(Type, Type);
     };
@@ -321,35 +340,4 @@ namespace phi
     {
         static const Variant::Type value = VariantType<typename std::remove_cv<typename std::remove_reference<typename std::remove_pointer<T>::type>::type>::type>::value;
     };
-
-    template <typename T>
-    T *Variant::getPtr()
-    {
-        if (type() != TypeOf<T>::value)
-            return nullptr;
-        return get<T>();
-        // switch (type())
-        // {
-        // case Type::NIL:
-        //     return nullptr;
-        // case Type::INT:
-        //     return (T*)&_M_int;
-        // case Type::REAL:
-        //     return (T*)&_M_real;
-        // case Type::BOOL:
-        //     return (T*)&_M_bool;
-        // case Type::STRING:
-        //     return (T*)_M_string_P;
-        // case Type::DICTIONARY:
-        //     return (T*)_M_dict_P;
-        // case Type::ARRAY:
-        //     return (T*)_M_array_P;
-        // case Type::OBJECT:
-        //     return (T*)_M_obj_P;
-        // case Type::FUNCTION:
-        //     return (T*)_M_func_P;
-        // default:
-        //     return nullptr;
-        // }
-    }
 } // namespace phi

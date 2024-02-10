@@ -115,19 +115,42 @@ namespace phi
 			size_t requiredCount;
 
 			template <typename T>
-			typename std::remove_cv<typename std::remove_reference<T>::type>::type handle(const array &args, size_t index)
+			T handle(const array &args, size_t index)
 			{
-				return handleImpl<typename std::remove_cv<typename std::remove_reference<T>::type>::type>(args, index);
+				return HandleImpl<T>()(requiredCount, args, index);
 			}
 
 		private:
 			template <typename T>
-			T handleImpl(const array &args, size_t index)
+			struct HandleImpl
 			{
-				if (index >= args.size())
-					throw ArgumentException(requiredCount, args.size(), Singleton<ClassDB>::instance()->_M_calling);
-				return args[index]->convertTo(VariantType<T>::value);
-			}
+				T operator()(size_t requiredCount, const array &args, size_t index)
+				{
+					if (index >= args.size())
+						throw ArgumentException(requiredCount, args.size(), Singleton<ClassDB>::instance()->_M_calling);
+					return args[index]->convertTo(VariantType<T>::value);
+				}
+			};
+			template <typename T>
+			struct HandleImpl<T &>
+			{
+				T &operator()(size_t requiredCount, const array &args, size_t index)
+				{
+					if (index >= args.size())
+						throw ArgumentException(requiredCount, args.size(), Singleton<ClassDB>::instance()->_M_calling);
+					return args[index]->seeAs<T>();
+				}
+			};
+			template <typename T>
+			struct HandleImpl<const T &>
+			{
+				const T &operator()(size_t requiredCount, const array &args, size_t index)
+				{
+					if (index >= args.size())
+						throw ArgumentException(requiredCount, args.size(), Singleton<ClassDB>::instance()->_M_calling);
+					return args[index]->seeAs<T>();
+				}
+			};
 		};
 
 		friend struct ArgumentHandler;
@@ -232,9 +255,26 @@ namespace phi
 	};
 
 	template <>
-	RestParameters ClassDB::ArgumentHandler::handleImpl<RestParameters>(const array &args, size_t index);
+	struct ClassDB::ArgumentHandler::HandleImpl<RestParameters>
+	{
+		RestParameters operator()(size_t requiredCount, const array &args, size_t index)
+		{
+			array rest_args;
+			size_t rest = args.size() - index;
+			rest_args.resize(rest);
+			for (size_t i = index; i < args.size(); i++)
+				rest_args[i - index] = args[i];
+			return RestParameters{std::move(rest_args)};
+		}
+	};
 	template <>
-	Ref<Variant> ClassDB::ArgumentHandler::handleImpl<Ref<Variant>>(const array &args, size_t index);
+	struct ClassDB::ArgumentHandler::HandleImpl<Ref<Variant>>
+	{
+		Ref<Variant> operator()(size_t requiredCount, const array &args, size_t index)
+		{
+			return args[index];
+		}
+	};
 
 	template <typename T, typename P>
 	struct ClassRegister
