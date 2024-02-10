@@ -5,10 +5,23 @@ namespace phi
 {
     Ref<Variant> Function::call(const array &args)
     {
+        Borrower<const array> real_args = &args;
+        Ref<Variant> result;
+        bool empty = _M_binds.empty();
+        if (!empty)
+        {
+            array* temp = new array{args};
+            for (auto &&bind : _M_binds)
+                temp->insert(temp->begin() + bind.first, bind.second);
+            real_args = temp;
+        }
         if (isBuiltin())
-            return (*_M_callable)(args);
+            result = (*_M_callable)(*real_args);
         else
-            return _M_method->call(args);
+            result = _M_method->call(*real_args);
+        if (!empty)
+            delete real_args.data();
+        return result;
     }
     
     Ref<Variant> &Function::access(const array &args)

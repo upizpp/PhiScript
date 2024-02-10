@@ -4,7 +4,7 @@
         "cache": ".build",
         "scan": "src",
         "output": "phi",
-        "extra": "-std=c++11 -O3 -Wno-switch -Wno-delete-abstract-non-virtual-dtor",
+        "extra": "-std=c++11 -O3 -Wno-switch",
         "includes": [
             "src"
         ],
@@ -17,7 +17,7 @@
         "cache": ".debug_build",
         "scan": "src",
         "output": "debug",
-        "extra": "-g -std=c++11 -DDEBUG -Wno-switch -Wno-delete-abstract-non-virtual-dtor",
+        "extra": "-g -std=c++11 -DDEBUG -Wno-switch",
         "includes": [
             "src"
         ],
@@ -31,7 +31,7 @@
         "cache": ".test_build",
         "scan": "src",
         "output": "test",
-        "extra": "-g -std=c++11 -DDEBUG -DTEST -Wno-switch -Wno-delete-abstract-non-virtual-dtor",
+        "extra": "-g -std=c++11 -DDEBUG -DTEST -Wno-switch",
         "includes": [
             "src"
         ],
@@ -45,7 +45,7 @@
         "scan": "src",
         "output": "test",
         "auto_run": false,
-        "extra": "-g -Isrc -std=c++11 -DDEBUG -DTEST -Wno-switch -Wno-delete-abstract-non-virtual-dtor",
+        "extra": "-g -Isrc -std=c++11 -DDEBUG -DTEST -Wno-switch",
         "ignore": [
             "src/main.cpp"
         ]

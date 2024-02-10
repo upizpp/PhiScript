@@ -32,6 +32,7 @@ namespace phi
         Ref<Method> _M_method;
         Ref<callable_t> _M_callable;
         map<string, Ref<Variant>> _M_properties;
+        map<uinteger, Ref<Variant>> _M_binds;
 
     public:
         Function() {}
@@ -46,15 +47,17 @@ namespace phi
         Ref<Variant> operator()(const array &args = {}) { return call(args); }
 
         Method &getMethod() { return *_M_method; }
-        void setThis(Ref<Variant> new_this) {
+        void setThis(Ref<Variant> new_this)
+        {
             if (isBuiltin())
                 return;
             getMethod().setThis(new_this);
         }
+        void bind(uinteger index, Ref<Variant> what) { _M_binds[index] = what; }
 
         bool isBuiltin() { return _M_callable; }
 
-        Ref<Variant>& access(const array &);
+        Ref<Variant> &access(const array &);
 
         bool operator==(const Function &func) { return this == &func; }
 

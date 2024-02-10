@@ -151,7 +151,7 @@ namespace phi
 	{
 		if (_M_look->tag() == '}')
 			return new Sequence{_M_look};
-		if (_M_look->tag() == ';')
+		if (_M_look->tag() == ';' || _M_look->tag() == Tag::PASS)
 			return (move(), sequence());
 		node_t x = expr();
 		return (Node *)(new Sequence(_M_look, x, sequence()));
@@ -162,6 +162,7 @@ namespace phi
 		{
 		case '{':
 			return block();
+		case Tag::PASS:
 		case ';':
 		case ')':
 			return nullptr;
@@ -174,6 +175,7 @@ namespace phi
 		{
 		case '{':
 			return block();
+		case Tag::PASS:
 		case ';':
 		case ')':
 			return nullptr;

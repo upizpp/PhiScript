@@ -1,5 +1,4 @@
-fn f();
-var x = 0
-f.y = x
-f.y = 1
+import io
+var x = io.get_number("Please enter a number: ", "Please enter again: ")
 print(x)
+return x

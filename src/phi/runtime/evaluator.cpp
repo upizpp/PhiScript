@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <phi/exception.hpp>
 #include <phi/runtime/builtin/global.hpp>
+#include <phi/runtime/builtin/import.hpp>
 
 namespace phi
 {
@@ -34,35 +35,35 @@ namespace phi
         return Variant::Null;
     }
 
-#define BINARY_IMPL(opcode, op)                                        \
-    case OPCode::Command::opcode:                                      \
-    {                                                                  \
-        VariantPacker right = pop();                                   \
-        VariantPacker left = pop();                                    \
+#define BINARY_IMPL(opcode, op)                                       \
+    case OPCode::Command::opcode:                                     \
+    {                                                                 \
+        VariantPacker right = pop();                                  \
+        VariantPacker left = pop();                                   \
         push(Ref<Variant>{new Variant{left.data() op right.data()}}); \
-        break;                                                         \
+        break;                                                        \
     }
-#define BINARY_M_IMPL(opcode, method)                                       \
-    case OPCode::Command::opcode:                                           \
-    {                                                                       \
-        VariantPacker right = pop();                                        \
-        VariantPacker left = pop();                                         \
+#define BINARY_M_IMPL(opcode, method)                                      \
+    case OPCode::Command::opcode:                                          \
+    {                                                                      \
+        VariantPacker right = pop();                                       \
+        VariantPacker left = pop();                                        \
         push(Ref<Variant>{new Variant{left.data().method(right.data())}}); \
-        break;                                                              \
+        break;                                                             \
     }
-#define UNARY_IMPL(opcode, op)                               \
-    case OPCode::Command::opcode:                            \
-    {                                                        \
-        VariantPacker operand = pop();                       \
+#define UNARY_IMPL(opcode, op)                              \
+    case OPCode::Command::opcode:                           \
+    {                                                       \
+        VariantPacker operand = pop();                      \
         push(Ref<Variant>{new Variant{op operand.data()}}); \
-        break;                                               \
+        break;                                              \
     }
-#define UNARY_M_IMPL(opcode, method)                               \
-    case OPCode::Command::opcode:                                  \
-    {                                                              \
-        VariantPacker operand = pop();                             \
+#define UNARY_M_IMPL(opcode, method)                              \
+    case OPCode::Command::opcode:                                 \
+    {                                                             \
+        VariantPacker operand = pop();                            \
         push(Ref<Variant>{new Variant{operand.data().method()}}); \
-        break;                                                     \
+        break;                                                    \
     }
 
     Ref<Variant> Evaluator::handle(const OPCode &code)
@@ -95,6 +96,17 @@ namespace phi
             UNARY_IMPL(RED, --)
             UNARY_M_IMPL(COPY, copy)
             UNARY_M_IMPL(DCPY, deepCopy)
+        case OPCode::Command::IMPORT:
+        {
+            Ref<Variant> module = import(*_M_state->lookup(code.value()));
+            /*
+            Don't worry about taking the address of a temporary variable here,
+            it's just to tell VariantPacker that it's a Variable rather than a Constant,
+            and its value already exists in the -M_data variable
+            */
+            push(VariantPacker::variable_t{&module});
+            break;
+        }
         case OPCode::Command::CLOSURE_BIND:
         {
             VariantPacker value = pop();

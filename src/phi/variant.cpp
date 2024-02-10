@@ -6,6 +6,7 @@
 #include <phi/exception.hpp>
 #include <phi/function.hpp>
 #include <phi/object.hpp>
+#include <phi/runtime/builtin/modules/module_db.hpp>
 #include <phi/runtime/evaluator.hpp>
 #include <phi/type.hpp>
 #include <sstream>
@@ -67,7 +68,7 @@ namespace phi
     {
     }
 
-    Variant::Variant(Owner<Object> &&value) : _M_type(Type::OBJECT), _M_obj_P(value.release())
+    Variant::Variant(Owner<Object> &&value) : _M_type(Type::BORROWED_OBJECT), _M_obj_P(value.release())
     {
     }
 
@@ -77,6 +78,7 @@ namespace phi
 
     Variant::Variant(const Variant &value) : _M_type(value.type())
     {
+        _M_type = value._M_type;
         switch (_M_type)
         {
         case Type::INT:
@@ -98,6 +100,7 @@ namespace phi
             _M_dict_P = new dict{*value._M_dict_P};
             break;
         case Type::OBJECT:
+        case Type::BORROWED_OBJECT:
             _M_obj_P = new Object{*value._M_obj_P};
             break;
         case Type::FUNCTION:
@@ -108,6 +111,7 @@ namespace phi
 
     Variant::Variant(Variant &&value) : _M_type(value.type())
     {
+        _M_type = value._M_type;
         value._M_type = Type::NIL;
         switch (_M_type)
         {
@@ -133,6 +137,7 @@ namespace phi
             value._M_dict_P = nullptr;
             break;
         case Type::OBJECT:
+        case Type::BORROWED_OBJECT:
             _M_obj_P = value._M_obj_P;
             value._M_obj_P = nullptr;
             break;
@@ -147,6 +152,7 @@ namespace phi
     {
         free();
         _M_int = value;
+        _M_type = Type::INT;
         return *this;
     }
 
@@ -154,6 +160,7 @@ namespace phi
     {
         free();
         _M_real = value;
+        _M_type = Type::REAL;
         return *this;
     }
 
@@ -161,6 +168,7 @@ namespace phi
     {
         free();
         _M_int = value;
+        _M_type = Type::INT;
         return *this;
     }
 
@@ -168,6 +176,7 @@ namespace phi
     {
         free();
         _M_real = value;
+        _M_type = Type::REAL;
         return *this;
     }
 
@@ -175,6 +184,7 @@ namespace phi
     {
         free();
         _M_bool = value;
+        _M_type = Type::BOOL;
         return *this;
     }
 
@@ -182,6 +192,7 @@ namespace phi
     {
         free();
         _M_string_P = new string{value};
+        _M_type = Type::STRING;
         return *this;
     }
 
@@ -189,6 +200,7 @@ namespace phi
     {
         free();
         _M_string_P = new string{value};
+        _M_type = Type::STRING;
         return *this;
     }
 
@@ -196,6 +208,7 @@ namespace phi
     {
         free();
         _M_array_P = new array{value};
+        _M_type = Type::ARRAY;
         return *this;
     }
 
@@ -203,6 +216,7 @@ namespace phi
     {
         free();
         _M_dict_P = new dict{value};
+        _M_type = Type::DICTIONARY;
         return *this;
     }
 
@@ -210,6 +224,7 @@ namespace phi
     {
         free();
         _M_obj_P = new Object{value};
+        _M_type = Type::OBJECT;
         return *this;
     }
 
@@ -217,6 +232,7 @@ namespace phi
     {
         free();
         _M_func_P = new Function{value};
+        _M_type = Type::FUNCTION;
         return *this;
     }
 
@@ -244,6 +260,7 @@ namespace phi
         case Type::DICTIONARY:
             _M_dict_P = new dict{*value._M_dict_P};
             break;
+        case Type::BORROWED_OBJECT:
         case Type::OBJECT:
             _M_obj_P = new Object{*value._M_obj_P};
             break;
@@ -281,6 +298,7 @@ namespace phi
             _M_dict_P = value._M_dict_P;
             value._M_dict_P = nullptr;
             break;
+        case Type::BORROWED_OBJECT:
         case Type::OBJECT:
             _M_obj_P = value._M_obj_P;
             value._M_obj_P = nullptr;
@@ -439,6 +457,7 @@ namespace phi
                 throw ConversionException{type(), target};
             }
         }
+        case Type::BORROWED_OBJECT:
         case Type::OBJECT:
         {
             *this = _M_obj_P->convert(target);
@@ -472,6 +491,7 @@ namespace phi
             {
                 return 0;
             }
+        case Type::BORROWED_OBJECT:
         case Type::OBJECT:
             return *_M_obj_P;
         default:
@@ -500,6 +520,7 @@ namespace phi
             {
                 return 0.0;
             }
+        case Type::BORROWED_OBJECT:
         case Type::OBJECT:
             return *_M_obj_P;
         default:
@@ -525,6 +546,7 @@ namespace phi
             return !_M_array_P->empty();
         case Type::DICTIONARY:
             return !_M_dict_P->empty();
+        case Type::BORROWED_OBJECT:
         case Type::OBJECT:
             return *_M_obj_P;
         case Type::FUNCTION:
@@ -581,6 +603,7 @@ namespace phi
             return string_os.str();
         }
         case Type::OBJECT:
+        case Type::BORROWED_OBJECT:
             return (string)(*_M_obj_P);
         case Type::FUNCTION:
             return (string)(*_M_func_P);
@@ -630,6 +653,7 @@ namespace phi
             delete _M_dict_P;
             break;
         case Type::OBJECT:
+        case Type::BORROWED_OBJECT:
             delete _M_obj_P;
             break;
         case Type::FUNCTION:
@@ -660,6 +684,8 @@ namespace phi
             return "DICTIONARY";
         case Type::OBJECT:
             return "OBJECT";
+        case Type::BORROWED_OBJECT:
+            return "BORROWED_OBJECT";
         case Type::FUNCTION:
             return "FUNCTION";
         case Type::MAX:
@@ -756,6 +782,7 @@ namespace phi
             }
         }
         case Type::OBJECT:
+        case Type::BORROWED_OBJECT:
             value = _M_obj_P->hash();
         case Type::FUNCTION:
             value = (uinteger)_M_func_P;
@@ -888,6 +915,7 @@ namespace phi
         switch (_M_type)                                      \
         {                                                     \
         case Type::OBJECT:                                    \
+        case Type::BORROWED_OBJECT:                           \
             return *_M_obj_P op value;                        \
         default:                                              \
             throw CompareException(type(), Type::OBJECT);     \
@@ -930,6 +958,7 @@ namespace phi
                 throw CompareException(type(), value.type()); \
             return _M_dict_P op value._M_dict_P;              \
         case Type::OBJECT:                                    \
+        case Type::BORROWED_OBJECT:                           \
             return *_M_obj_P op value;                        \
         case Type::FUNCTION:                                  \
             if (value.type() != Type::ARRAY)                  \
@@ -988,6 +1017,7 @@ namespace phi
         switch (_M_type)                                           \
         {                                                          \
         case Type::OBJECT:                                         \
+        case Type::BORROWED_OBJECT:                                \
             return *_M_obj_P op Variant{value};                    \
         default:                                                   \
             throw CalculateException(type(), Type::OBJECT);        \
@@ -1020,6 +1050,7 @@ namespace phi
         case Type::STRING:                                         \
             return Variant{*_M_string_P op value.toString()};      \
         case Type::OBJECT:                                         \
+        case Type::BORROWED_OBJECT:                                \
             return Variant{*_M_obj_P op Variant{value}};           \
         default:                                                   \
             throw CalculateException(type(), value.type());        \
@@ -1091,6 +1122,7 @@ namespace phi
         switch (_M_type)                                           \
         {                                                          \
         case Type::OBJECT:                                         \
+        case Type::BORROWED_OBJECT:                                \
             return *_M_obj_P op Variant{value};                    \
         default:                                                   \
             throw CalculateException(type(), Type::OBJECT);        \
@@ -1121,6 +1153,7 @@ namespace phi
         case Type::BOOL:                                           \
             return Variant{bool(*this) op bool(value)};            \
         case Type::OBJECT:                                         \
+        case Type::BORROWED_OBJECT:                                \
             return Variant{*_M_obj_P op value};                    \
         default:                                                   \
             throw CalculateException(type(), value.type());        \
@@ -1147,6 +1180,7 @@ namespace phi
         switch (_M_type)                                      \
         {                                                     \
         case Type::OBJECT:                                    \
+        case Type::BORROWED_OBJECT:                           \
             return *_M_obj_P op Variant{value};               \
         default:                                              \
             throw CalculateException(type(), Type::OBJECT);   \
@@ -1166,6 +1200,7 @@ namespace phi
         case Type::BOOL:                                      \
             return Variant{bool(*this) op bool(value)};       \
         case Type::OBJECT:                                    \
+        case Type::BORROWED_OBJECT:                           \
             return Variant{*_M_obj_P op value};               \
         default:                                              \
             throw CalculateException(type(), value.type());   \
@@ -1199,6 +1234,7 @@ namespace phi
         case Type::REAL:
             return Variant(-_M_real);
         case Type::OBJECT:
+        case Type::BORROWED_OBJECT:
             return Variant{-*_M_obj_P};
         default:
             throw UnaryException(type());
@@ -1212,6 +1248,7 @@ namespace phi
         case Type::INT:
             return Variant(~_M_int);
         case Type::OBJECT:
+        case Type::BORROWED_OBJECT:
             return Variant(~*_M_obj_P);
         default:
             throw UnaryException(type());
@@ -1280,6 +1317,7 @@ namespace phi
                 throw CompareException(type(), value.type());
             return _M_dict_P == value._M_dict_P;
         case Type::OBJECT:
+        case Type::BORROWED_OBJECT:
             return *_M_obj_P == value;
         case Type::FUNCTION:
             if (value.type() != Type::FUNCTION)
@@ -1322,6 +1360,7 @@ namespace phi
                 res._M_dict_P->insert({new Variant{pair.first->deepCopy()}, new Variant{pair.second->deepCopy()}});
             break;
         case Type::OBJECT:
+        case Type::BORROWED_OBJECT:
             res._M_obj_P = new Object{*this->_M_obj_P};
             break;
         case Type::FUNCTION:
@@ -1338,6 +1377,7 @@ namespace phi
             checkThis();
             return _M_func_P->call(args);
         case Type::OBJECT:
+        case Type::BORROWED_OBJECT:
             return _M_obj_P->call(args);
 
         default:
@@ -1352,6 +1392,25 @@ namespace phi
     }
     VariantPacker Variant::access(const array &args)
     {
+        if (args.size() == 1 && args[0]->type() == Type::STRING)
+        {
+            Ref<Object> module_inst;
+            if (Singleton<modules::ModuleDB>::instance()->has(type()))
+            {
+                module_inst = Singleton<modules::ModuleDB>::instance()->get(type());
+                if (module_inst->hasProperty(args[0]->seeAs<string>()))
+                {
+                    VariantPacker result = module_inst->access(args);
+                    if (result->type() == Type::FUNCTION)
+                    {
+                        if (!Ref<Variant>::hasReference(this))
+                            throw CompilerException("The variant has no reference. (Variant::access)");
+                        result->seeAs<Function>().bind(0, this);
+                    }
+                    return result;
+                };
+            }
+        }
         switch (type())
         {
         case Type::ARRAY:
@@ -1360,16 +1419,16 @@ namespace phi
             {
                 return _M_array_P->at((integer)*args[0]);
             }
-            // else if (args.size() >= 2 && args.size() <= 3)
-            // {
-            //     uinteger begin = (integer)args[0];
-            //     uinteger end = (integer)args[1];
-            //     uinteger step = args.size() == 3 ? (integer)args[2] : 1;
-            //     array *res = new array{(uinteger)std::ceil((end - begin) / real(step)), nullptr};
-            //     for (uinteger i = begin; i < end; i += step)
-            //         (*res)[i - begin] = (*_M_array_P)[i];
-            //     return new Variant{std::move(Owner<array>{res})};
-            // }
+            else if (args.size() >= 2 && args.size() <= 3)
+            {
+                uinteger begin = (integer)args[0];
+                uinteger end = (integer)args[1];
+                uinteger step = args.size() == 3 ? (integer)args[2] : 1;
+                array *res = new array{(uinteger)std::ceil((end - begin) / real(step)), nullptr};
+                for (uinteger i = begin; i < end; i += step)
+                    (*res)[i - begin] = (*_M_array_P)[i];
+                return Ref<Variant>{new Variant{std::move(Owner<array>{res})}};
+            }
             else
             {
                 throw ArgumentRangedException(1, 3, args.size(), __FUNCTION__);
@@ -1383,6 +1442,7 @@ namespace phi
                 throw ArgumentException(1, args.size(), __FUNCTION__);
         }
         case Type::OBJECT:
+        case Type::BORROWED_OBJECT:
             return _M_obj_P->access(args);
         case Type::FUNCTION:
             return VariantPacker::variable_t{&_M_func_P->access(args)};

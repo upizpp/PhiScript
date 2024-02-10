@@ -3,10 +3,6 @@
 
 namespace phi
 {
-    map<string, ClassInfo> ClassDB::_M_classes;
-    string ClassDB::_M_bound;
-    string ClassDB::_M_calling;
-
     ClassDB::type ClassDB::call(Object *obj, const string &method_name, const array& args)
     {
         string class_name = obj->getClass();
@@ -44,22 +40,5 @@ namespace phi
     ClassInfo::method &ClassInfo::getMethod(const string &name)
     {
         return methods.find(name) != methods.end() ? methods[name] : parent->getMethod(name);
-    }
-
-    template <>
-    RestParameters ClassDB::ArgumentHandler::handleImpl<RestParameters>(const array &args, size_t index)
-    {
-        array rest_args;
-        size_t rest = args.size() - index;
-        rest_args.resize(rest);
-        for (size_t i = index; i < args.size(); i++)
-            rest_args[i - index] = args[i];
-        return RestParameters{std::move(rest_args)};
-    }
-
-    template <>
-    Ref<Variant> ClassDB::ArgumentHandler::handleImpl<Ref<Variant>>(const array &args, size_t index)
-    {
-        return args[index];
     }
 } // namespace phi

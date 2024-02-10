@@ -738,7 +738,7 @@ namespace phi
 		{
 
 			push({OPCode::Command::ALLOCATE,
-				  Generator::instance()->push(new Variant{((Ref<token::Word>)opt())->value()})});
+				  Generator::instance()->push(new Variant{_M_import_name->value()})});
 			push({OPCode::Command::IMPORT, Generator::instance()->push(new Variant{_M_module_name->value()})});
 			push({OPCode::Command::ASSIGN});
 		}

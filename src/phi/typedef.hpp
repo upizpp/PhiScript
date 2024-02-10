@@ -25,6 +25,8 @@ namespace phi
     using real = long double;
     using char_t = unsigned char;
 
+    using nullptr_t = decltype(nullptr);
+
     template<typename T>
     using Ref = Reference<T>;
 } // namespace phi
