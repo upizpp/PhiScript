@@ -567,7 +567,20 @@ namespace phi
         case Type::INT:
             return std::to_string(_M_int);
         case Type::REAL:
-            return std::to_string(_M_real);
+        {
+            string res = std::to_string(_M_real);
+            integer break_index = 0;
+            size_t index = res.find('.') + 1;
+            for (size_t i = res.length() - 1; i >= index; --i)
+                if (res[i] != '0')
+                {
+                    break_index = i;
+                    break;
+                }
+            if (break_index != res.length() - 1 && break_index != -1)
+                res = res.substr(0, break_index + 1);
+            return res;
+        }
         case Type::BOOL:
             return _M_bool ? "true" : "false";
         case Type::STRING:
@@ -705,7 +718,20 @@ namespace phi
         case Type::INT:
             return std::to_string(_M_int);
         case Type::REAL:
-            return std::to_string(_M_real);
+        {
+            string res = std::to_string(_M_real);
+            integer break_index = 0;
+            size_t index = res.find('.') + 1;
+            for (size_t i = res.length() - 1; i >= index; -i)
+                if (res[i] != '0')
+                {
+                    break_index = i;
+                    break;
+                }
+            if (break_index != res.length() - 1 && break_index != -1)
+                res = res.substr(0, break_index + 1);
+            return res;
+        }
         case Type::BOOL:
             return _M_bool ? "true" : "false";
         case Type::STRING:
@@ -1208,7 +1234,49 @@ namespace phi
     }
 
     CALCULATE_IMPL(add, +)
-    CALCULATE_NUM_IMPL(sub, -)
+    int Variant::operator-(const int &value) const { return integer(*this) - value; }
+    double Variant::operator-(const double &value) const { return real(*this) - value; }
+    integer Variant::operator-(const integer &value) const { return integer(*this) - value; }
+    real Variant::operator-(const real &value) const { return real(*this) - value; }
+    bool Variant::operator-(const bool &value) const { return bool(*this) - value; }
+    Variant Variant::operator-(const Object &value) const
+    {
+        switch (_M_type)
+        {
+        case Type::OBJECT:
+        case Type::BORROWED_OBJECT:
+            return *_M_obj_P - Variant{value};
+        default:
+            throw CalculateException(type(), Type::OBJECT);
+        }
+    }
+    Variant Variant::operator-(const Variant &value) const { return sub(value); }
+    Variant Variant::sub(const Variant &value) const
+    {
+        switch (_M_type)
+        {
+        case Type::REAL:
+        case Type::INT:
+        {
+            Type improved = improve(type(), value.type());
+            Variant v1 = convertTo(improved);
+            Variant v2 = value.convertTo(improved);
+            if (improved == Type::INT)
+                return v1.seeAs<integer>() - v2.seeAs<integer>();
+            else if (improved == Type::REAL)
+                return v1.seeAs<real>() - v2.seeAs<real>();
+            else
+                throw Exception("Unexpected branches.");
+        }
+        case Type::BOOL:
+            return Variant{bool(*this) - bool(value)};
+        case Type::OBJECT:
+        case Type::BORROWED_OBJECT:
+            return Variant{*_M_obj_P - value};
+        default:
+            throw CalculateException(type(), value.type());
+        }
+    }
     CALCULATE_NUM_IMPL(mul, *)
     CALCULATE_NUM_IMPL(div, /)
     CALCULATE_INT_IMPL(mod, %)
@@ -1445,12 +1513,26 @@ namespace phi
         case Type::BORROWED_OBJECT:
             return _M_obj_P->access(args);
         case Type::FUNCTION:
-            return VariantPacker::variable_t{&_M_func_P->access(args)};
+            return _M_func_P->access(args);
 
         default:
             throw RuntimeException("The variant with the type of (%s) is not accessible.", stringifyType(type()).c_str());
         }
     }
+
+    bool Variant::hasProperty(const string &str) const
+    {
+        switch (type())
+        {
+        case Type::OBJECT:
+            return _M_obj_P->hasProperty(str);
+        case Type::FUNCTION:
+            return _M_func_P->hasProperty(str);
+        default:
+            return false;
+        }
+    }
+
     size_t VariantHash::operator()(const Ref<Variant> &value) const
     {
         return value->hash();

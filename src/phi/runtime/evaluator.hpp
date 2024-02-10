@@ -1,6 +1,6 @@
 #pragma once
-#include <phi/runtime/state.hpp>
 #include <phi/object.hpp>
+#include <phi/runtime/state.hpp>
 #include <stack>
 
 namespace phi
@@ -17,14 +17,14 @@ namespace phi
         Ref<Variant> _M_data;
         variable_t _M_source;
         Ref<const string> _M_name;
-        
 
     public:
+        VariantPacker() = default;
         VariantPacker(const VariantPacker &) = default;
         VariantPacker(Ref<Variant> data) : _M_data(data) {}
         VariantPacker(variable_t source) : _M_source(source), _M_data(*source) {}
-        VariantPacker(Ref<Variant> data, const string& name): _M_data(data), _M_name(new string{name}) {}
-        VariantPacker(variable_t source, const string& name) : _M_source(source), _M_data(*source), _M_name(new string(name)) {}
+        VariantPacker(Ref<Variant> data, const string &name) : _M_data(data), _M_name(new string{name}) {}
+        VariantPacker(variable_t source, const string &name) : _M_source(source), _M_data(*source), _M_name(new string(name)) {}
         // for ARGS
         explicit VariantPacker(bool) : _M_data(nullptr), _M_source(nullptr){};
 
@@ -33,6 +33,7 @@ namespace phi
 
         void name(const string &name) { _M_name = new string{name}; }
         const string &name() const { return *_M_name; }
+        string nameSafely() const { return hasName() ? *_M_name : "Unknown"; }
 
         Ref<Variant> pointer() { return _M_data; }
         const Ref<Variant> pointer() const { return _M_data; }
@@ -45,11 +46,14 @@ namespace phi
             *_M_source = variable;
         };
 
-        bool isNull() const { return !_M_data || _M_data && _M_data->isNull(); }
+        bool isNull() const { return _M_data == nullptr; }
 
         void free(Env &);
 
         VariantPacker &assign(const VariantPacker &);
+        VariantPacker &assign(const Ref<Variant> &);
+        VariantPacker &operator=(const VariantPacker &other) { return assign(other); }
+        VariantPacker &operator=(const Ref<Variant> &other) { return assign(other); }
 
         Variant *operator->() { return _M_data.data(); }
         const Variant *operator->() const { return _M_data.data(); }

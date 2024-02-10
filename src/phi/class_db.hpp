@@ -9,6 +9,8 @@
 #include <phi/variant.hpp>
 #include <phi/optional.hpp>
 
+#define PASS(x) x
+#define TO_STRING(x) #x
 #define METHOD_R(name, rename) Singleton<ClassDB>::instance()->registerMethod(#rename, &CLASS::name);
 #define METHOD(name) METHOD_R(name, name)
 #define PROPERTY_OFFSET(class, name) size_t(&((class *)0)->name)
@@ -20,23 +22,23 @@ public:                                            \
 	static void static_register();                 \
 	static string className()                      \
 	{                                              \
-		return #class_name;                        \
+		return TO_STRING(class_name);                        \
 	}                                              \
 	static string parentClassName()                \
 	{                                              \
-		return #parent_class;                      \
+		return TO_STRING(parent_class);                      \
 	}                                              \
 	virtual string getClass() const override       \
 	{                                              \
-		return #class_name;                        \
+		return TO_STRING(class_name);                        \
 	}                                              \
 	virtual string getParentClass() const override \
 	{                                              \
-		return #parent_class;                      \
+		return TO_STRING(parent_class);                      \
 	}                                              \
                                                    \
 private:                                           \
-	ClassRegister<class_name, parent_class> _;
+	ClassRegister<PASS(class_name), PASS(parent_class)> _;
 
 namespace phi
 {

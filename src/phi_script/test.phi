@@ -1,4 +1,18 @@
 import io
-var x = io.get_number("Please enter a number: ", "Please enter again: ")
-print(x)
-return x
+
+fn[io] f(n, a, b, c){
+	if (n == 1)
+		io.print(a, "->", n, "->", b)
+    else{
+		this(n - 1, a, c, b)
+        io.print(a, "->", n, "->", b)
+		this(n - 1, c, b, a)
+	}
+}
+
+var n = io.get_number("输入汉诺塔层数：", "请输入一个有效的数字：")
+var a = io.input("输入杆子A的标号：")
+var b = io.input("输入杆子B的标号：")
+var c = io.input("输入杆子C的标号：")
+
+f(n, a, b, c)

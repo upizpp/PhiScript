@@ -54,13 +54,19 @@ namespace phi
             case '|':
                 return res = (read('|') ? R(Word::get("||")) : R(new Token('|'))), checkEOF(), res;
             case '=':
-                return res = (read('=') ? R(Word::get("==")) : read('>') ? R(Word::get("=>")) : R(new Token('='))), checkEOF(), res;
+                return res = (read('=') ? R(Word::get("==")) : read('>') ? R(Word::get("=>"))
+                                                                         : R(new Token('='))),
+                       checkEOF(), res;
             case '!':
                 return res = (read('=') ? R(Word::get("!=")) : R(new Token('!'))), checkEOF(), res;
             case '<':
-                return res = (read('=') ? R(Word::get("<=")) : read('<') ? R(Word::get("<<")) : R(new Token('<'))), checkEOF(), res;
+                return res = (read('=') ? R(Word::get("<=")) : read('<') ? R(Word::get("<<"))
+                                                                         : R(new Token('<'))),
+                       checkEOF(), res;
             case '>':
-                return res = (read('=') ? R(Word::get(">=")) : read('>') ? R(Word::get(">>")) : R(new Token('>'))), checkEOF(), res;
+                return res = (read('=') ? R(Word::get(">=")) : read('>') ? R(Word::get(">>"))
+                                                                         : R(new Token('>'))),
+                       checkEOF(), res;
             case '+':
                 return res = (read('+') ? R(Word::get("++")) : R(new Token('+'))), checkEOF(), res;
             case '-':
@@ -177,10 +183,7 @@ namespace phi
         } while (_M_peek != terminal);                           \
         uinteger l = line();                                     \
         checkEOF();                                              \
-        string s = os.str();                                     \
-        if (!Word::has(s))                                       \
-            Word::put(s, Tag::STRING);                           \
-        return Word::get(s);                                     \
+        return new Word{os.str(), Tag::STRING};                  \
     }
         STRING_IMPL('"');
         STRING_IMPL('\'');

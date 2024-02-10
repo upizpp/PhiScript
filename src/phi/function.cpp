@@ -10,7 +10,7 @@ namespace phi
         bool empty = _M_binds.empty();
         if (!empty)
         {
-            array* temp = new array{args};
+            array *temp = new array{args};
             for (auto &&bind : _M_binds)
                 temp->insert(temp->begin() + bind.first, bind.second);
             real_args = temp;
@@ -23,20 +23,24 @@ namespace phi
             delete real_args.data();
         return result;
     }
-    
-    Ref<Variant> &Function::access(const array &args)
+
+    VariantPacker Function::access(const array &args)
     {
         if (args.size() == 1 && args[0]->type() == Variant::Type::STRING)
         {
             string str = *args[0];
-            if (_M_properties.find(str) == _M_properties.end())
+            if (!hasProperty(str))
                 _M_properties[str] = new Variant;
-            return _M_properties[str];
+            return {&_M_properties[str], str};
         }
         else
         {
             throw ArgumentException(1, args.size(), __FUNCTION__);
         }
+    }
+    bool Function::hasProperty(const string& str) const
+    {
+        return _M_properties.find(str) != _M_properties.end();
     }
     Function Function::deepCopy()
     {

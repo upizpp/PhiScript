@@ -1,10 +1,10 @@
 #include "opcode.hpp"
 #include <iomanip>
-#include <sstream>
+#include <limits>
+#include <phi/compiler/generator.hpp>
 #include <phi/exception.hpp>
 #include <phi/runtime/state.hpp>
-#include <phi/compiler/generator.hpp>
-#include <limits>
+#include <sstream>
 
 namespace phi
 {
@@ -21,10 +21,10 @@ namespace phi
 		if (_M_op >= Command::LOAD && _M_op <= Command::ALLOCATE)
 			v += "(" + State::lookupGlobal(_M_value)->toString() + ")";
 		else if (_M_op >= Command::IFFALSE && _M_op <= Command::GOTO)
-			v += "(" + std::to_string(Generator::instance()->getState().label(_M_value)) + ")";
+			v += "(" + std::to_string(State::printInstance->label(_M_value)) + ")";
 
 		os << std::left << std::setw(16) << v;
-		
+
 		return os.str();
 	}
 
@@ -32,98 +32,100 @@ namespace phi
 	{
 		switch (cmd)
 		{
-            case Command::ADD:
-				return "ADD";
-            case Command::SUB:
-				return "SUB";
-            case Command::MUL:
-				return "MUL";
-            case Command::DIV:
-				return "DIV";
-            case Command::MOD:
-				return "MOD";
-            case Command::POW:
-				return "POW";
-            case Command::BAND:
-				return "BAND";
-            case Command::BOR:
-				return "BOR";
-            case Command::LSHIFT:
-				return "LSHIFT";
-            case Command::RSHIFT:
-				return "RSHIFT";
-            case Command::BXOR:
-				return "BXOR";
-            case Command::LAND:
-				return "LAND";
-            case Command::LOR:
-				return "LOR";
-            case Command::ASSIGN:
-				return "ASSIGN";
-            case Command::LT:
-				return "LT";
-            case Command::LE:
-				return "LE";
-            case Command::GT:
-				return "GT";
-            case Command::GE:
-				return "GE";
-            case Command::EQ:
-				return "EQ";
-            case Command::NE:
-				return "NE";
-            case Command::NOT:
-				return "NOT";
-            case Command::NEG:
-				return "NEG";
-            case Command::REV:
-				return "REV";
-            case Command::INC:
-				return "INC";
-            case Command::RED:
-				return "RED";
-			case Command::COPY:
-				return "COPY";
-			case Command::DCPY:
-				return "DCPY";
-            case Command::ARGS:
-				return "ARGS";
-            case Command::CALL:
-				return "CALL";
-            case Command::ACCESS:
-				return "ACCESS";
-            case Command::MAKE_ARRAY:
-				return "MAKE_ARRAY";
-            case Command::MAKE_DICT:
-				return "MAKE_DICT";
-            case Command::IMPORT:
-				return "IMPORT";
-            case Command::CLEAR:
-				return "CLEAR";
-            case Command::DEL:
-				return "DEL";
-            case Command::LOAD:
-				return "LOAD";
-            case Command::LOAD_CONST:
-				return "LOAD_CONST";
-            case Command::ALLOCATE:
-				return "ALLOCATE";
-            case Command::PUSH_VAL:
-				return "PUSH_VAL";
-            case Command::POP_TOP:
-				return "POP_TOP";
-            case Command::PUSH_ENV:
-				return "PUSH_ENV";
-            case Command::POP_ENV:
-				return "POP_ENV";
-            case Command::IFFALSE:
-				return "IFFALSE";
-            case Command::IFTRUE:
-				return "IFTRUE";
-            case Command::GOTO:
-				return "GOTO";
-			case Command::RETURN:
-				return "RETURN";
+		case Command::ADD:
+			return "ADD";
+		case Command::SUB:
+			return "SUB";
+		case Command::MUL:
+			return "MUL";
+		case Command::DIV:
+			return "DIV";
+		case Command::MOD:
+			return "MOD";
+		case Command::POW:
+			return "POW";
+		case Command::BAND:
+			return "BAND";
+		case Command::BOR:
+			return "BOR";
+		case Command::BXOR:
+			return "BXOR";
+		case Command::LSHIFT:
+			return "LSHIFT";
+		case Command::RSHIFT:
+			return "RSHIFT";
+		case Command::LAND:
+			return "LAND";
+		case Command::LOR:
+			return "LOR";
+		case Command::ASSIGN:
+			return "ASSIGN";
+		case Command::LT:
+			return "LT";
+		case Command::LE:
+			return "LE";
+		case Command::GT:
+			return "GT";
+		case Command::GE:
+			return "GE";
+		case Command::EQ:
+			return "EQ";
+		case Command::NE:
+			return "NE";
+		case Command::NOT:
+			return "NOT";
+		case Command::NEG:
+			return "NEG";
+		case Command::REV:
+			return "REV";
+		case Command::INC:
+			return "INC";
+		case Command::RED:
+			return "RED";
+		case Command::COPY:
+			return "COPY";
+		case Command::DCPY:
+			return "DCPY";
+		case Command::ARGS:
+			return "ARGS";
+		case Command::CALL:
+			return "CALL";
+		case Command::ACCESS:
+			return "ACCESS";
+		case Command::MAKE_ARRAY:
+			return "MAKE_ARRAY";
+		case Command::MAKE_DICT:
+			return "MAKE_DICT";
+		case Command::IMPORT:
+			return "IMPORT";
+		case Command::CLEAR:
+			return "CLEAR";
+		case Command::DEL:
+			return "DEL";
+		case Command::CLOSURE_BIND:
+			return "CLOSURE_BIND";
+		case Command::LOAD:
+			return "LOAD";
+		case Command::LOAD_CONST:
+			return "LOAD_CONST";
+		case Command::ALLOCATE:
+			return "ALLOCATE";
+		case Command::PUSH_VAL:
+			return "PUSH_VAL";
+		case Command::POP_TOP:
+			return "POP_TOP";
+		case Command::PUSH_ENV:
+			return "PUSH_ENV";
+		case Command::POP_ENV:
+			return "POP_ENV";
+		case Command::IFFALSE:
+			return "IFFALSE";
+		case Command::IFTRUE:
+			return "IFTRUE";
+		case Command::GOTO:
+			return "GOTO";
+		case Command::RETURN:
+			return "RETURN";
 		}
 		return "UNKNOWN";
 	}

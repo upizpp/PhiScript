@@ -35,12 +35,15 @@ namespace phi
         static Borrower<gcp_t> _M_globalPool;
 
     public:
+        static Borrower<const State> printInstance;
+
         inline static Ref<Variant> lookupGlobal(arg_t id)
         {
             return _M_globalPool ? _M_globalPool->find(id)->second : nullptr;
         }
 
     public:
+        void print() const;
         inline void setGCP(Ref<gcp_t> gcp)
         {
             _M_GCP = gcp;

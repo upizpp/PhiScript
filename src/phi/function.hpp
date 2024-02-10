@@ -1,5 +1,6 @@
 #pragma once
 #include <phi/class_db.hpp>
+#include <phi/runtime/evaluator.hpp>
 #include <phi/runtime/state.hpp>
 #include <phi/typedef.hpp>
 
@@ -21,6 +22,9 @@ namespace phi
 
         Ref<Variant> call(const array &args);
         Ref<Variant> operator()(const array &args) { return call(args); }
+
+        State &getState() { return *_M_method; }
+        const State &getState() const { return *_M_method; }
 
         void bind(const Ref<vector<Ref<string>>> &binds) { _M_binds = binds; }
         void setThis(Ref<Variant> new_this) { _M_this = new_this; }
@@ -57,10 +61,10 @@ namespace phi
 
         bool isBuiltin() { return _M_callable; }
 
-        Ref<Variant> &access(const array &);
+        VariantPacker access(const array &);
+        bool hasProperty(const string &) const;
 
         bool operator==(const Function &func) { return this == &func; }
-
         string toString()
         {
             std::ostringstream os;

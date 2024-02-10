@@ -3,6 +3,8 @@
 #include <phi/exception.hpp>
 #include <phi/runtime/builtin/global.hpp>
 #include <phi/runtime/builtin/import.hpp>
+#include <phi/runtime/follower.hpp>
+#include <phi/singleton.hpp>
 
 namespace phi
 {
@@ -23,7 +25,8 @@ namespace phi
     Ref<Variant> Evaluator::eval()
     {
         const vector<OPCode> &codes = _M_state->getCodes();
-        for (_M_stream = 0; _M_stream < codes.size(); ++_M_stream)
+        for (_M_stream = 0; _M_stream < codes.size();
+             ++_M_stream, Singleton<ProgramFollower>::instance()->line(_M_state->line(_M_stream)))
         {
             Ref<Variant> res = handle(codes[_M_stream]);
             if (res)
@@ -133,7 +136,9 @@ namespace phi
                 args.push_back(pop().pointer());
             pop(); // pop the args flag.
             std::reverse(args.begin(), args.end());
+            Singleton<ProgramFollower>::instance()->callBegin({operand.nameSafely(), _M_state->line(_M_stream)});
             push({operand.data().call(args)});
+            Singleton<ProgramFollower>::instance()->callEnd();
             break;
         }
         case OPCode::Command::ACCESS:
@@ -261,12 +266,8 @@ namespace phi
         if (name != "this")
         {
             VariantPacker this_ = load("this", false);
-            if (!this_.isNull())
-            {
-                VariantPacker value = this_->access({new Variant{name}});
-                if (!value->isNull())
-                    return value;
-            }
+            if (!this_.isNull() && this_->hasProperty(name))
+                return this_->access({new Variant{name}});
         }
         if (hasGlobal(name))
             return getGlobal(name);
@@ -309,6 +310,16 @@ namespace phi
             redirectTo(other.pointer());
         else
             *_M_data = other.data();
+        return *this;
+    }
+    VariantPacker &VariantPacker::assign(const Ref<Variant> &other)
+    {
+        if (hasName() && _M_data->type() == Variant::Type::OBJECT)
+            _M_data->seeAs<Object>().set(*_M_name, other);
+        else if (isVariable())
+            redirectTo(other);
+        else
+            *_M_data = *other;
         return *this;
     }
 } // namespace phi

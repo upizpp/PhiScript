@@ -5,6 +5,7 @@
 #include <phi/function.hpp>
 #include <phi/runtime/builtin/global.hpp>
 #include <phi/runtime/evaluator.hpp>
+#include <phi/runtime/follower.hpp>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -24,6 +25,8 @@ int main(int argc, char **args)
         // compiler.parse()->print(), cout << endl;
 
         Function func = compiler.load();
+        
+        // func.getMethod().getState().print();
 
         array parsed_args{(size_t)argc, nullptr};
         Function print{ClassDB::toCallable([](RestParameters what)
@@ -49,10 +52,24 @@ int main(int argc, char **args)
         Generator::clearInstance();
         abort();
     }
+    catch (const RuntimeException &e)
+    {
+        std::cerr << e.className() << " at line " << Singleton<ProgramFollower>::instance()->line() << ":\n";
+        std::cerr << e.what() << endl;
+        std::cerr << "Call Stack:" << endl;
+        auto stack = Singleton<ProgramFollower>::instance()->getCallStack();
+        while (!stack.empty())
+        {
+            std::cerr << "<- " << std::left << std::setw(32) << stack.top().func << " at line " << stack.top().line << endl;
+            stack.pop();
+        }
+        Generator::clearInstance();
+        abort();
+    }
     catch (const Exception &e)
     {
         std::cerr << e.className() << ":\n";
-        std::cerr << e.what() << '\n';
+        std::cerr << e.what() << endl;
         Generator::clearInstance();
         abort();
     }

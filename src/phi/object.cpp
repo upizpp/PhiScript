@@ -45,13 +45,14 @@ namespace phi
         if (args.size() == 1 && args[0]->type() == Variant::Type::STRING)
         {
             string str = *args[0];
+            string name = getClass() + "::" + str;
             if (Singleton<ClassDB>::instance()->hasProperty(this, str))
-                return {new Variant{get(str)}, str};
+                return {new Variant{get(str)}, name};
             else if (Singleton<ClassDB>::instance()->hasMethod(this, str))
-                return Ref<Variant>{new Variant{Function{Singleton<ClassDB>::instance()->toCallable(this, str)}}};
+                return {Ref<Variant>{new Variant{Function{Singleton<ClassDB>::instance()->toCallable(this, str)}}}, name};
             if (_M_properties.find(str) == _M_properties.end())
                 _M_properties[str] = new Variant;
-            return _M_properties[str];
+            return {_M_properties[str], name};
         }
         else
         {

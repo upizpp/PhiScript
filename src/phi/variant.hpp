@@ -252,6 +252,7 @@ namespace phi
 
         Ref<Variant> call(const array &args = {});
         VariantPacker access(const array &args);
+        bool hasProperty(const string&) const;
 
         static bool isConvertible(Type, Type);
     };
@@ -260,6 +261,22 @@ namespace phi
     {
         os << (string)value;
         return os;
+    }
+
+    template <>
+    integer *Variant::get()
+    {
+        return &_M_int;
+    }
+    template <>
+    real *Variant::get()
+    {
+        return &_M_real;
+    }
+    template <>
+    bool *Variant::get()
+    {
+        return &_M_bool;
     }
 
     template <typename T>
