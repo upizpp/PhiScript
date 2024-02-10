@@ -18,16 +18,16 @@ Syntax:
 
 Existing operators:
 
-| The           | operator              | explains        |
-| ------------- | --------------------- | --------------- |
-| -             | monocular subtraction |
-| !             | is the opposite of    |
-| not           | is the inverse of     |
-| ~             | is replaced by        |
-| @             | copy                  |
-| @@            | Deep copy             |
-| The prefix of | ++                    | is increased by |
-| --            | prefix decreases from |
+| The operator | explains                      |
+| ------------ | ----------------------------- |
+| -            | monocular subtraction         |
+| !            | is the opposite of            |
+| not          | is the inverse of             |
+| ~            | is replaced by                |
+| @            | copy                          |
+| @@           | Deep copy                     |
+| ++           | The prefix of is increased by |
+| --           | The prefix of is reduced by   |
 
 ### binary expression
 
@@ -60,7 +60,7 @@ For expression: 'a op b'
 | >     | is greater than                       | a>b                      |
 | >=    | The value is greater than or equal to | a>=b                     |
 | ==    | The value                             | a==b                     |
-| ! =   | not equal to                          | a!=b                    |
+| ! =   | not equal to                          | a!=b                     |
 
 ### block expression
 
@@ -253,28 +253,35 @@ break tag
 ```
 
 #### function statement
+
 Syntax (fn, func, function are function keywords, the following unified fn) :
+
 ```
 fn func_name(arg1, arg2, arg3, ...)
     body
 ```
+
 The value of the fn statement is the function it describes, where func_name can be reduced.
 
 #### function closure
+
 Syntax:
+
 ```
 fn[x1: e1, x2: e2, ...]  (arg1, arg2, arg3, ...)
     body
 ```
+
 The function takes an expression from the capture list (i.e., the contents of '[]') as an internal argument to the function, where $x_n$ is the key and $e_n$ is the value, that is, $x_n$ can be used as a variable directly inside the function.  
-When $x_n$  and $e_n$ are identical in expression and both sides are an identifier, it can be shortened directly to an identifier, and its semantics can also be understood as capturing external specified variables.  
+When $x_n$ and $e_n$ are identical in expression and both sides are an identifier, it can be shortened directly to an identifier, and its semantics can also be understood as capturing external specified variables.  
 For $x_n$ in the capture list, you can also use the 'this' identifier, accessed as follows:' this.xxx '.
 
-
 #### function recursion
+
 Due to implementation issues, the internal environment of a function is isolated from the outside, and to call other functions or use external variables, you need to use a function closure.  
 If you want to call yourself to achieve recursion, use the 'this' identifier.  
 Take the following example:
+
 ```phi
 fn fib(n)
 {
@@ -283,23 +290,33 @@ fn fib(n)
 }
 ```
 
-
 #### lambda expression
+
 A lambda expression is a short form of a function with the following syntax:
+
 ```phi
 (arg1, arg2, arg3, ...)  => body
 ```
+
 When the argument list has only one argument, parentheses can be saved:
+
 ```phi
 arg => body
 ```
+
 When body is a single expression, the value of body is automatically returned as the vertex value of the function, for example:
+
 ```phi
 (a, b) => a + b
 ```
+
 The resulting function is equivalent to the following:
+
 ```
 fn (a, b)
     return a + b
 ```
-````
+
+```
+
+```
