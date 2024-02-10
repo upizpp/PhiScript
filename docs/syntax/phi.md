@@ -312,11 +312,8 @@ When body is a single expression, the value of body is automatically returned as
 
 The resulting function is equivalent to the following:
 
-```
+```phi
 fn (a, b)
     return a + b
 ```
 
-```
-
-```
