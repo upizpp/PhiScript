@@ -25,6 +25,8 @@ class ConfigType:
     auto_run: bool = True
     # the include directories
     includes: list = []
+    # the dependence of the output file.
+    dependence: list = []
 
     def __init__(self, config: dict) -> None:
         self._lock(config)
@@ -40,6 +42,7 @@ class ConfigType:
         self.pick("output")
         self.pick("auto_run")
         self.pick("includes")
+        self.pick("dependence")
         self._unlock()
          
     def get_command(self, unit: str, output: str) -> str:

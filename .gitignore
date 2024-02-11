@@ -1,6 +1,3 @@
-/.build/**/*.*
-/.test_build/**/*.*
-/.debug_build/**/*.*
 /.vscode/**/*.*
 /.vs/**/*.*
 __pycache__

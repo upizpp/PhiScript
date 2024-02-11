@@ -1,10 +1,28 @@
 {
     "release": {
         "compiler": "g++",
-        "cache": ".build",
+        "cache": "cache/.build",
         "scan": "src",
-        "output": "phi",
+        "output": "build/release/phi",
         "extra": "-std=c++11 -O2 -Wno-switch",
+        "dependence": [
+            "build/libgcc_s_seh-1.dll",
+            "build/libstdc++-6.dll"
+        ],
+        "includes": [
+            "src"
+        ],
+        "ignore": [
+            "src/test_main.cpp"
+        ]
+    },
+    "release_static": {
+        "compiler": "g++",
+        "cache": "cache/.build",
+        "scan": "src",
+        "output": "build/release_static/phi",
+        "extra": "-std=c++11 -O2 -Wno-switch",
+        "link_extra": "-static",
         "includes": [
             "src"
         ],
@@ -14,9 +32,9 @@
     },
     "debug": {
         "compiler": "g++",
-        "cache": ".debug_build",
+        "cache": "cache/.debug_build",
         "scan": "src",
-        "output": "debug",
+        "output": "build/debug/phi",
         "extra": "-g -std=c++11 -DDEBUG -Wno-switch",
         "includes": [
             "src"
@@ -28,9 +46,9 @@
     },
     "test": {
         "compiler": "g++",
-        "cache": ".test_build",
+        "cache": "cache/.test_build",
         "scan": "src",
-        "output": "test",
+        "output": "build/test/phi",
         "extra": "-g -std=c++11 -DDEBUG -DTEST -Wno-switch",
         "includes": [
             "src"
@@ -41,9 +59,9 @@
     },
     "test_debug": {
         "compiler": "g++",
-        "cache": ".test_build",
+        "cache": "cache/.test_build",
         "scan": "src",
-        "output": "test",
+        "output": "build/test/phi",
         "auto_run": false,
         "extra": "-g -Isrc -std=c++11 -DDEBUG -DTEST -Wno-switch",
         "ignore": [

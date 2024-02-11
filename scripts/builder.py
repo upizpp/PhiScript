@@ -3,7 +3,7 @@ import os
 import json
 import re
 from hashlib import sha256
-from shutil import rmtree
+from shutil import rmtree, copyfile
 from fnmatch import fnmatch
 
 from config import Config, ConfigType
@@ -12,20 +12,26 @@ from colors import Colors
 global_config: Config = None
 config: ConfigType = None
 file_map: dict = {}
-
 def main() -> None:
-    load_config()
-
     parser = argparse.ArgumentParser(description="Build a project.")
     parser.add_argument("--type", "-t", required=True, choices=list(global_config.types) + ["all"], help="type of project to build.")
     parser.add_argument("--clear", "-c", action="store_true", help="clear the cache")
     args = parser.parse_args()
+    
     global config
-    if args.type != "all":
-        config = global_config.pick(args.type)
-
+    
     if args.clear:
         clear_cache()
+        return
+    
+    if args.type != "all":
+        config = global_config.pick(args.type)
+    else:
+        for type in global_config.types:
+            print(Colors([Colors.BOLD, Colors.WHITE], "开始处理："+ type))
+            args = global_config.data[type]
+            args["type"] = type
+            build_project(args, False)
         return
 
     load_file_map()
@@ -34,15 +40,12 @@ def main() -> None:
     build(units)
 
     save_file_map()
-    
     if config.auto_run:
-        os.system(config.output)
+        os.system(f'"{os.path.abspath(config.output)}"')
 
-def entry(args: dict) -> None:
-    load_config()
-
+def build_project(args: dict, allow_auto_run = True) -> None:
     global config
-    if args["type"] != "all":
+    if args.get("type") != "all":
         config = global_config.pick(args["type"])
 
     if args.get("clear", False):
@@ -56,7 +59,22 @@ def entry(args: dict) -> None:
 
     save_file_map()
     
-    if config.auto_run:
+    if config.auto_run and allow_auto_run:
+        os.system(config.output)
+
+
+def build_with_config(config_: ConfigType, allow_auto_run = True) -> None:
+    global config
+    config = config_
+
+    load_file_map()
+
+    units = scan()
+    build(units)
+
+    save_file_map()
+    
+    if config.auto_run and allow_auto_run:
         os.system(config.output)
 
 def build(units: dict) -> None:
@@ -85,9 +103,24 @@ def build(units: dict) -> None:
     print(Colors([Colors.YELLOW, Colors.YELLOW], "开始链接..."))
     command = f"{config.compiler} {config.link_extra} {' '.join(objects)} -o {config.output} "
     print(Colors([Colors.CYAN, Colors.BOLD], "链接命令："), Colors(Colors.WHITE, command))
+    output_dir = os.path.split(config.output)[0]
+    if output_dir != "" and not os.path.isdir(output_dir):
+        os.makedirs(output_dir)
     if os.system(command) != 0:
         print(Colors([Colors.RED, Colors.BOLD], "链接错误，编译终止。"))
         exit(-1)
+    if len(config.dependence) != 0:
+        for dependence in config.dependence:
+            filename = os.path.split(dependence)[1]
+            output = os.path.join(output_dir, filename)
+            if not os.path.isfile(dependence):
+                print(Colors([Colors.RED, Colors.BOLD], "依赖文件不存在，编译终止。"))
+                exit(-1)
+            if os.path.isfile(output):
+                continue
+            print(Colors(Colors.BOLD, "dependence: "), Colors(Colors.CYAN, dependence))
+            copyfile(dependence, output)
+                
     print(Colors(Colors.WHITE, "-" * 64))
 
 
@@ -115,6 +148,9 @@ def load_file_map() -> None:
 def save_file_map():
     if not os.path.isdir(config.cache):
         os.makedirs(config.cache)
+
+    with open(os.path.join(config.cache, ".gitignore"), "w", encoding="utf-8") as file:
+        file.write("*")
 
     for root, _, files in os.walk(config.scan):
         for filename in files:
@@ -214,5 +250,6 @@ def load_config():
     global_config = Config("./config.json")
 
 
+load_config()
 if __name__ == "__main__":
     main()

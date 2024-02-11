@@ -1,5 +1,6 @@
 from sys import argv
-from build import entry as build
+from scripts.builder import build_project as build
+from scripts.builder import clear_cache
 import re
 
 
@@ -19,6 +20,7 @@ def main():
         case "major":
             major()
 
+    clear_cache()
     build({
         "type": "release"
     })
