@@ -4,7 +4,7 @@
         "cache": ".build",
         "scan": "src",
         "output": "phi",
-        "extra": "-std=c++11 -O3 -Wno-switch",
+        "extra": "-std=c++11 -O2 -Wno-switch",
         "includes": [
             "src"
         ],

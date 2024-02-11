@@ -34,6 +34,30 @@ def main() -> None:
     build(units)
 
     save_file_map()
+    
+    if config.auto_run:
+        os.system(config.output)
+
+def entry(args: dict) -> None:
+    load_config()
+
+    global config
+    if args["type"] != "all":
+        config = global_config.pick(args["type"])
+
+    if args.get("clear", False):
+        clear_cache()
+        return
+
+    load_file_map()
+
+    units = scan()
+    build(units)
+
+    save_file_map()
+    
+    if config.auto_run:
+        os.system(config.output)
 
 def build(units: dict) -> None:
     objects = []
@@ -65,8 +89,6 @@ def build(units: dict) -> None:
         print(Colors([Colors.RED, Colors.BOLD], "链接错误，编译终止。"))
         exit(-1)
     print(Colors(Colors.WHITE, "-" * 64))
-    if config.auto_run:
-        os.system(config.output)
 
 
 def get_command(unit: str, output: str) -> str:

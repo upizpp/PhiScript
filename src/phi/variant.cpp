@@ -595,7 +595,7 @@ namespace phi
                     first = false;
                 else
                     string_os << ", ";
-                string_os << (string)(*item);
+                string_os << (item ? (string)(*item) : "null");
             }
             string_os << ']';
             return string_os.str();

@@ -80,6 +80,23 @@ namespace phi
         bool has(const string &) const;
 
         void free(const string &);
+
+        Environment operator+(const Environment &env)
+        {
+            Environment res = *this;
+            return res += env;
+        }
+
+        Environment& operator+=(const Environment &env)
+        {
+            for (const auto &pair : env._M_locals)
+            {
+                if (has(pair.first))
+                    continue;
+                this->_M_locals.insert(pair);
+            }
+            return *this;
+        }
     };
 
     class Evaluator
@@ -95,7 +112,7 @@ namespace phi
         Evaluator() = default;
         Evaluator(const State &state) : _M_state(&state) {}
 
-        void setup(const State &);
+        Ref<Variant> setup(const State &);
         Ref<Variant> eval();
 
         inline Env &pushEnv()
@@ -103,9 +120,23 @@ namespace phi
             _M_envs.push_back(Env());
             return _M_envs.back();
         }
+        inline Env &pushEnv(const Env &env)
+        {
+            _M_envs.push_back(env);
+            return _M_envs.back();
+        }
         inline void popEnv()
         {
             _M_envs.pop_back();
+        }
+        inline Env lastEnv() const
+        {
+            if (_M_envs.empty())
+                return Env{};
+            Env res;
+            for (auto &&env : _M_envs)
+                res += env;
+            return res;
         }
 
     private:

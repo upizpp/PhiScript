@@ -21,6 +21,7 @@ namespace phi
         Method(const Ref<State> &method, const Ref<vector<Ref<string>>> &&binds) : _M_method(method), _M_binds(binds) {}
 
         Ref<Variant> call(const array &args);
+        std::pair<Ref<Variant>, Environment> call(const Environment& env, const array &args);
         Ref<Variant> operator()(const array &args) { return call(args); }
 
         State &getState() { return *_M_method; }

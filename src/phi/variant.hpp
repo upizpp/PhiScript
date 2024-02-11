@@ -264,17 +264,17 @@ namespace phi
     }
 
     template <>
-    integer *Variant::get()
+    inline integer *Variant::get()
     {
         return &_M_int;
     }
     template <>
-    real *Variant::get()
+    inline real *Variant::get()
     {
         return &_M_real;
     }
     template <>
-    bool *Variant::get()
+    inline bool *Variant::get()
     {
         return &_M_bool;
     }

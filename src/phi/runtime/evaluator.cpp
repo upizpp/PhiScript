@@ -8,12 +8,13 @@
 
 namespace phi
 {
-    void Evaluator::setup(const State &state)
+    Ref<Variant> Evaluator::setup(const State &state)
     {
         _M_state.reset(&state);
+        Ref<Variant> res;
         try
         {
-            eval();
+            res = eval();
         }
         catch (...)
         {
@@ -21,6 +22,7 @@ namespace phi
             throw;
         }
         _M_state.release();
+        return res;
     }
     Ref<Variant> Evaluator::eval()
     {
@@ -29,11 +31,9 @@ namespace phi
              ++_M_stream, Singleton<ProgramFollower>::instance()->line(_M_state->line(_M_stream)))
         {
             Ref<Variant> res = handle(codes[_M_stream]);
+
             if (res)
-            {
-                clear();
                 return res;
-            }
         }
         return Variant::Null;
     }

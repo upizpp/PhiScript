@@ -232,7 +232,7 @@ namespace phi
 		{
 			static std::ostringstream ss;
 			ss.str("");
-			ss << "Unable to open file " << _M_filename << ".\n";
+			ss << "Unable to open the file \"" << _M_filename << "\".\n";
 			ss << Exception::what();
 			return ss.str();
 		}

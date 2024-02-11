@@ -4,6 +4,7 @@
 #include <phi/compiler/optimizer.hpp>
 #include <phi/compiler/parser.hpp>
 #include <phi/compiler/preprocessor.hpp>
+#include <phi/function.hpp>
 
 namespace phi
 {
