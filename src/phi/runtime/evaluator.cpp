@@ -28,7 +28,7 @@ namespace phi
     {
         const vector<OPCode> &codes = _M_state->getCodes();
         for (_M_stream = 0; _M_stream < codes.size();
-             ++_M_stream, Singleton<ProgramFollower>::instance()->line(_M_state->line(_M_stream)))
+             ++_M_stream, Singleton<ProgramFollower>::instance()->position({"", _M_state->line(_M_stream), _M_state->chunk()}))
         {
             Ref<Variant> res = handle(codes[_M_stream]);
 
@@ -136,7 +136,7 @@ namespace phi
                 args.push_back(pop().pointer());
             pop(); // pop the args flag.
             std::reverse(args.begin(), args.end());
-            Singleton<ProgramFollower>::instance()->callBegin({operand.nameSafely(), _M_state->line(_M_stream)});
+            Singleton<ProgramFollower>::instance()->callBegin({operand.nameSafely(), _M_state->line(_M_stream), _M_state->chunk()});
             push({operand.data().call(args)});
             Singleton<ProgramFollower>::instance()->callEnd();
             break;

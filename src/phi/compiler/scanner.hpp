@@ -13,6 +13,7 @@ namespace phi
         virtual void unget() = 0;
         virtual void reset() = 0;
         virtual bool eof() = 0;
+        virtual Ref<string> chunk() = 0;
     };
 
     class StreamScanner : public Scanner
@@ -42,23 +43,35 @@ namespace phi
     {
     private:
         std::istringstream _M_is;
+        Ref<string> _M_chunk;
         virtual std::istream &get_stream() override { return _M_is; }
 
     public:
         explicit StringScanner(const std::string &str) : _M_is(str) {}
+        StringScanner(const std::string &str, const std::string &chunk) : _M_chunk(new string{chunk}) {}
+
+        virtual Ref<string> chunk() override
+        {
+            return _M_chunk;
+        }
     };
 
     class FileScanner : public StreamScanner
     {
     private:
         std::ifstream _M_is;
+        Ref<string> _M_filename;
         virtual std::istream &get_stream() override { return _M_is; }
 
     public:
-        explicit FileScanner(const std::string &path) : _M_is(path)
+        explicit FileScanner(const std::string &path) : _M_is(path), _M_filename(new string{path})
         {
             if (!_M_is.good())
                 throw FileException(path);
+        }
+        virtual Ref<string> chunk() override
+        {
+            return _M_filename;
         }
     };
 } // namespace phi

@@ -25,7 +25,7 @@ int main(int argc, char **args)
         // compiler.parse()->print(), cout << endl;
 
         Function func = compiler.load();
-        
+
         // func.getMethod().getState().print();
 
         array parsed_args{(size_t)argc, nullptr};
@@ -54,24 +54,27 @@ int main(int argc, char **args)
     }
     catch (const RuntimeException &e)
     {
-        std::cerr << e.className() << " at line " << Singleton<ProgramFollower>::instance()->line() << ":\n";
+        std::cerr << e.className() << " " << Singleton<ProgramFollower>::instance()->position() << ":\n";
         std::cerr << e.what() << endl;
-        std::cerr << "Call Stack:" << endl;
         auto stack = Singleton<ProgramFollower>::instance()->getCallStack();
-        while (!stack.empty())
+        if (!stack.empty())
         {
-            std::cerr << "<- " << std::left << std::setw(32) << stack.top().func << " at line " << stack.top().line << endl;
-            stack.pop();
+            std::cerr << "Call Stack:" << endl;
+            while (!stack.empty())
+            {
+                std::cerr << "<- " << stack.top() << endl;
+                stack.pop();
+            }
         }
         Generator::clearInstance();
-        abort();
+        std::abort();
     }
     catch (const Exception &e)
     {
         std::cerr << e.className() << ":\n";
         std::cerr << e.what() << endl;
         Generator::clearInstance();
-        abort();
+        std::abort();
     }
 end:
     puts("FINISH!");

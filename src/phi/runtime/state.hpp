@@ -1,6 +1,7 @@
 #pragma once
 #include <phi/runtime/opcode.hpp>
 #include <phi/variant.hpp>
+#include <sstream>
 #include <stack>
 
 namespace phi
@@ -31,6 +32,7 @@ namespace phi
         CodeSeq _M_codes;
         unordered_map<arg_t, arg_t> _M_labels;
         vector<arg_t> _M_lines;
+        Ref<string> _M_chunk;
 
         static Borrower<gcp_t> _M_globalPool;
 
@@ -44,6 +46,25 @@ namespace phi
 
     public:
         void print() const;
+        inline Ref<string> chunk() const
+        {
+            if (!_M_chunk)
+            {
+                static Ref<string> temp;
+                if (!temp)
+                {
+                    std::ostringstream os;
+                    os << "chunk: " << this;
+                    temp.reset(new string{os.str()});
+                }
+                return temp;
+            }
+            return _M_chunk;
+        }
+        inline void chunk(Ref<string> chunk)
+        {
+            _M_chunk = chunk;
+        }
         inline void setGCP(Ref<gcp_t> gcp)
         {
             _M_GCP = gcp;

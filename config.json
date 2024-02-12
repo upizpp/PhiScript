@@ -30,8 +30,45 @@
             "src/test_main.cpp"
         ]
     },
-    "lib": {
-
+    "dll": {
+        "compiler": "g++",
+        "cache": "cache/.dll_build",
+        "scan": "src",
+        "output": "build/dll/phi.dll",
+        "extra": "-std=c++11 -shared -O2 -Wno-switch",
+        "link_extra": "-shared",
+        "auto_run": false,
+        "includes": [
+            "src"
+        ],
+        "dependence": [
+            "src/phi/phi.h"
+        ],
+        "ignore": [
+            "src/main.cpp",
+            "src/test_main.cpp"
+        ]
+    },
+    "dll_static": {
+        "compiler": "g++",
+        "cache": "cache/.dll_build",
+        "scan": "src",
+        "output": "build/dll/phi.dll",
+        "extra": "-std=c++11 -shared -O2 -Wno-switch",
+        "link_extra": "-shared -static",
+        "auto_run": false,
+        "includes": [
+            "src"
+        ],
+        "dependence": [
+            "build/lib/libgcc_s_seh-1.dll",
+            "build/lib/libstdc++-6.dll",
+            "src/phi/phi.h"
+        ],
+        "ignore": [
+            "src/main.cpp",
+            "src/test_main.cpp"
+        ]
     },
     "debug": {
         "compiler": "g++",

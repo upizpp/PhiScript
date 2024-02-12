@@ -12,6 +12,7 @@ namespace phi
         token::tokens &tokens = preprocessor.getTokens();
         Ref<State> state = gen(parse(tokens));
         optimize(*state, _M_option);
+        state->chunk(_M_scanner->chunk());
         return state;
     }
     Function Compiler::load()

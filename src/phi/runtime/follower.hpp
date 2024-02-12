@@ -8,15 +8,28 @@ namespace phi
     {
         string func;
         uinteger line;
+        Ref<string> chunk;
 
-        ProgramPosition(string f, uinteger l) : func(f), line(l) {}
+        ProgramPosition() = default;
+        ProgramPosition(const ProgramPosition&) = default;
+        ProgramPosition(string f, uinteger l, const Ref<string> &c) : func(f), line(l), chunk(c) {}
+
+        string toString() const
+        {
+            return "in \"" + *chunk + "\" at line " + std::to_string(line) + (!func.empty() ? (":" + func) : "");
+        }
     };
+
+    inline std::ostream& operator<<(std::ostream& os, const ProgramPosition &position)
+    {
+        return os << position.toString();
+    }
 
     class ProgramFollower
     {
     private:
         std::stack<ProgramPosition> _M_calling;
-        uinteger _M_line;
+        ProgramPosition _M_current;
 
     public:
         void callBegin(const ProgramPosition &position)
@@ -27,8 +40,14 @@ namespace phi
         {
             _M_calling.pop();
         }
-        void line(uinteger line) { _M_line = line; }
-        uinteger line() const { return _M_line; }
+        const ProgramPosition& position() const
+        {
+            return _M_current;
+        }
+        void position(const ProgramPosition &position)
+        {
+            _M_current = position;
+        }
         decltype(_M_calling) getCallStack()
         {
             return _M_calling;

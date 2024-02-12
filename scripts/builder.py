@@ -43,10 +43,9 @@ def main() -> None:
     if config.auto_run:
         os.system(f'"{os.path.abspath(config.output)}"')
 
-def build_project(args: dict, allow_auto_run = True) -> None:
+def build_project(args: dict, allow_auto_run = True, save = True) -> None:
     global config
-    if args.get("type") != "all":
-        config = global_config.pick(args["type"])
+    config = global_config.pick(args["type"])
 
     if args.get("clear", False):
         clear_cache()
@@ -57,7 +56,8 @@ def build_project(args: dict, allow_auto_run = True) -> None:
     units = scan()
     build(units)
 
-    save_file_map()
+    if save:
+        save_file_map()
     
     if config.auto_run and allow_auto_run:
         os.system(config.output)
@@ -78,6 +78,8 @@ def build_with_config(config_: ConfigType, allow_auto_run = True) -> None:
         os.system(config.output)
 
 def build(units: dict) -> None:
+    if len(units) == 0:
+        return
     objects = []
     print(Colors([Colors.YELLOW, Colors.BOLD], "开始编译..."))
     print()
@@ -131,8 +133,10 @@ def clear_cache() -> None:
     global config
     if config is None:
         for config in global_config.data:
+            rmtree(global_config.data[config]["output"].split()[0], True)
             rmtree(global_config.data[config]["cache"], True)
     else:
+        rmtree(config.output.split()[0], True)
         rmtree(config.cache, True)
 
 def load_file_map() -> None:
