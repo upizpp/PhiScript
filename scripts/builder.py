@@ -118,9 +118,10 @@ def build(units: dict) -> None:
             if not os.path.isfile(dependence):
                 print(Colors([Colors.RED, Colors.BOLD], "依赖文件不存在，编译终止。"))
                 exit(-1)
-            if os.path.isfile(output):
+            if os.path.isfile(output) and get_id(dependence) == get_id(output):
                 continue
             print(Colors(Colors.BOLD, "dependence: "), Colors(Colors.CYAN, dependence))
+            os.remove(output)
             copyfile(dependence, output)
                 
     print(Colors(Colors.WHITE, "-" * 64))

@@ -8,6 +8,6 @@ namespace phi
         using namespace modules;
         if (Singleton<ModuleDB>::instance()->has(name))
             return new Variant{Singleton<ModuleDB>::instance()->get(name).borrow()};
-        return Variant::Null;
+        throw RuntimeException("No such a module named \"%s\".", name.c_str());
     }
 } // namespace phi
