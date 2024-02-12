@@ -6,8 +6,8 @@
         "output": "build/release/phi",
         "extra": "-std=c++11 -O2 -Wno-switch",
         "dependence": [
-            "build/libgcc_s_seh-1.dll",
-            "build/libstdc++-6.dll"
+            "build/lib/libgcc_s_seh-1.dll",
+            "build/lib/libstdc++-6.dll"
         ],
         "includes": [
             "src"
@@ -29,6 +29,9 @@
         "ignore": [
             "src/test_main.cpp"
         ]
+    },
+    "lib": {
+
     },
     "debug": {
         "compiler": "g++",
