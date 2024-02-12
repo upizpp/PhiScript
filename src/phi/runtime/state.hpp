@@ -25,10 +25,11 @@ namespace phi
     class State
     {
     public:
+        // Global Constant Pool
         using gcp_t = unordered_map<arg_t, Ref<Variant>>;
 
     private:
-        Ref<gcp_t> _M_GCP; // Global Constant Pool
+        Ref<gcp_t> _M_GCP;
         CodeSeq _M_codes;
         unordered_map<arg_t, arg_t> _M_labels;
         vector<arg_t> _M_lines;
@@ -46,6 +47,17 @@ namespace phi
 
     public:
         void print() const;
+        const vector<arg_t> &lines() const
+        {
+            return _M_lines;
+        }
+        void lines(const vector<arg_t> &lines) {
+            _M_lines = lines;
+        }
+        void labels(const unordered_map<arg_t, arg_t>& labels)
+        {
+            _M_labels = labels;
+        }
         inline Ref<string> chunk() const
         {
             if (!_M_chunk)
@@ -70,6 +82,7 @@ namespace phi
             _M_GCP = gcp;
             _M_globalPool = gcp;
         }
+        const gcp_t &getGCP() const { return *_M_GCP; }
         inline void emitLabel(arg_t label) { emitLabel(label, static_cast<phi::arg_t>(_M_codes.size())); }
         inline void emitLabel(arg_t label, arg_t position) { _M_labels.insert({label, position}); }
         inline OPCodePacker push(const OPCode &code, arg_t line)

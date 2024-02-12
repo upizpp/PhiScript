@@ -43,6 +43,7 @@ namespace phi
 		}
 	};
 
+	DefineException(NoImplementException, Exception);
 	DefineException(RuntimeException, Exception);
 	DefineException(ValueException, RuntimeException);
 	DefineException(LoadException, RuntimeException);

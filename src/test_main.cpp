@@ -1,11 +1,9 @@
 #include <iomanip>
 #include <iostream>
-#include <phi/class_db.hpp>
+#include <phi/serialize.hpp>
+#include <phi/deserialize.hpp>
 #include <phi/compiler/compiler.hpp>
-#include <phi/function.hpp>
-#include <phi/runtime/builtin/global.hpp>
-#include <phi/runtime/evaluator.hpp>
-#include <phi/runtime/follower.hpp>
+#include <fstream>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -18,64 +16,11 @@ int main(int argc, char **args)
 #endif
 
     using namespace phi;
-    try
-    {
-        Compiler compiler(new FileScanner("D:\\User File\\Projects\\VSCode\\PhiScript\\src\\phi_script\\test.phi"));
-
-        // compiler.parse()->print(), cout << endl;
-
-        Function func = compiler.load();
-
-        // func.getMethod().getState().print();
-
-        array parsed_args{(size_t)argc, nullptr};
-        Function print{ClassDB::toCallable([](RestParameters what)
-                                           {
-            for (auto &&item : what)
-                cout << (string)*item << " ";
-            cout << endl; })};
-        Function id{ClassDB::toCallable([](Ref<Variant> value)
-                                        { return new Variant{(integer)value.data()}; })};
-        setGlobal("print", new Variant{print});
-        setGlobal("id", new Variant{id});
-        for (uinteger i = 0; i < argc; ++i)
-            parsed_args[i] = new Variant{args[i]};
-
-        Ref<Variant> res = func({new Variant(argc), new Variant(parsed_args)});
-        if (res)
-            cout << "result: " << *res << endl;
-        Generator::clearInstance();
-    }
-    catch (const std::exception &e)
-    {
-        std::cerr << e.what() << '\n';
-        Generator::clearInstance();
-        abort();
-    }
-    catch (const RuntimeException &e)
-    {
-        std::cerr << e.className() << " " << Singleton<ProgramFollower>::instance()->position() << ":\n";
-        std::cerr << e.what() << endl;
-        auto stack = Singleton<ProgramFollower>::instance()->getCallStack();
-        if (!stack.empty())
-        {
-            std::cerr << "Call Stack:" << endl;
-            while (!stack.empty())
-            {
-                std::cerr << "<- " << stack.top() << endl;
-                stack.pop();
-            }
-        }
-        Generator::clearInstance();
-        std::abort();
-    }
-    catch (const Exception &e)
-    {
-        std::cerr << e.className() << ":\n";
-        std::cerr << e.what() << endl;
-        Generator::clearInstance();
-        std::abort();
-    }
-end:
+    Compiler compiler(new FileScanner{"src/phi_script/test.phi"});
+    Function f = compiler.load();
+    auto bytes = Serialize<Function>()(f);
+    std::ofstream fs("./test.phiout", std::ios::binary);
+    vector<byte> bytes_vec{bytes.begin(), bytes.end()};
+    fs.write((char*)bytes_vec.data(), bytes_vec.size());
     puts("FINISH!");
 }

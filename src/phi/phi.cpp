@@ -10,8 +10,8 @@ using namespace phi;
 
 #define CHECK_PHI       \
     if (phi == nullptr) \
-    NOPHI_ERROR
-#define NOPHI_ERROR \
+    NO_PHI_ERROR
+#define NO_PHI_ERROR \
     return new PhiError { .msg = to_c_str("") }
 
 struct Phi

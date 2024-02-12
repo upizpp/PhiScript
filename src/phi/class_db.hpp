@@ -293,6 +293,7 @@ namespace phi
 		type get(Object *obj, const string &property_name);
 		bool hasProperty(const Object *obj, const string &property_name);
 		bool hasMethod(const Object *obj, const string &method_name);
+		Object* create(const string& class_name);
 
 		ClassInfo &parent(const string &class_name) { return *_M_classes[class_name].parent; }
 	};

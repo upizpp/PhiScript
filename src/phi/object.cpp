@@ -8,6 +8,10 @@ namespace phi
 {
 #undef CLASS
 #define CLASS Test
+    Object* Object::makeObj(const string &classname)
+    {
+        return Singleton<ClassDB>::instance()->create(classname);
+    }
     void Object::static_register()
     {
     }

@@ -12,7 +12,6 @@ namespace phi
         Ref<State> _M_method;
         Ref<vector<Ref<string>>> _M_binds;
         // closure
-        Ref<map<Ref<string>, Ref<Variant>>> _M_links;
         Ref<Variant> _M_this;
 
     public:
@@ -21,13 +20,15 @@ namespace phi
         Method(const Ref<State> &method, const Ref<vector<Ref<string>>> &&binds) : _M_method(method), _M_binds(binds) {}
 
         Ref<Variant> call(const array &args);
-        std::pair<Ref<Variant>, Environment> call(const Environment& env, const array &args);
+        std::pair<Ref<Variant>, Environment> call(const Environment &env, const array &args);
         Ref<Variant> operator()(const array &args) { return call(args); }
 
         State &getState() { return *_M_method; }
         const State &getState() const { return *_M_method; }
 
         void bind(const Ref<vector<Ref<string>>> &binds) { _M_binds = binds; }
+        const vector<Ref<string>> &binds() const { return *_M_binds; }
+        bool bound() const { return _M_binds != nullptr; }
         void setThis(Ref<Variant> new_this) { _M_this = new_this; }
     };
 
@@ -51,7 +52,10 @@ namespace phi
         Ref<Variant> call(const array &args = {});
         Ref<Variant> operator()(const array &args = {}) { return call(args); }
 
+        callable_t &getCallable() { return *_M_callable; }
+        const callable_t &getCallable() const { return *_M_callable; }
         Method &getMethod() { return *_M_method; }
+        const Method &getMethod() const { return *_M_method; }
         void setThis(Ref<Variant> new_this)
         {
             if (isBuiltin())
@@ -59,11 +63,15 @@ namespace phi
             getMethod().setThis(new_this);
         }
         void bind(uinteger index, Ref<Variant> what) { _M_binds[index] = what; }
+        void binds(const map<uinteger, Ref<Variant>> &binds) { _M_binds = binds; }
+        const map<uinteger, Ref<Variant>> &binds() const { return _M_binds; }
 
-        bool isBuiltin() { return _M_callable; }
+        bool isBuiltin() const { return _M_callable; }
 
         VariantPacker access(const array &);
         bool hasProperty(const string &) const;
+        void properties(const map<string, Ref<Variant>> &properties) { _M_properties = properties; }
+        const map<string, Ref<Variant>> &properties() const { return _M_properties; }
 
         bool operator==(const Function &func) { return this == &func; }
         string toString()

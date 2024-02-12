@@ -30,7 +30,7 @@ namespace phi
     public:
         static uinteger hashSeed;
 
-        enum class Type : char
+        enum class Type : unsigned char
         {
             NIL,
             INT,
@@ -275,6 +275,22 @@ namespace phi
     }
     template <>
     inline bool *Variant::get()
+    {
+        return &_M_bool;
+    }
+
+    template <>
+    inline const integer *Variant::get() const
+    {
+        return &_M_int;
+    }
+    template <>
+    inline const real *Variant::get() const
+    {
+        return &_M_real;
+    }
+    template <>
+    inline const bool *Variant::get() const
     {
         return &_M_bool;
     }

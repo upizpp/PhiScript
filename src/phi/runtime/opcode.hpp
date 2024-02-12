@@ -77,7 +77,9 @@ namespace phi
     public:
         OPCode(Command opt, arg_t value) : _M_op(opt), _M_value(value) {}
         OPCode(Command opt) : _M_op(opt), _M_value(0) {}
+        OPCode() = default;
         OPCode(const OPCode&) = default;
+        OPCode(OPCode&&) = default;
 
         OPCode& operator=(const OPCode&) = default;
 

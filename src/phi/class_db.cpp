@@ -25,6 +25,10 @@ namespace phi
     {
         return _M_classes[obj->getClass()].hasMethod(method_name);
     }
+    Object *ClassDB::create(const string &class_name)
+    {
+        return _M_classes[class_name].initializer();
+    }
     ClassInfo::type ClassInfo::call(Object *obj, const string &method_name, const array &args)
     {
         return getMethod(method_name)(obj, args);

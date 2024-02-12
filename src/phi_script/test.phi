@@ -1,1 +1,2 @@
-import x
+import io
+io.print("Hello World!")

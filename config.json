@@ -35,8 +35,8 @@
         "cache": "cache/.dll_build",
         "scan": "src",
         "output": "build/dll/phi.dll",
-        "extra": "-std=c++11 -shared -O2 -Wno-switch",
-        "link_extra": "-shared",
+        "extra": "-std=c++11 -O2 -Wno-switch",
+        "link_extra": "-shared -fPIC",
         "auto_run": false,
         "includes": [
             "src"
