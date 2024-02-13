@@ -78,7 +78,7 @@ PhiError *phiDoFile(Phi *phi, const char *filename)
     if (Pout::isPout(filename))
     {
         phi->env = std::move(Pout::load(filename).getMethod().call(phi->env, {}).second);
-        return;
+        return nullptr;
     }
     try
     {

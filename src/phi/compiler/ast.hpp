@@ -2,6 +2,7 @@
 #include <phi/compiler/token.hpp>
 #include <phi/runtime/state.hpp>
 #include <phi/typedef.hpp>
+#include <limits>
 
 namespace phi
 {
@@ -151,7 +152,7 @@ namespace phi
 			{
 				if (!_M_eval_map)
 					_M_eval_map.reset(new map<Eval *, arg_t>);
-				_M_eval_map->insert({eval, ULONG_LONG_MAX});
+				_M_eval_map->insert({eval, std::numeric_limits<arg_t>::max()});
 			}
 			arg_t getLabel(Eval *eval) const
 			{

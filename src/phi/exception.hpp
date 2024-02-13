@@ -24,6 +24,10 @@ namespace phi
 	public:
 		Exception() = default;
 		Exception(const string &what) : _M_what(what) {}
+		Exception(const char *what)
+		{
+			_M_what.assign(what);
+		}
 		template <typename... Args>
 		Exception(const char *format, Args &&...args)
 		{

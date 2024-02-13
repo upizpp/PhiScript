@@ -6,10 +6,18 @@
 #   define EXTERN_C
 #endif
 
-#ifdef BUILD_DLL
-#	define PHIAPI EXTERN_C __declspec(dllexport)
+#ifdef _WIN32
+#   define EXPORT_API __declspec(dllexport)
+#   define IMPORT_API __declspec(dllimport)
 #else
-#	define PHIAPI EXTERN_C __declspec(dllimport)
+#   define EXPORT_API
+#   define IMPORT_API
+#endif
+
+#ifdef BUILD_DLL
+#	define PHIAPI EXTERN_C EXPORT_API
+#else
+#	define PHIAPI EXTERN_C IMPORT_API
 #endif
 
 struct Phi;

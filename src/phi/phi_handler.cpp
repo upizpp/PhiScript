@@ -7,6 +7,12 @@
 #include <phi/version>
 #include <phi/pout.hpp>
 
+#ifdef _WIN32
+#   define CLEAR "cls"
+#else
+#   define CLEAR "clear"
+#endif
+
 namespace phi
 {
     void handleInput(const string &code)
@@ -17,7 +23,7 @@ namespace phi
             exit(EXIT_SUCCESS);
         if (code == "clear")
         {
-            system("cls");
+            system(CLEAR);
             return;
         }
         static Environment env;
