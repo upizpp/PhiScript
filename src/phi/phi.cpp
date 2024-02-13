@@ -3,7 +3,8 @@
 #include <phi/compiler/compiler.hpp>
 #include <phi/exception.hpp>
 #include <phi/runtime/follower.hpp>
-#include <version>
+#include <phi/version>
+#include <phi/pout.hpp>
 #include <cstring>
 
 using namespace phi;
@@ -19,9 +20,9 @@ struct Phi
     Environment env;
 };
 
-char* to_c_str(const string& str)
+char *to_c_str(const string &str)
 {
-    char* res = new char[str.length() + 1];
+    char *res = new char[str.length() + 1];
     std::strcpy(res, str.c_str());
     return res;
 }
@@ -74,6 +75,11 @@ PhiError *phiDoStringWithName(Phi *phi, const char *chunk, const char *chunk_nam
 PhiError *phiDoFile(Phi *phi, const char *filename)
 {
     CHECK_PHI;
+    if (Pout::isPout(filename))
+    {
+        Pout::load(filename).call();
+        return;
+    }
     try
     {
         Compiler compiler{new FileScanner{filename}};

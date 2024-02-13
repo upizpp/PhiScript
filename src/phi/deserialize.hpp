@@ -10,12 +10,12 @@
 namespace phi
 {
     template <typename T = Variant>
-    T deserialize(const list<byte> &bytes);
+    T deserialize(const vector<byte> &bytes);
 
     template <typename T = Variant, typename Enabled = void>
     struct Deserialize
     {
-        T operator()(list<byte>::const_iterator &begin) const
+        T operator()(vector<byte>::const_iterator &begin) const
         {
             throw NoImplementException(__FUNCTION__);
         }
@@ -24,7 +24,7 @@ namespace phi
     template <typename T>
     struct Deserialize<T, typename std::enable_if<std::is_trivial<T>::value>::type>
     {
-        T operator()(list<byte>::const_iterator &begin) const
+        T operator()(vector<byte>::const_iterator &begin) const
         {
             T result;
             for (uinteger i = 0; i < sizeof(T); ++i)
@@ -35,7 +35,7 @@ namespace phi
     template <typename T>
     struct Deserialize<Ref<T>>
     {
-        Ref<T> operator()(list<byte>::const_iterator &begin) const
+        Ref<T> operator()(vector<byte>::const_iterator &begin) const
         {
             return new T{Deserialize<T>()(begin)};
         }
@@ -44,7 +44,7 @@ namespace phi
     template <>
     struct Deserialize<string>
     {
-        string operator()(list<byte>::const_iterator &begin) const
+        string operator()(vector<byte>::const_iterator &begin) const
         {
             uinteger length = Deserialize<uinteger>()(begin);
             string result;
@@ -58,7 +58,7 @@ namespace phi
     template <typename T>
     struct Deserialize<vector<T>>
     {
-        vector<T> operator()(list<byte>::const_iterator &begin) const
+        vector<T> operator()(vector<byte>::const_iterator &begin) const
         {
             uinteger size = Deserialize<uinteger>()(begin);
             vector<T> result;
@@ -72,7 +72,7 @@ namespace phi
     template <typename K, typename V, typename C, typename A>
     struct Deserialize<map<K, V, C, A>>
     {
-        map<K, V, C, A> operator()(list<byte>::const_iterator &begin) const
+        map<K, V, C, A> operator()(vector<byte>::const_iterator &begin) const
         {
             uinteger size = Deserialize<uinteger>()(begin);
             map<K, V, C, A> result;
@@ -89,7 +89,7 @@ namespace phi
     template <typename K, typename V, typename H, typename P, typename A>
     struct Deserialize<unordered_map<K, V, H, P, A>>
     {
-        unordered_map<K, V, H, P, A> operator()(list<byte>::const_iterator &begin) const
+        unordered_map<K, V, H, P, A> operator()(vector<byte>::const_iterator &begin) const
         {
             uinteger size = Deserialize<uinteger>()(begin);
             unordered_map<K, V, H, P, A> result;
@@ -106,7 +106,7 @@ namespace phi
     template <>
     struct Deserialize<Ref<Object>>
     {
-        Ref<Object> operator()(list<byte>::const_iterator &begin) const
+        Ref<Object> operator()(vector<byte>::const_iterator &begin) const
         {
             string className = Deserialize<string>()(begin);
             map<string, Ref<Variant>> properties = Deserialize<map<string, Ref<Variant>>>()(begin);
@@ -119,7 +119,7 @@ namespace phi
     template <>
     struct Deserialize<Object>
     {
-        Object operator()(list<byte>::const_iterator &begin) const
+        Object operator()(vector<byte>::const_iterator &begin) const
         {
             return Object{*Deserialize<Ref<Object>>()(begin)};
         }
@@ -128,7 +128,7 @@ namespace phi
     template <>
     struct Deserialize<State>
     {
-        State operator()(list<byte>::const_iterator &begin) const
+        State operator()(vector<byte>::const_iterator &begin) const
         {
             Ref<State::gcp_t> gcp = Deserialize<Ref<State::gcp_t>>()(begin);
             CodeSeq codes = Deserialize<CodeSeq>()(begin);
@@ -148,7 +148,7 @@ namespace phi
     template <>
     struct Deserialize<Method>
     {
-        Method operator()(list<byte>::const_iterator &begin) const
+        Method operator()(vector<byte>::const_iterator &begin) const
         {
             State state = Deserialize<State>()(begin);
             vector<Ref<string>> binds = Deserialize<vector<Ref<string>>>()(begin);
@@ -159,7 +159,7 @@ namespace phi
     template <>
     struct Deserialize<Function>
     {
-        Function operator()(list<byte>::const_iterator &begin) const
+        Function operator()(vector<byte>::const_iterator &begin) const
         {
             byte flag = *begin++;
             // builtin
@@ -182,7 +182,7 @@ namespace phi
     template <>
     struct Deserialize<Variant>
     {
-        Variant operator()(list<byte>::const_iterator &begin) const
+        Variant operator()(vector<byte>::const_iterator &begin) const
         {
             Variant::Type type = (Variant::Type)*begin++;
             switch (type)
@@ -231,7 +231,7 @@ namespace phi
     };
 
     template <typename T>
-    T deserialize(const list<byte> &bytes)
+    T deserialize(const vector<byte> &bytes)
     {
         auto temp = bytes.cbegin();
         return Deserialize<T>()(temp);

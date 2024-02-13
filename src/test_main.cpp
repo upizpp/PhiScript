@@ -15,6 +15,7 @@ int main(int argc, char **args)
     SetConsoleOutputCP(CP_UTF8);
 #endif
 
+    
     using namespace phi;
     Compiler compiler(new FileScanner{"src/phi_script/test.phi"});
     Function f = compiler.load();

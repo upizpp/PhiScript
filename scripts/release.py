@@ -41,11 +41,11 @@ def increase(version: str, level: int):
     return '.'.join(split_version)
 
 def get_current():
-    with open("./src/version", "r", encoding="utf-8") as file:
+    with open("./src/phi/version", "r", encoding="utf-8") as file:
         return re.findall("\"(.*)\"", file.read())[0]
 
 def save(version: str):
-    with open("./src/version", "w", encoding="utf-8") as file:
+    with open("./src/phi/version", "w", encoding="utf-8") as file:
         file.write("#define PHI_VERSION \"" + version + "\"")
 
 if __name__ == "__main__":

@@ -52,12 +52,14 @@ namespace phi
         void addOption(const string &name, Type type);
         bool hasOption(const string &name) const;
 
+        bool hasNoExtraArgs() const { return _M_values.empty(); }
+
         void show() const;
         void parse(int argc, char *args[]);
 
         bool has(const string &name) const { return _M_values.find(name) != _M_values.end(); }
         const string &get(const string &name) { return _M_values[name]; }
-        const vector<string>& getArgs() const { return _M_arguments; };
+        const vector<string> &getArgs() const { return _M_arguments; };
 
         void name(const string &name) { _M_name = name; }
         string &name() { return _M_name; }

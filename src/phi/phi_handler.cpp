@@ -2,7 +2,10 @@
 #include <iomanip>
 #include <phi/compiler/compiler.hpp>
 #include <phi/runtime/follower.hpp>
-#include <version>
+#include <phi/serialize.hpp>
+#include <fstream>
+#include <phi/version>
+#include <phi/pout.hpp>
 
 namespace phi
 {
@@ -49,8 +52,18 @@ namespace phi
     }
     Ref<Variant> doFile(const string &path, const array &args)
     {
+        if (Pout::isPout(path))
+            return Pout::load(path).call(args);
         Compiler compiler{new FileScanner{path}};
         return compiler.load().call(args);
+    }
+    void compileTo(Scanner *scanner, const string &dest)
+    {
+        Compiler compiler{scanner};
+        Function func = compiler.load();
+        vector<byte> bytes = Pout::dump(func);
+        std::ofstream os(dest, std::ios::binary);
+        os.write((const char*)bytes.data(), bytes.size());
     }
     void tryRun(const std::function<void()> what)
     {
