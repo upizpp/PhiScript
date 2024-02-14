@@ -69,7 +69,7 @@ namespace phi
         bool isBuiltin() const { return _M_callable; }
 
         VariantPacker access(const array &);
-		void setProperty(const string &name, Ref<Variant> &value);
+		void setProperty(const string &name, Ref<Variant> value)
 		{
 			_M_properties[name] = value;
 		}

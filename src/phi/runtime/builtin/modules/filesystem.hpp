@@ -9,7 +9,6 @@
     FIELD_METHOD(is_dir, bool, const string&)\
     FIELD_METHOD(is_file, bool, const string&)\
     FIELD_METHOD(type, integer, const string&)\
-    FIELD_METHOD(exists, bool, const string&)\
-	FIELD_METHOD(relative_to, string, const string &relative_path, const string &source)
+    FIELD_METHOD(exists, bool, const string&)
 
 #include "reflect_header"

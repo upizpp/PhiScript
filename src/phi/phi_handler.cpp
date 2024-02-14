@@ -62,7 +62,7 @@ namespace phi
             return Pout::load(path).call(args);
         Compiler compiler{new FileScanner{path}};
         Function func = compiler.load();
-		func.setProperty("__name__", name);
+		func.setProperty("__name__", new Variant{name});
 		return func.call(args);
     }
     void compileTo(Scanner *scanner, const string &dest)
