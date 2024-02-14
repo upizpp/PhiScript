@@ -118,7 +118,7 @@ def build(units: dict) -> None:
             filename = os.path.split(dependence)[1]
             output = os.path.join(output_dir, filename)
             if not os.path.isfile(dependence):
-                print(Colors([Colors.RED, Colors.BOLD], "依赖文件不存在，编译终止。"))
+                print(Colors([Colors.RED, Colors.BOLD], f"依赖文件不存在，编译终止。{dependence}"))
                 exit(-1)
             if os.path.isfile(output) and get_id(dependence) == get_id(output):
                 continue
