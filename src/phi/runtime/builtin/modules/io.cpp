@@ -14,7 +14,7 @@ namespace phi
             cout << endl;
         }
 
-        string CLASS_NAME::input(const string& msg)
+        string CLASS_NAME::input(const string &msg)
         {
             cout << msg;
             string tmp;
@@ -22,14 +22,20 @@ namespace phi
             return tmp;
         }
 
-        real CLASS_NAME::get_number(const string& msg, OptionalRef<const string> error_msg)
+        real CLASS_NAME::get_number(const string &msg, OptionalRef<const string> error_msg, OptionalRef<const array> whitelist)
         {
             OPT_DEFAULT(error_msg, "Invalid number, please enter again: ");
+            OPT_DEFAULT(whitelist, {});
 
             string tmp = input(msg);
             while (!StringLib::instance->is_number(tmp))
+            {
                 tmp = input(*error_msg);
-            return std::stold(tmp);
+                for (auto &&ignore : *whitelist)
+                    if (*ignore == tmp)
+                        goto exit;
+            }
+            exit: return std::stold(tmp);
         }
     } // namespace modules
 

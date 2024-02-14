@@ -1,5 +1,5 @@
 /.vscode/**/*.*
 /.vs/**/*.*
-__pycache__
+*.pyc
 CPP.HINT
 CppProperties.json

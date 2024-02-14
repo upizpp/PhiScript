@@ -23,6 +23,7 @@ namespace phi
 			WORD("break", BREAK),
 			WORD("continue", CONTINUE),
 			WORD("import", IMPORT),
+			WORD("export", EXPORT),
 			WORD("as", AS),
 			WORD("var", VAR),
 			WORD("eval", EVAL),
@@ -161,6 +162,8 @@ namespace phi
 				return "false";
 			case Tag::IMPORT:
 				return "import";
+			case Tag::EXPORT:
+				return "export";
 			case Tag::RETURN:
 				return "return";
 			case Tag::FN:

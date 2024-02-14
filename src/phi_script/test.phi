@@ -1,2 +1,1 @@
-import io
-io.print("Hello World!")
+import "module_test.phi"

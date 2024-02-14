@@ -204,7 +204,7 @@ namespace phi
 
 		template <size_t... I, typename F>
 		struct class_call_impl<index_seq<I...>, F,
-							   typename std::enable_if<std::is_same<typename function_traits<F>::return_type, void>::value>::type>
+							   typename std::enable_if_t<std::is_same_v<typename function_traits<F>::return_type, void>>>
 		{
 			static type call(F f, Object *obj, const array &args)
 			{
@@ -218,7 +218,7 @@ namespace phi
 
 		template <size_t... I, typename F>
 		struct class_call_impl<index_seq<I...>, F,
-							   typename std::enable_if<!std::is_same<typename function_traits<F>::return_type, void>::value>::type>
+							   typename std::enable_if_t<!std::is_same_v<typename function_traits<F>::return_type, void>>>
 		{
 			static type call(F f, Object *obj, const array &args)
 			{
@@ -236,7 +236,7 @@ namespace phi
 
 		template <size_t... I, typename F>
 		struct call_impl<index_seq<I...>, F,
-						 typename std::enable_if<std::is_same<typename function_traits<F>::return_type, void>::value>::type>
+						 typename std::enable_if_t<std::is_same_v<typename function_traits<F>::return_type, void>>>
 		{
 			static Ref<Variant> call(F f, const array &args)
 			{
@@ -249,7 +249,7 @@ namespace phi
 
 		template <size_t... I, typename F>
 		struct call_impl<index_seq<I...>, F,
-						 typename std::enable_if<!std::is_same<typename function_traits<F>::return_type, void>::value>::type>
+						 typename std::enable_if_t<!std::is_same_v<typename function_traits<F>::return_type, void>>>
 		{
 			static Ref<Variant> call(F f, const array &args)
 			{

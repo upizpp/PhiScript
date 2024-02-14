@@ -42,6 +42,7 @@ namespace phi
             CONTINUE,
             TRUE,
             FALSE,
+            EXPORT,
             IMPORT,
             AS,
             EVAL,

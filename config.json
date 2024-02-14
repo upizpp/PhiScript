@@ -4,7 +4,7 @@
         "cache": "cache/.build",
         "scan": "src",
         "output": "build/release/phi",
-        "extra": "-std=c++11 -O2 -Wno-switch",
+        "extra": "-std=c++17 -O2 -Wno-switch",
         "dependence": [
             "build/lib/libgcc_s_seh-1.dll",
             "build/lib/libstdc++-6.dll"
@@ -21,7 +21,7 @@
         "cache": "cache/.build",
         "scan": "src",
         "output": "build/release_static/phi",
-        "extra": "-std=c++11 -O2 -Wno-switch",
+        "extra": "-std=c++17 -O2 -Wno-switch",
         "link_extra": "-static",
         "includes": [
             "src"
@@ -35,7 +35,7 @@
         "cache": "cache/.dll_build",
         "scan": "src",
         "output": "build/dll/phi.dll",
-        "extra": "-std=c++11 -O2 -Wno-switch",
+        "extra": "-std=c++17 -O2 -Wno-switch",
         "link_extra": "-shared -fPIC",
         "auto_run": false,
         "includes": [
@@ -54,7 +54,7 @@
         "cache": "cache/.dll_build",
         "scan": "src",
         "output": "build/dll/phi.dll",
-        "extra": "-std=c++11 -shared -O2 -Wno-switch",
+        "extra": "-std=c++17 -shared -O2 -Wno-switch",
         "link_extra": "-shared -static",
         "auto_run": false,
         "includes": [
@@ -75,7 +75,7 @@
         "cache": "cache/.debug_build",
         "scan": "src",
         "output": "build/debug/phi",
-        "extra": "-g -std=c++11 -DDEBUG -Wno-switch",
+        "extra": "-g -std=c++17 -DDEBUG -Wno-switch",
         "includes": [
             "src"
         ],
@@ -89,7 +89,7 @@
         "cache": "cache/.test_build",
         "scan": "src",
         "output": "build/test/phi",
-        "extra": "-g -std=c++11 -DDEBUG -DTEST -Wno-switch",
+        "extra": "-g -std=c++17 -DDEBUG -DTEST -Wno-switch",
         "includes": [
             "src"
         ],
@@ -103,7 +103,7 @@
         "scan": "src",
         "output": "build/test/phi",
         "auto_run": false,
-        "extra": "-g -Isrc -std=c++11 -DDEBUG -DTEST -Wno-switch",
+        "extra": "-g -Isrc -std=c++17 -DDEBUG -DTEST -Wno-switch",
         "ignore": [
             "src/main.cpp"
         ]

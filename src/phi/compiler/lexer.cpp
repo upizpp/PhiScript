@@ -131,59 +131,61 @@ namespace phi
             return Word::get(s);
         }
 
-#define STRING_IMPL(terminal)                                    \
-    if (_M_peek == terminal)                                     \
-    {                                                            \
-        os.str("");                                              \
-        read();                                                  \
-        do                                                       \
-        {                                                        \
-            char_t ch = _M_peek;                                 \
-            if (_M_peek == '\\')                                 \
-            {                                                    \
-                read();                                          \
-                switch (_M_peek)                                 \
-                {                                                \
-                case 'n':                                        \
-                    ch = '\n';                                   \
-                    break;                                       \
-                case 't':                                        \
-                    ch = '\t';                                   \
-                    break;                                       \
-                case 'r':                                        \
-                    ch = '\r';                                   \
-                    break;                                       \
-                case 'b':                                        \
-                    ch = '\b';                                   \
-                    break;                                       \
-                case 'f':                                        \
-                    ch = '\f';                                   \
-                    break;                                       \
-                case 'a':                                        \
-                    ch = '\a';                                   \
-                    break;                                       \
-                case '\\':                                       \
-                    ch = '\\';                                   \
-                    break;                                       \
-                case '0':                                        \
-                    ch = '\0';                                   \
-                    break;                                       \
-                case '\'':                                       \
-                    ch = '\'';                                   \
-                    break;                                       \
-                case '"':                                        \
-                    ch = '"';                                    \
-                    break;                                       \
-                default:                                         \
-                    throw SyntaxException("Bad escape symbol."); \
-                }                                                \
-            }                                                    \
-            os << ch;                                            \
-            read();                                              \
-        } while (_M_peek != terminal);                           \
-        uinteger l = line();                                     \
-        checkEOF();                                              \
-        return new Word{os.str(), Tag::STRING};                  \
+#define STRING_IMPL(terminal)                                          \
+    if (_M_peek == terminal)                                           \
+    {                                                                  \
+        os.str("");                                                    \
+        read();                                                        \
+        do                                                             \
+        {                                                              \
+            char_t ch = _M_peek;                                       \
+            if (eof())                                                 \
+                throw SyntaxException("Unexpected EOF. (Bad String)"); \
+            if (_M_peek == '\\')                                       \
+            {                                                          \
+                read();                                                \
+                switch (_M_peek)                                       \
+                {                                                      \
+                case 'n':                                              \
+                    ch = '\n';                                         \
+                    break;                                             \
+                case 't':                                              \
+                    ch = '\t';                                         \
+                    break;                                             \
+                case 'r':                                              \
+                    ch = '\r';                                         \
+                    break;                                             \
+                case 'b':                                              \
+                    ch = '\b';                                         \
+                    break;                                             \
+                case 'f':                                              \
+                    ch = '\f';                                         \
+                    break;                                             \
+                case 'a':                                              \
+                    ch = '\a';                                         \
+                    break;                                             \
+                case '\\':                                             \
+                    ch = '\\';                                         \
+                    break;                                             \
+                case '0':                                              \
+                    ch = '\0';                                         \
+                    break;                                             \
+                case '\'':                                             \
+                    ch = '\'';                                         \
+                    break;                                             \
+                case '"':                                              \
+                    ch = '"';                                          \
+                    break;                                             \
+                default:                                               \
+                    throw SyntaxException("Bad escape symbol.");       \
+                }                                                      \
+            }                                                          \
+            os << ch;                                                  \
+            read();                                                    \
+        } while (_M_peek != terminal);                                 \
+        uinteger l = line();                                           \
+        checkEOF();                                                    \
+        return new Word{os.str(), Tag::STRING};                        \
     }
         STRING_IMPL('"');
         STRING_IMPL('\'');
