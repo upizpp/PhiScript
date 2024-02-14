@@ -57,13 +57,19 @@ namespace phi
         {
         private:
             Tag _M_tag;
-            integer _M_line;
+            uinteger _M_line;
+            Ref<string> _M_chunk;
 
         public:
-            Token() : _M_tag((Tag)0) {}
+            Token() : _M_tag((Tag)0), _M_line(0) {}
+            Token(const Token&) = default;
             explicit Token(tag_t tag) : _M_tag((Tag)tag) {}
 
-            tag_t tag() const { return _M_tag; }
+            Tag tag() const { return _M_tag; }
+            Token* tag(const tag_t& tag) {
+                _M_tag = (Tag)tag;
+                return this;
+            }
 
             virtual operator string() const
             {
@@ -81,12 +87,18 @@ namespace phi
             const Token *reidentify() const;
             Token *reidentify();
 
-            Token *line(integer l)
+            Token *line(uinteger l)
             {
                 _M_line = l;
                 return this;
             }
-            integer line() const { return _M_line; }
+            uinteger line() const { return _M_line; }
+            Token *chunk(Ref<string> c)
+            {
+                _M_chunk = c;
+                return this;
+            }
+            Ref<string> chunk() const { return _M_chunk; }
 
             bool operator==(const Token &token) const;
 

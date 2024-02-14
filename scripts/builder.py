@@ -17,6 +17,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Build a project.")
     parser.add_argument("--type", "-t", required=True, choices=list(global_config.types) + ["all"], help="type of project to build.")
     parser.add_argument("--clear", "-c", action="store_true", help="clear the cache")
+    parser.add_argument("--run", "-r", action="store_true", help="run the project")
     args = parser.parse_args()
     
     global config
@@ -33,6 +34,10 @@ def main() -> None:
             args = global_config.data[type]
             args["type"] = type
             build_project(args, False)
+        return
+
+    if args.run and (os.path.isfile(os.path.abspath(config.output)) or os.path.isfile(os.path.abspath(config.output) + ".exe")):
+        os.system(f'"{os.path.abspath(config.output)}"')
         return
 
     load_file_map()
@@ -78,8 +83,9 @@ def build_with_config(config_: ConfigType, allow_auto_run = True) -> None:
     if config.auto_run and allow_auto_run:
         os.system(config.output)
 
+
 def build(units: dict) -> None:
-    if len(units) == 0:
+    if not any(units.values()):
         return
     objects = []
     print(Colors([Colors.YELLOW, Colors.BOLD], "开始编译..."))
@@ -201,23 +207,21 @@ def get_associated_files(unit: str) -> list:
         pattern = config.pattern
         for match in re.finditer(pattern, file.read(), re.MULTILINE):
             filenames = match.groups()
-            filename = ""
-            for fn in filenames:
-                if not fn is None:
-                    filename = fn
+            filenames = filter(lambda x: x is not None, filenames)
+            filename = list(filenames)[-1]
             included_path = None
             try:
-                if os.path.isabs(filename):
-                    included_path = os.path.join("src", filename)
-                else:
-                    included_path = relative_path(unit, filename)
-                    it = iter(config.includes)
-                    while not os.path.isfile(included_path):
-                        try:
-                            included_path = relative_path(next(it), filename)
-                        except StopIteration:
-                            break
-
+                included_path = relative_path(unit, filename)
+                it = iter(config.includes)
+                while not os.path.isfile(included_path):
+                    try:
+                        include = next(it)
+                        included_path = relative_path(include, filename)
+                        if not included_path.startswith(include):
+                            included_path = os.path.join(include, included_path)
+                    except StopIteration:
+                        break
+                included_path = included_path.replace("\\", "/")
                 if os.path.isfile(included_path):
                     result.append(included_path)
                     result.extend(get_associated_files(included_path))

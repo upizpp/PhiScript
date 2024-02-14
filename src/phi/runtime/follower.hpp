@@ -16,7 +16,7 @@ namespace phi
 
         string toString() const
         {
-            return "in \"" + *chunk + "\" at line " + std::to_string(line) + (!func.empty() ? (":" + func) : "");
+            return "in \"" + *chunk + "\" at line " + std::to_string(line) + (!func.empty() ? (": " + func) : "");
         }
     };
 

@@ -17,10 +17,11 @@ namespace phi
         Owner<T> _M_val;
 
     public:
-        Optional() = default;
+        Optional() {};
+        Optional(nullptr_t) {};
         Optional(T *ptr) : _M_val(ptr) {}
-        Optional(const T &val) : _M_val(val) {}
-        Optional(const Optional &opt) : _M_val(new T{*opt._M_val}) {}
+        Optional(const T &val) : _M_val(new T{val}) {}
+        Optional(const Optional &opt) : _M_val(opt.hasVal() ? new T{*opt._M_val} : nullptr) {}
         Optional(Optional &&opt) : _M_val(std::move(opt._M_val)) {}
 
         T *operator->() { return _M_val->data(); }
@@ -34,8 +35,8 @@ namespace phi
                 _M_val = new T{val};
         }
 
-        bool hasVal() { return _M_val; }
-        operator bool() { return hasVal(); }
+        bool hasVal() const { return _M_val; }
+        operator bool() const { return hasVal(); }
     };
 
     template <typename T>
@@ -63,7 +64,7 @@ namespace phi
                 _M_val = val;
         }
 
-        bool hasVal() { return _M_val; }
-        operator bool() { return hasVal(); }
+        bool hasVal() const { return _M_val; }
+        operator bool() const { return hasVal(); }
     };
 } // namespace phi

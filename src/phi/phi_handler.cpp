@@ -85,6 +85,11 @@ namespace phi
             Generator::clearInstance();
             abort();
         }
+        catch (const CompileException &e)
+        {
+            std::cerr << e.className() << " " << Singleton<ProgramFollower>::instance()->position() << endl;
+            std::cerr << e.what() << endl;
+        }
         catch (const RuntimeException &e)
         {
             std::cerr << e.className() << " " << Singleton<ProgramFollower>::instance()->position() << endl;
@@ -99,13 +104,12 @@ namespace phi
                     stack.pop();
                 }
             }
-            Generator::clearInstance();
         }
         catch (const Exception &e)
         {
             std::cerr << e.className() << ":\n";
             std::cerr << e.what() << endl;
-            Generator::clearInstance();
         }
+        Generator::clearInstance();
     }
 } // namespace phi

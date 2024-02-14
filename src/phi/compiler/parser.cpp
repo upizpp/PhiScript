@@ -1,12 +1,17 @@
 #include "parser.hpp"
 #include <new>
 #include <phi/exception.hpp>
+#include <phi/runtime/follower.hpp>
+#include <phi/singleton.hpp>
 
-#define THROW                                     \
-	if (_M_look == _M_tokens->back())             \
-		throw SyntaxException("Unexpected EOF."); \
-	else                                          \
-		throw SyntaxException("Unexpected token '" + _M_look->stringify() + "'.")
+#define THROW                                                                         \
+	{                                                                                 \
+		locate();                                                                     \
+		if (_M_look == _M_tokens->back())                                             \
+			throw SyntaxException("Unexpected EOF.");                                 \
+		else                                                                          \
+			throw SyntaxException("Unexpected token '" + _M_look->stringify() + "'."); \
+	}
 #define CHECK_NONE \
 	if (!x)        \
 	THROW
@@ -33,35 +38,41 @@ namespace phi
 
 	void Parser::match(std::set<token::tag_t> tags)
 	{
+		locate();
 		if (tags.find(_M_look->tag()) != tags.end())
 			move();
 		else if (_M_look == _M_tokens->back())
-			throw SyntaxException(
-				"Unexpected EOF at line " + std::to_string(_M_look->line()) + ".");
+			throw SyntaxException("Unexpected EOF.");
 		else
-			throw SyntaxException(
-				"Unexpected token '" + _M_look->stringify() +
-				"' at line " + std::to_string(_M_look->line()) + ".");
+			throw SyntaxException("Unexpected token '" + _M_look->stringify() + ".");
 	}
 
 	void Parser::move()
 	{
 		++_M_it;
 		_M_look = _M_it != _M_tokens->end() ? *_M_it : nullptr;
+		locate();
 	}
 
 	void Parser::back()
 	{
 		--_M_it;
 		_M_look = _M_it != _M_tokens->end() ? *_M_it : nullptr;
+		locate();
+	}
+
+	void Parser::locate()
+	{
+		if (_M_look)
+			Singleton<ProgramFollower>::instance()->position({"__compile__", _M_look->line(), _M_look->chunk()});
 	}
 
 	Parser::node_t Parser::parse(token::tokens &tokens)
 	{
 		if (tokens.empty())
 			return new Block;
-		tokens.insert(tokens.begin(), (new Token('{'))->line(tokens.front()->line()));
-		tokens.insert(tokens.end(), (new Token('}'))->line(tokens.back()->line()));
+		tokens.insert(tokens.begin(), (new Token{*tokens.front()})->tag('{'));
+		tokens.insert(tokens.end(), (new Token{*tokens.back()})->tag('}'));
 		return program(tokens);
 	}
 
@@ -476,7 +487,8 @@ namespace phi
 			if (_M_look->tag() != ')')
 				binds = arg_list();
 			match(')');
-			if (_M_look->tag() == Tag::ARROW) move();
+			if (_M_look->tag() == Tag::ARROW)
+				move();
 			return new Func{tok, name, std::move(binds), std::move(captured), blockOrReturn()};
 		}
 		case Tag::IMPORT:

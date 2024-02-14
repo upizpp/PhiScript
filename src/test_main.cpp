@@ -1,9 +1,4 @@
-#include <iomanip>
-#include <iostream>
-#include <phi/serialize.hpp>
-#include <phi/deserialize.hpp>
-#include <phi/compiler/compiler.hpp>
-#include <fstream>
+#include <phi/phi_handler.hpp>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -17,11 +12,8 @@ int main(int argc, char **args)
 
     
     using namespace phi;
-    Compiler compiler(new FileScanner{"src/phi_script/test.phi"});
-    Function f = compiler.load();
-    auto bytes = Serialize<Function>()(f);
-    std::ofstream fs("./test.phiout", std::ios::binary);
-    vector<byte> bytes_vec{bytes.begin(), bytes.end()};
-    fs.write((char*)bytes_vec.data(), bytes_vec.size());
-    puts("FINISH!");
+    tryRun([](){
+        doFile("D:\\User File\\Projects\\VSCode\\PhiScript\\src\\phi_script\\test.phi", {});
+    });
+    puts("Finished");
 }

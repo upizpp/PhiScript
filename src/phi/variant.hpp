@@ -259,7 +259,7 @@ namespace phi
 
     inline std::ostream &operator<<(std::ostream &os, const Variant &value)
     {
-        os << (string)value;
+        os << value.toString();
         return os;
     }
 

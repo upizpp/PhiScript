@@ -22,19 +22,19 @@ public:                                            \
 	static void static_register();                 \
 	static string className()                      \
 	{                                              \
-		return TO_STRING(class_name);                        \
+		return TO_STRING(class_name);              \
 	}                                              \
 	static string parentClassName()                \
 	{                                              \
-		return TO_STRING(parent_class);                      \
+		return TO_STRING(parent_class);            \
 	}                                              \
 	virtual string getClass() const override       \
 	{                                              \
-		return TO_STRING(class_name);                        \
+		return TO_STRING(class_name);              \
 	}                                              \
 	virtual string getParentClass() const override \
 	{                                              \
-		return TO_STRING(parent_class);                      \
+		return TO_STRING(parent_class);            \
 	}                                              \
                                                    \
 private:                                           \
@@ -43,6 +43,11 @@ private:                                           \
 namespace phi
 {
 	using callable_t = std::function<Ref<Variant>(const array &)>;
+
+	template <typename>
+	inline constexpr bool is_vector_v = false;
+	template <typename T, typename A>
+	inline constexpr bool is_vector_v<vector<T, A>> = true;
 
 	struct ClassInfo
 	{
@@ -91,8 +96,7 @@ namespace phi
 		{
 			auto caller = [=](Object *obj, const array &args) -> type
 			{
-				using seq = gen_index_seq_t<function_traits<F>::arity>;
-				return class_call_impl<seq, F>::call(func, obj, args);
+				return *toCallable(obj, func)(args);
 			};
 			getInfo().methods.insert({name, caller});
 		}
@@ -181,7 +185,7 @@ namespace phi
 				{
 					if (index >= args.size())
 						return OptionalRef<T>(nullptr);
-					return &args[index]->seeAs<T>();
+					return const_cast<T*>(&args[index]->seeAs<T>());
 				}
 			};
 			template <typename T>
@@ -197,65 +201,61 @@ namespace phi
 		};
 
 		friend struct ArgumentHandler;
-		friend struct class_call_impl;
-
-		template <typename I, typename F, typename Enabled = void>
-		struct class_call_impl;
-
-		template <size_t... I, typename F>
-		struct class_call_impl<index_seq<I...>, F,
-							   typename std::enable_if_t<std::is_same_v<typename function_traits<F>::return_type, void>>>
-		{
-			static type call(F f, Object *obj, const array &args)
-			{
-				ArgumentHandler handler;
-				handler.requiredCount = sizeof...(I);
-				using class_type = typename function_traits<F>::class_type;
-				(static_cast<class_type *>(obj)->*f)(handler.handle<typename function_traits<F>::template args<I>::type>(args, I)...);
-				return *Variant::Null;
-			}
-		};
-
-		template <size_t... I, typename F>
-		struct class_call_impl<index_seq<I...>, F,
-							   typename std::enable_if_t<!std::is_same_v<typename function_traits<F>::return_type, void>>>
-		{
-			static type call(F f, Object *obj, const array &args)
-			{
-				ArgumentHandler handler;
-				handler.requiredCount = sizeof...(I);
-				using class_type = typename function_traits<F>::class_type;
-				return (static_cast<class_type *>(obj)->*f)(handler.handle<typename function_traits<F>::template args<I>::type>(args, I)...);
-			}
-		};
-
 		friend struct call_impl;
 
-		template <typename I, typename F, typename Enabled = void>
+		template <typename I, typename F>
 		struct call_impl;
 
-		template <size_t... I, typename F>
-		struct call_impl<index_seq<I...>, F,
-						 typename std::enable_if_t<std::is_same_v<typename function_traits<F>::return_type, void>>>
+		template <size_t... I, typename R, typename... Args>
+		struct call_impl<index_seq<I...>, R(Args...)>
 		{
-			static Ref<Variant> call(F f, const array &args)
+			using F = R(Args...);
+			static Ref<Variant> call(const std::function<F> f, const array &args)
 			{
-				ArgumentHandler handler;
-				handler.requiredCount = sizeof...(I);
-				f(handler.handle<typename function_traits<F>::template args<I>::type>(args, I)...);
-				return Variant::Null;
+				if constexpr (std::is_same_v<R, void>)
+				{
+					ArgumentHandler handler;
+					handler.requiredCount = sizeof...(I);
+					f(handler.handle<typename function_traits<F>::template args<I>::type>(args, I)...);
+					return Variant::Null;
+				}
+				else if constexpr (std::is_same_v<R, Ref<Variant>>)
+				{
+					ArgumentHandler handler;
+					handler.requiredCount = sizeof...(I);
+					return f(handler.handle<typename function_traits<F>::template args<I>::type>(args, I)...);
+				}
+				else if constexpr (is_vector_v<R> && !std::is_same_v<R, array>) 
+				{
+					ArgumentHandler handler;
+					handler.requiredCount = sizeof...(I);
+					R temp = f(handler.handle<typename function_traits<F>::template args<I>::type>(args, I)...);
+					Owner<array> result{new array{temp.size(), nullptr}};
+					for (size_t i = 0; i < temp.size(); ++i)
+						(*result)[i] = new Variant{temp[i]};
+					return new Variant{std::move(result)};
+				}
+				else
+				{
+					ArgumentHandler handler;
+					handler.requiredCount = sizeof...(I);
+					return new Variant{f(handler.handle<typename function_traits<F>::template args<I>::type>(args, I)...)};
+				}
 			}
 		};
 
-		template <size_t... I, typename F>
-		struct call_impl<index_seq<I...>, F,
-						 typename std::enable_if_t<!std::is_same_v<typename function_traits<F>::return_type, void>>>
+		template <typename F>
+		struct class_call_impl;
+
+		template <typename T, typename R, typename... Args>
+		struct class_call_impl<R (T::*)(Args...)>
 		{
-			static Ref<Variant> call(F f, const array &args)
+			static Ref<Variant> call(Object *obj, R (T::*f)(Args...), const array &args)
 			{
-				ArgumentHandler handler;
-				handler.requiredCount = sizeof...(I);
-				return f(handler.handle<typename function_traits<F>::template args<I>::type>(args, I)...);
+				using seq = gen_index_seq_t<sizeof...(Args)>;
+				return call_impl<seq, R(Args...)>::call([&](Args... args) -> R
+														{ return (((T *)obj)->*f)(args...); },
+														args);
 			}
 		};
 
@@ -274,8 +274,7 @@ namespace phi
 		{
 			return [=](const array &args) -> Ref<Variant>
 			{
-				using seq = gen_index_seq_t<function_traits<F>::arity>;
-				return class_call_impl<seq, F>::call(func, obj, args);
+				return class_call_impl<F>::call(obj, func, args);
 			};
 		}
 		static callable_t toCallable(Object *obj, const string &func)
@@ -293,7 +292,7 @@ namespace phi
 		type get(Object *obj, const string &property_name);
 		bool hasProperty(const Object *obj, const string &property_name);
 		bool hasMethod(const Object *obj, const string &method_name);
-		Object* create(const string& class_name);
+		Object *create(const string &class_name);
 
 		ClassInfo &parent(const string &class_name) { return *_M_classes[class_name].parent; }
 	};

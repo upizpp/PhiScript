@@ -10,7 +10,7 @@ namespace phi
         void CLASS_NAME::print(RestParameters what)
         {
             for (auto &&item : what)
-                cout << (string)*item << " ";
+                cout << *item << " ";
             cout << endl;
         }
 

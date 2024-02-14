@@ -3,7 +3,7 @@
 In PhiScript, there are several basic ideas:
 
 1. Everything is an expression
-2. Everything is a quote
+2. Except constants, everything is a reference
 3. ~~Everything is left binding (known defect)~~
 
 ## expression

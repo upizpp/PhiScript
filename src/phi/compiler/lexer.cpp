@@ -1,5 +1,7 @@
 #include "lexer.hpp"
 #include <cctype>
+#include <phi/runtime/follower.hpp>
+#include <phi/singleton.hpp>
 using namespace phi::token;
 
 static uint8_t byte_length(phi::char_t b)
@@ -43,6 +45,8 @@ namespace phi
         using R = Ref<Token>;
         static std::ostringstream os;
         skipWhitespace();
+
+        Singleton<ProgramFollower>::instance()->position({"__lexer__", _M_line, _M_scanner->chunk()});
 
         {
             R res;
@@ -198,7 +202,7 @@ namespace phi
     Ref<token::Token> Lexer::getNextToken()
     {
         uinteger l = line();
-        return getNextTokenImpl()->line(l);
+        return getNextTokenImpl()->line(l)->chunk(_M_scanner->chunk());
     }
 
     tokens Lexer::getTokens()
