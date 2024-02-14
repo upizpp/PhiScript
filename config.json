@@ -30,12 +30,12 @@
             "src/test_main.cpp"
         ]
     },
-    "dll": {
+    "lib": {
         "compiler": "g++",
-        "cache": "cache/.dll_build",
+        "cache": "cache/.lib_build",
         "scan": "src",
-        "output": "build/dll/phi.dll",
-        "extra": "-std=c++17 -O2 -Wno-switch",
+        "output": "build/philib/libphi.$LIB$",
+        "extra": "-std=c++17 -O2 -Wno-switch -fPIC",
         "link_extra": "-shared -fPIC",
         "auto_run": false,
         "includes": [
@@ -51,11 +51,11 @@
     },
     "dll_static": {
         "compiler": "g++",
-        "cache": "cache/.dll_build",
+        "cache": "cache/.lib_build",
         "scan": "src",
-        "output": "build/dll/phi.dll",
-        "extra": "-std=c++17 -shared -O2 -Wno-switch",
-        "link_extra": "-shared -static",
+        "output": "build/philib/libphi.$LIB$",
+        "extra": "-std=c++17 -shared -O2 -Wno-switch -fPIC",
+        "link_extra": "-shared -fPIC -static",
         "auto_run": false,
         "includes": [
             "src"

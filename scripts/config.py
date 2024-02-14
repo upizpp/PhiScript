@@ -1,4 +1,5 @@
 import json
+from sys import platform
 
 class ConfigType:
     # the compiler to use
@@ -46,9 +47,10 @@ class ConfigType:
         self._unlock()
          
     def get_command(self, unit: str, output: str) -> str:
+        _output = output.replace("$LIB$", "dll" if platform == "win32" else "so")
         return self.command.format(
             includes = " ".join([("-I" + x) for x in self.includes ]),
-            extra=self.extra, compiler=self.compiler, output=output, unit=unit
+            extra=self.extra, compiler=self.compiler, output=_output, unit=unit
         )
     
     def pick(self, key: str) -> None:

@@ -2,6 +2,7 @@ import argparse
 import os
 import json
 import re
+from sys import platform
 from hashlib import sha256
 from shutil import rmtree, copyfile
 from fnmatch import fnmatch
@@ -103,7 +104,8 @@ def build(units: dict) -> None:
     print(Colors([Colors.YELLOW, Colors.BOLD], Colors(Colors.BOLD, "编译结束...")))
     print(Colors(Colors.WHITE, "-" * 64))
     print(Colors([Colors.YELLOW, Colors.YELLOW], "开始链接..."))
-    command = f"{config.compiler} {config.link_extra} {' '.join(objects)} -o {config.output} "
+    _output = config.output.replace("$LIB$", "dll" if platform == "win32" else "so")
+    command = f"{config.compiler} {config.link_extra} {' '.join(objects)} -o {_output} "
     print(Colors([Colors.CYAN, Colors.BOLD], "链接命令："), Colors(Colors.WHITE, command))
     output_dir = os.path.split(config.output)[0]
     if output_dir != "" and not os.path.isdir(output_dir):
@@ -121,7 +123,8 @@ def build(units: dict) -> None:
             if os.path.isfile(output) and get_id(dependence) == get_id(output):
                 continue
             print(Colors(Colors.BOLD, "dependence: "), Colors(Colors.CYAN, dependence))
-            os.remove(output)
+            if os.path.isfile(output):
+                os.remove(output)
             copyfile(dependence, output)
                 
     print(Colors(Colors.WHITE, "-" * 64))
