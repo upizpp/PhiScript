@@ -13,7 +13,6 @@ namespace phi
         Ref<vector<Ref<string>>> _M_binds;
         // closure
         Ref<Variant> _M_this;
-		Ref<map<string, Ref<Variant>>> _M_exports;
 
     public:
         Method(const Method &method) = default;
@@ -31,13 +30,6 @@ namespace phi
         const vector<Ref<string>> &binds() const { return *_M_binds; }
         bool bound() const { return _M_binds != nullptr; }
         void setThis(Ref<Variant> new_this) { _M_this = new_this; }
-
-		void exportValue(const string& name, Ref<Variant> value)
-		{
-			if (!_M_exports)
-				_M_exports = new decltype(_M_exports)::value_t;
-			(*_M_exports)[name] = value;
-		}
     };
 
     class Function
@@ -77,6 +69,10 @@ namespace phi
         bool isBuiltin() const { return _M_callable; }
 
         VariantPacker access(const array &);
+		void setProperty(const string &name, Ref<Variant> &value);
+		{
+			_M_properties[name] = value;
+		}
         bool hasProperty(const string &) const;
         void properties(const map<string, Ref<Variant>> &properties) { _M_properties = properties; }
         const map<string, Ref<Variant>> &properties() const { return _M_properties; }

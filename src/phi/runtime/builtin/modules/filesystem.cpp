@@ -27,5 +27,9 @@ namespace phi
             fs::file_status s = fs::status(filename);
             return (integer)s.type();
         }
+		string CLASS_NAME::relative_to(relative_to, const string &relative_path, const string &source)
+		{
+			
+		}
     } // namespace modules
 } // namespace phi

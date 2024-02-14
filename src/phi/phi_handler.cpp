@@ -56,12 +56,14 @@ namespace phi
             cout << "> ";
         }
     }
-    Ref<Variant> doFile(const string &path, const array &args)
+    Ref<Variant> doFile(const string &path, const array &args, const string& name)
     {
         if (Pout::isPout(path))
             return Pout::load(path).call(args);
         Compiler compiler{new FileScanner{path}};
-        return compiler.load().call(args);
+        Function func = compiler.load();
+		func.setProperty("__name__", name);
+		return func.call(args);
     }
     void compileTo(Scanner *scanner, const string &dest)
     {
