@@ -1,1 +1,2 @@
-"test"
+var print = import io.print
+print("")

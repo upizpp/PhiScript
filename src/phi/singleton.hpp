@@ -2,15 +2,12 @@
 #include <phi/typedef.hpp>
 #include <typeinfo>
 
-namespace phi
-{
-    template <typename T>
-    class Singleton
-    {
-    public:
+namespace phi {
+    template <typename T> class Singleton {
+      public:
         using value_t = T;
 
-    public:
+      public:
         Singleton() = delete;
         Singleton(const Singleton &) = delete;
         Singleton(Singleton &&) = delete;
@@ -18,8 +15,7 @@ namespace phi
         Singleton &operator=(const Singleton &) = delete;
         Singleton &operator=(Singleton &&) = delete;
 
-        inline static T *instance()
-        {
+        inline static T *instance() {
             static Owner<T> _M_instance;
             if (!_M_instance)
                 _M_instance.reset(new T());

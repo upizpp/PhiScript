@@ -1,23 +1,22 @@
 #pragma once
 #include <cstdint>
-#include <string>
-#include <vector>
-#include <map>
-#include <list>
 #include <iostream>
-#include <unordered_map>
+#include <list>
+#include <map>
 #include <phi/auto_ptr.hpp>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
-namespace phi
-{
-    using std::vector;
-    using std::map;
-    using std::unordered_map;
-    using std::string;
+namespace phi {
     using std::list;
+    using std::map;
+    using std::string;
+    using std::unordered_map;
+    using std::vector;
 
-    using std::cout;
     using std::cin;
+    using std::cout;
     using std::endl;
 
     using integer = int64_t;
@@ -28,6 +27,5 @@ namespace phi
 
     using nullptr_t = decltype(nullptr);
 
-    template<typename T>
-    using Ref = Reference<T>;
+    template <typename T> using Ref = Reference<T>;
 } // namespace phi

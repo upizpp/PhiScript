@@ -4,14 +4,12 @@
 #include <phi/runtime/state.hpp>
 #include <queue>
 
-namespace phi
-{
-    class Generator
-    {
-    public:
+namespace phi {
+    class Generator {
+      public:
         using task_t = std::function<void()>;
 
-    private:
+      private:
         static Ref<Generator> _M_current;
 
         Borrower<State> _M_state;
@@ -19,7 +17,8 @@ namespace phi
         std::queue<task_t> _M_tasks;
 
         void run_tasks();
-    public:
+
+      public:
         static Borrower<Generator> instance() { return _M_current; }
 
         ~Generator();
@@ -28,7 +27,7 @@ namespace phi
         State &getState() { return *_M_state; }
         arg_t push(Ref<Variant> constant);
 
-        void addTask(const task_t&);
+        void addTask(const task_t &);
 
         static void clearInstance() { _M_current.release(); }
     };

@@ -4,23 +4,23 @@
 #include <phi/runtime/state.hpp>
 #include <phi/typedef.hpp>
 
-namespace phi
-{
-    class Method
-    {
-    private:
+namespace phi {
+    class Method {
+      private:
         Ref<State> _M_method;
         Ref<vector<Ref<string>>> _M_binds;
         // closure
         Ref<Variant> _M_this;
 
-    public:
+      public:
         Method(const Method &method) = default;
         Method(const Ref<State> &method) : _M_method(method) {}
-        Method(const Ref<State> &method, const Ref<vector<Ref<string>>> &&binds) : _M_method(method), _M_binds(binds) {}
+        Method(const Ref<State> &method, const Ref<vector<Ref<string>>> &&binds)
+            : _M_method(method), _M_binds(binds) {}
 
         Ref<Variant> call(const array &args);
-        std::pair<Ref<Variant>, Environment> call(const Environment &env, const array &args);
+        std::pair<Ref<Variant>, Environment> call(const Environment &env,
+                                                  const array &args);
         Ref<Variant> operator()(const array &args) { return call(args); }
 
         State &getState() { return *_M_method; }
@@ -32,17 +32,17 @@ namespace phi
         void setThis(Ref<Variant> new_this) { _M_this = new_this; }
     };
 
-    class Function
-    {
-    private:
+    class Function {
+      private:
         Ref<Method> _M_method;
         Ref<callable_t> _M_callable;
         map<string, Ref<Variant>> _M_properties;
         map<uinteger, Ref<Variant>> _M_binds;
 
-    public:
+      public:
         Function() {}
-        Function(const callable_t &callable) : _M_callable(new callable_t{callable}) {}
+        Function(const callable_t &callable)
+            : _M_callable(new callable_t{callable}) {}
         Function(const Ref<callable_t> &callable) : _M_callable(callable) {}
         Function(const Method &method) : _M_method(new Method{method}) {}
         Function(const Ref<Method> &method) : _M_method(method) {}
@@ -56,40 +56,40 @@ namespace phi
         const callable_t &getCallable() const { return *_M_callable; }
         Method &getMethod() { return *_M_method; }
         const Method &getMethod() const { return *_M_method; }
-        void setThis(Ref<Variant> new_this)
-        {
+        void setThis(Ref<Variant> new_this) {
             if (isBuiltin())
                 return;
             getMethod().setThis(new_this);
         }
         void bind(uinteger index, Ref<Variant> what) { _M_binds[index] = what; }
-        void binds(const map<uinteger, Ref<Variant>> &binds) { _M_binds = binds; }
+        void binds(const map<uinteger, Ref<Variant>> &binds) {
+            _M_binds = binds;
+        }
         const map<uinteger, Ref<Variant>> &binds() const { return _M_binds; }
 
         bool isBuiltin() const { return _M_callable; }
 
         VariantPacker access(const array &);
-		void setProperty(const string &name, Ref<Variant> value)
-		{
-			_M_properties[name] = value;
-		}
+        void setProperty(const string &name, Ref<Variant> value) {
+            _M_properties[name] = value;
+        }
         bool hasProperty(const string &) const;
-        void properties(const map<string, Ref<Variant>> &properties) { _M_properties = properties; }
-        const map<string, Ref<Variant>> &properties() const { return _M_properties; }
+        void properties(const map<string, Ref<Variant>> &properties) {
+            _M_properties = properties;
+        }
+        const map<string, Ref<Variant>> &properties() const {
+            return _M_properties;
+        }
 
         bool operator==(const Function &func) { return this == &func; }
-        string toString()
-        {
+        string toString() {
             std::ostringstream os;
             os << "function: " << this;
             return os.str();
         }
         operator string() { return toString(); }
 
-        Function copy()
-        {
-            return *this;
-        }
+        Function copy() { return *this; }
         Function deepCopy();
     };
 } // namespace phi

@@ -1,18 +1,16 @@
 #pragma once
-#include <phi/typedef.hpp>
 #include <phi/compiler/token.hpp>
+#include <phi/typedef.hpp>
 
-namespace phi
-{
+namespace phi {
     using cmd_t = uint8_t;
     using arg_t = uint32_t;
-    
+
     extern const arg_t STACK_TOP;
 
-    class OPCode
-    {
-    public:
-        enum Command : cmd_t{
+    class OPCode {
+      public:
+        enum Command : cmd_t {
             // stack control
             ADD,
             SUB,
@@ -71,17 +69,18 @@ namespace phi
             RETURN
         };
 
-    private:
+      private:
         Command _M_op;
         arg_t _M_value;
-    public:
+
+      public:
         OPCode(Command opt, arg_t value) : _M_op(opt), _M_value(value) {}
         OPCode(Command opt) : _M_op(opt), _M_value(0) {}
         OPCode() = default;
-        OPCode(const OPCode&) = default;
-        OPCode(OPCode&&) = default;
+        OPCode(const OPCode &) = default;
+        OPCode(OPCode &&) = default;
 
-        OPCode& operator=(const OPCode&) = default;
+        OPCode &operator=(const OPCode &) = default;
 
         Command opt() const { return _M_op; }
         void opt(Command value) { _M_op = value; }
@@ -97,8 +96,7 @@ namespace phi
 
     using CodeSeq = vector<OPCode>;
 
-    inline std::ostream& operator<<(std::ostream& os, const OPCode& code)
-    {
+    inline std::ostream &operator<<(std::ostream &os, const OPCode &code) {
         return os << code.toString();
     }
 } // namespace phi

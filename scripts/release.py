@@ -10,7 +10,7 @@ def main():
     else:
         type = argv[1]
 
-    global jump 
+    global jump
     jump = int(argv[2]) if len(argv) >= 3 else 1
     match type:
         case "patch":
@@ -21,32 +21,36 @@ def main():
             major()
 
     clear_cache()
-    build({
-        "type": "release"
-    })
+    build({"type": "release"})
 
 
 def patch():
     save(increase(get_current(), 2))
 
+
 def minor():
     save(increase(get_current(), 1))
+
 
 def major():
     save(increase(get_current(), 0))
 
+
 def increase(version: str, level: int):
-    split_version = version.split('.')
+    split_version = version.split(".")
     split_version[level] = str(int(split_version[level]) + jump)
-    return '.'.join(split_version)
+    return ".".join(split_version)
+
 
 def get_current():
     with open("./src/phi/version", "r", encoding="utf-8") as file:
-        return re.findall("\"(.*)\"", file.read())[0]
+        return re.findall('"(.*)"', file.read())[0]
+
 
 def save(version: str):
     with open("./src/phi/version", "w", encoding="utf-8") as file:
-        file.write("#define PHI_VERSION \"" + version + "\"")
+        file.write('#define PHI_VERSION "' + version + '"')
+
 
 if __name__ == "__main__":
     main()

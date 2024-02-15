@@ -3,25 +3,23 @@
 #include <phi/compiler/token.hpp>
 #include <set>
 
-namespace phi
-{
-    class Parser
-    {
-    private:
+namespace phi {
+    class Parser {
+      private:
         const token::tokens *_M_tokens;
         token::tokens::const_iterator _M_it;
         Ref<token::Token> _M_look;
 
-    public:
+      public:
         using node_t = Ref<ast::Node>;
         using token_t = Ref<token::Token>;
 
         Parser() : _M_tokens(nullptr) {}
 
-        node_t parse(token::tokens& tokens);
+        node_t parse(token::tokens &tokens);
 
-    private:
-        node_t program(const token::tokens& tokens);
+      private:
+        node_t program(const token::tokens &tokens);
 
         void match(token::tag_t tag);
         void match(std::set<token::tag_t> tags);
@@ -48,7 +46,7 @@ namespace phi
         node_t equality();
         node_t rel();
         node_t shift();
-        node_t as(); // addition and subtraction
+        node_t as();  // addition and subtraction
         node_t mdm(); // Multiplication and division and mod
         node_t power();
         node_t unary();

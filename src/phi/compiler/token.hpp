@@ -2,13 +2,10 @@
 #include <iostream>
 #include <phi/typedef.hpp>
 
-namespace phi
-{
-    namespace token
-    {
+namespace phi {
+    namespace token {
         using tag_t = int_least16_t;
-        enum Tag : tag_t
-        {
+        enum Tag : tag_t {
             ID = 256,
             INT,
             REAL,
@@ -26,7 +23,7 @@ namespace phi
             LSHIFT,
             RSHIFT,
             POW,
-            DCPY, // deep copy
+            DCPY,  // deep copy
             ARROW, // =>
             // keywords
             PASS,
@@ -53,48 +50,41 @@ namespace phi
 
         string toString(tag_t tag);
 
-        class Token
-        {
-        private:
+        class Token {
+          private:
             Tag _M_tag;
             uinteger _M_line;
             Ref<string> _M_chunk;
 
-        public:
+          public:
             Token() : _M_tag((Tag)0), _M_line(0) {}
-            Token(const Token&) = default;
+            Token(const Token &) = default;
             explicit Token(tag_t tag) : _M_tag((Tag)tag) {}
 
             Tag tag() const { return _M_tag; }
-            Token* tag(const tag_t& tag) {
+            Token *tag(const tag_t &tag) {
                 _M_tag = (Tag)tag;
                 return this;
             }
 
-            virtual operator string() const
-            {
-                return '(' + token::toString(tag()) + ")\t\t\t- line: " + std::to_string(line());
+            virtual operator string() const {
+                return '(' + token::toString(tag()) +
+                       ")\t\t\t- line: " + std::to_string(line());
             }
-            virtual string toString() const
-            {
+            virtual string toString() const {
                 return '(' + token::toString(tag()) + ')';
             }
-            virtual string stringify() const
-            {
-                return token::toString(tag());
-            }
+            virtual string stringify() const { return token::toString(tag()); }
 
             const Token *reidentify() const;
             Token *reidentify();
 
-            Token *line(uinteger l)
-            {
+            Token *line(uinteger l) {
                 _M_line = l;
                 return this;
             }
             uinteger line() const { return _M_line; }
-            Token *chunk(Ref<string> c)
-            {
+            Token *chunk(Ref<string> c) {
                 _M_chunk = c;
                 return this;
             }
@@ -105,74 +95,64 @@ namespace phi
             virtual size_t hash() const;
         };
 
-        class Integer : public Token
-        {
-        private:
+        class Integer : public Token {
+          private:
             integer _M_value;
 
-        public:
-            explicit Integer(integer value) : Token(Tag::INT), _M_value(value) {}
+          public:
+            explicit Integer(integer value)
+                : Token(Tag::INT), _M_value(value) {}
 
             integer value() const { return _M_value; }
             size_t hash() const override;
 
-            operator string() const override
-            {
-                return '[' + std::to_string(_M_value) + "]\t\t\t- line: " + std::to_string(line());
+            operator string() const override {
+                return '[' + std::to_string(_M_value) +
+                       "]\t\t\t- line: " + std::to_string(line());
             }
-            virtual string toString() const override
-            {
+            virtual string toString() const override {
                 return '[' + std::to_string(_M_value) + ']';
             }
-            virtual string stringify() const override
-            {
+            virtual string stringify() const override {
                 return std::to_string(_M_value);
             }
         };
 
-        class Real : public Token
-        {
-        private:
+        class Real : public Token {
+          private:
             real _M_value;
 
-        public:
+          public:
             explicit Real(real value) : Token(Tag::REAL), _M_value(value) {}
 
             real value() const { return _M_value; }
             size_t hash() const override;
 
-            operator string() const override
-            {
-                return "[" + std::to_string(_M_value) + "]\t\t\t- line: " + std::to_string(line());
+            operator string() const override {
+                return "[" + std::to_string(_M_value) +
+                       "]\t\t\t- line: " + std::to_string(line());
             }
-            virtual string toString() const override
-            {
+            virtual string toString() const override {
                 return '[' + std::to_string(_M_value) + ']';
             }
-            virtual string stringify() const override
-            {
+            virtual string stringify() const override {
                 return std::to_string(_M_value);
             }
         };
 
-        class Word : public Token
-        {
-        private:
+        class Word : public Token {
+          private:
             Ref<string> _M_value;
 
             static map<string, Ref<string>> _M_symbols;
             static map<string, Ref<Word>> _M_words;
 
-        public:
-            Word(const Word &word) : Token(word.tag())
-            {
+          public:
+            Word(const Word &word) : Token(word.tag()) {
                 value(word.value());
                 line(word.line());
             }
-            explicit Word(string v, tag_t tag) : Token(tag)
-            {
-                value(v);
-            }
+            explicit Word(string v, tag_t tag) : Token(tag) { value(v); }
 
             static void put(const string &);
             static void put(const string &, Tag);
@@ -186,76 +166,62 @@ namespace phi
 
             void merge(const Word &word) { value(value() + word.value()); }
 
-            operator string() const override
-            {
+            operator string() const override {
                 if (tag() == Tag::STRING)
-                    return '"' + *_M_value + "\"\t\t\t- line: " + std::to_string(line());
+                    return '"' + *_M_value +
+                           "\"\t\t\t- line: " + std::to_string(line());
                 else
-                    return '{' + *_M_value + "}\t\t\t- line: " + std::to_string(line());
+                    return '{' + *_M_value +
+                           "}\t\t\t- line: " + std::to_string(line());
             }
 
-            virtual string toString() const
-            {
+            virtual string toString() const {
                 if (tag() == Tag::STRING)
                     return '"' + *_M_value + '"';
                 else
                     return '{' + *_M_value + '}';
             }
 
-            virtual string stringify() const override
-            {
-                return value();
-            }
+            virtual string stringify() const override { return value(); }
         };
 
         using tokens = list<Ref<Token>>;
 
         template <typename A, typename B>
-        inline bool equals(const A &a, const B &b)
-        {
+        inline bool equals(const A &a, const B &b) {
             return false;
         }
-        inline bool equals(const token::Token &a, const token::Token &b)
-        {
+        inline bool equals(const token::Token &a, const token::Token &b) {
             return a.tag() == b.tag();
         }
-        inline bool equals(const token::Word &a, const token::Word &b)
-        {
+        inline bool equals(const token::Word &a, const token::Word &b) {
             return a.tag() == b.tag() && a.value() == b.value();
         }
-        inline bool equals(const token::Integer &a, const token::Integer &b)
-        {
+        inline bool equals(const token::Integer &a, const token::Integer &b) {
             return a.tag() == b.tag() && a.value() == b.value();
         }
-        inline bool equals(const token::Real &a, const token::Real &b)
-        {
+        inline bool equals(const token::Real &a, const token::Real &b) {
             return a.tag() == b.tag() && a.value() == b.value();
         }
     } // namespace token
 
-    inline std::ostream &operator<<(std::ostream &os, const token::Token &token)
-    {
+    inline std::ostream &operator<<(std::ostream &os,
+                                    const token::Token &token) {
         return os << token.reidentify()->toString();
     }
 } // namespace phi
 
-namespace std
-{
-    template <>
-    struct hash<phi::token::Token>
-    {
-        size_t operator()(const phi::token::Token &token) const
-        {
+namespace std {
+    template <> struct hash<phi::token::Token> {
+        size_t operator()(const phi::token::Token &token) const {
             return token.hash();
         }
     };
 
-    template <>
-    struct equal_to<phi::Ref<phi::token::Token>>
-    {
-        bool operator()(const phi::Ref<phi::token::Token> &a, const phi::Ref<phi::token::Token> &b) const
-        {
+    template <> struct equal_to<phi::Ref<phi::token::Token>> {
+        bool operator()(const phi::Ref<phi::token::Token> &a,
+                        const phi::Ref<phi::token::Token> &b) const {
             return phi::token::equals(*a, *b);
         }
     };
-}
+} // namespace std

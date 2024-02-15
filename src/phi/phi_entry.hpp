@@ -1,6 +1,5 @@
 #pragma once
 
-namespace phi
-{
+namespace phi {
     int main(int argc, char **args);
 } // namespace phi

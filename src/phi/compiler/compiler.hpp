@@ -6,12 +6,9 @@
 #include <phi/compiler/preprocessor.hpp>
 #include <phi/function.hpp>
 
-namespace phi
-{
-    struct CompileOption
-    {
-        enum OptimizeLevel
-        {
+namespace phi {
+    struct CompileOption {
+        enum OptimizeLevel {
             NONE,
             SIMPLE,
             COMPLEX // to be implemented
@@ -21,21 +18,24 @@ namespace phi
         Owner<PreprocessRule> preprocessRule;
 
         CompileOption() = default;
-        CompileOption(const CompileOption &option) : 
-                optimizeLevel(option.optimizeLevel), preprocessRule(new PreprocessRule{*option.preprocessRule}) {}
+        CompileOption(const CompileOption &option)
+            : optimizeLevel(option.optimizeLevel),
+              preprocessRule(new PreprocessRule{*option.preprocessRule}) {}
     };
 
-    class Compiler
-    {
-    private:
+    class Compiler {
+      private:
         CompileOption _M_option;
         Owner<Scanner> _M_scanner;
 
-    public:
+      public:
         static Borrower<CompileOption> globalOption;
 
-        Compiler(Scanner *scanner) : _M_scanner(scanner), _M_option(globalOption ? *globalOption : CompileOption{}) {}
-        Compiler(Scanner *scanner, CompileOption &&option) : _M_scanner(scanner), _M_option(std::move(option)) {}
+        Compiler(Scanner *scanner)
+            : _M_scanner(scanner),
+              _M_option(globalOption ? *globalOption : CompileOption{}) {}
+        Compiler(Scanner *scanner, CompileOption &&option)
+            : _M_scanner(scanner), _M_option(std::move(option)) {}
 
         Ref<State> compile();
         Function load();
@@ -45,7 +45,8 @@ namespace phi
         static void optimize(State &, const CompileOption &);
         static Ref<ast::Node> parse(token::tokens &);
         static Function load(Ref<ast::Node>, const CompileOption &option);
-        static token::tokens preprocess(const token::tokens &, const CompileOption &);
+        static token::tokens preprocess(const token::tokens &,
+                                        const CompileOption &);
         static Ref<State> gen(Ref<ast::Node>);
     };
 } // namespace phi

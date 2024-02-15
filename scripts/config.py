@@ -1,6 +1,7 @@
 import json
 from sys import platform
 
+
 class ConfigType:
     # the compiler to use
     compiler: str = "g++"
@@ -45,14 +46,17 @@ class ConfigType:
         self.pick("includes")
         self.pick("dependence")
         self._unlock()
-         
+
     def get_command(self, unit: str, output: str) -> str:
         _output = output.replace("$LIB$", "dll" if platform == "win32" else "so")
         return self.command.format(
-            includes = " ".join([("-I" + x) for x in self.includes ]),
-            extra=self.extra, compiler=self.compiler, output=_output, unit=unit
+            includes=" ".join([("-I" + x) for x in self.includes]),
+            extra=self.extra,
+            compiler=self.compiler,
+            output=_output,
+            unit=unit,
         )
-    
+
     def pick(self, key: str) -> None:
         if self.__temp is None:
             raise Exception("Unable to call pick before calling _lock.")
@@ -61,7 +65,7 @@ class ConfigType:
 
     def _lock(self, config: dict) -> None:
         self.__temp = config
-    
+
     def _unlock(self) -> None:
         del self.__temp
 
@@ -72,11 +76,8 @@ class Config:
             data: dict = json.loads(file.read())
             self.data = data
             self.types = data.keys()
-    
+
     def pick(self, type: str) -> ConfigType:
         if not type in self.data:
             raise KeyError("the type is not existed in the config file.")
         return ConfigType(self.data[type])
-
-
-

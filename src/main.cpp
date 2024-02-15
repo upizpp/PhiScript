@@ -6,8 +6,7 @@
 
 #include <iostream>
 
-int main(int argc, char **args)
-{
+int main(int argc, char **args) {
 #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
 #endif

@@ -1,27 +1,18 @@
 #include "global.hpp"
 
-namespace phi
-{
+namespace phi {
     static map<string, Ref<Variant>> phiGlobal;
 
-    map<string, Ref<Variant>> &getGlobals()
-    {
-        return phiGlobal;
-    }
-    void setGlobal(const string &name, Ref<Variant> value)
-    {
+    map<string, Ref<Variant>> &getGlobals() { return phiGlobal; }
+    void setGlobal(const string &name, Ref<Variant> value) {
         phiGlobal[name] = value;
     }
-    Ref<Variant> getGlobal(const string &name)
-    {
-        return phiGlobal[name];
-    }
-    Borrower<std::pair<const string, Ref<Variant>>> getGlobalPair(const string& name)
-    {
+    Ref<Variant> getGlobal(const string &name) { return phiGlobal[name]; }
+    Borrower<std::pair<const string, Ref<Variant>>>
+    getGlobalPair(const string &name) {
         return &*phiGlobal.find(name);
     }
-    bool hasGlobal(const string &name)
-    {
+    bool hasGlobal(const string &name) {
         return phiGlobal.find(name) != phiGlobal.end();
     }
 } // namespace phi

@@ -6,6 +6,7 @@ from sys import platform
 from hashlib import sha256
 from shutil import rmtree, copyfile
 from fnmatch import fnmatch
+from functools import cache
 
 from config import Config, ConfigType
 from colors import Colors
@@ -13,30 +14,41 @@ from colors import Colors
 global_config: Config = None
 config: ConfigType = None
 file_map: dict = {}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build a project.")
-    parser.add_argument("--type", "-t", required=True, choices=list(global_config.types) + ["all"], help="type of project to build.")
+    parser.add_argument(
+        "--type",
+        "-t",
+        required=True,
+        choices=list(global_config.types) + ["all"],
+        help="type of project to build.",
+    )
     parser.add_argument("--clear", "-c", action="store_true", help="clear the cache")
     parser.add_argument("--run", "-r", action="store_true", help="run the project")
     args = parser.parse_args()
-    
+
     global config
-    
+
     if args.clear:
         clear_cache()
         return
-    
+
     if args.type != "all":
         config = global_config.pick(args.type)
     else:
         for type in global_config.types:
-            print(Colors([Colors.BOLD, Colors.WHITE], "开始处理："+ type))
+            print(Colors([Colors.BOLD, Colors.WHITE], "开始处理：" + type))
             args = global_config.data[type]
             args["type"] = type
             build_project(args, False)
         return
 
-    if args.run and (os.path.isfile(os.path.abspath(config.output)) or os.path.isfile(os.path.abspath(config.output) + ".exe")):
+    if args.run and (
+        os.path.isfile(os.path.abspath(config.output))
+        or os.path.isfile(os.path.abspath(config.output) + ".exe")
+    ):
         os.system(f'"{os.path.abspath(config.output)}"')
         return
 
@@ -49,7 +61,8 @@ def main() -> None:
     if config.auto_run:
         os.system(f'"{os.path.abspath(config.output)}"')
 
-def build_project(args: dict, allow_auto_run = True, save = True) -> None:
+
+def build_project(args: dict, allow_auto_run=True, save=True) -> None:
     global config
     config = global_config.pick(args["type"])
 
@@ -64,12 +77,12 @@ def build_project(args: dict, allow_auto_run = True, save = True) -> None:
 
     if save:
         save_file_map()
-    
+
     if config.auto_run and allow_auto_run:
         os.system(config.output)
 
 
-def build_with_config(config_: ConfigType, allow_auto_run = True) -> None:
+def build_with_config(config_: ConfigType, allow_auto_run=True) -> None:
     global config
     config = config_
 
@@ -79,7 +92,7 @@ def build_with_config(config_: ConfigType, allow_auto_run = True) -> None:
     build(units)
 
     save_file_map()
-    
+
     if config.auto_run and allow_auto_run:
         os.system(config.output)
 
@@ -104,7 +117,10 @@ def build(units: dict) -> None:
             print(Colors(Colors.CYAN, unit + ":"))
             if os.system(command) != 0:
                 print(Colors([Colors.RED, Colors.BOLD], "出现错误，编译终止。"))
-                print(Colors([Colors.RED, Colors.BOLD], "编译命令："), Colors(Colors.WHITE, command))
+                print(
+                    Colors([Colors.RED, Colors.BOLD], "编译命令："),
+                    Colors(Colors.WHITE, command),
+                )
                 exit(-1)
     print()
     print(Colors([Colors.YELLOW, Colors.BOLD], Colors(Colors.BOLD, "编译结束...")))
@@ -112,7 +128,9 @@ def build(units: dict) -> None:
     print(Colors([Colors.YELLOW, Colors.YELLOW], "开始链接..."))
     _output = config.output.replace("$LIB$", "dll" if platform == "win32" else "so")
     command = f"{config.compiler} {config.link_extra} {' '.join(objects)} -o {_output} "
-    print(Colors([Colors.CYAN, Colors.BOLD], "链接命令："), Colors(Colors.WHITE, command))
+    print(
+        Colors([Colors.CYAN, Colors.BOLD], "链接命令："), Colors(Colors.WHITE, command)
+    )
     output_dir = os.path.split(config.output)[0]
     if output_dir != "" and not os.path.isdir(output_dir):
         os.makedirs(output_dir)
@@ -124,7 +142,12 @@ def build(units: dict) -> None:
             filename = os.path.split(dependence)[1]
             output = os.path.join(output_dir, filename)
             if not os.path.isfile(dependence):
-                print(Colors([Colors.RED, Colors.BOLD], f"依赖文件不存在，编译终止。{dependence}"))
+                print(
+                    Colors(
+                        [Colors.RED, Colors.BOLD],
+                        f"依赖文件不存在，编译终止。{dependence}",
+                    )
+                )
                 exit(-1)
             if os.path.isfile(output) and get_id(dependence) == get_id(output):
                 continue
@@ -132,12 +155,13 @@ def build(units: dict) -> None:
             if os.path.isfile(output):
                 os.remove(output)
             copyfile(dependence, output)
-                
+
     print(Colors(Colors.WHITE, "-" * 64))
 
 
 def get_command(unit: str, output: str) -> str:
     return config.get_command(unit, output)
+
 
 def clear_cache() -> None:
     global config
@@ -149,15 +173,19 @@ def clear_cache() -> None:
         rmtree(config.output.split()[0], True)
         rmtree(config.cache, True)
 
+
 def load_file_map() -> None:
     if not os.path.isdir(config.cache):
         return
     global file_map
     try:
-        with open(os.path.join(config.cache, "file_map.json"), encoding="utf-8") as file:
+        with open(
+            os.path.join(config.cache, "file_map.json"), encoding="utf-8"
+        ) as file:
             file_map = json.loads(file.read())
     except:
         file_map = {}
+
 
 def save_file_map():
     if not os.path.isdir(config.cache):
@@ -170,8 +198,23 @@ def save_file_map():
         for filename in files:
             full_path = os.path.join(root, filename)
             file_map[full_path] = get_id(full_path)
-    with open(os.path.join(config.cache, "file_map.json"), "w", encoding="utf-8") as file:
+    with open(
+        os.path.join(config.cache, "file_map.json"), "w", encoding="utf-8"
+    ) as file:
         file.write(json.dumps(file_map, indent=4))
+
+
+def find_files(filter: callable, type: str):
+    global config
+    if not config:
+        load_config()
+        config = global_config.pick(type)
+    for root, _, files in os.walk(config.scan):
+        for filename in files:
+            full_path = os.path.join(root, filename)
+            if filter(full_path):
+                yield full_path
+
 
 def scan() -> dict:
     units: dict = {}
@@ -185,13 +228,19 @@ def scan() -> dict:
                 units[full_path] = has_unit_changed(full_path)
     return units
 
+
 def is_ignored(path: str) -> bool:
     return filename_match(path, config.ignore)
 
+
+@cache
 def has_unit_changed(path: str) -> None:
     if not is_unit(path):
         return has_changed(path)
-    return has_changed(path) or any([has_unit_changed(x) for x in get_associated_files(path)])
+    return has_changed(path) or any(
+        [has_unit_changed(x) for x in get_associated_files(path)]
+    )
+
 
 def has_changed(path: str) -> bool:
     if path in file_map:
@@ -199,6 +248,8 @@ def has_changed(path: str) -> bool:
     else:
         return True
 
+
+@cache
 def get_associated_files(unit: str) -> list:
     if not os.path.exists(unit):
         return []
@@ -229,9 +280,10 @@ def get_associated_files(unit: str) -> list:
                 ...
     return [item.replace("/", "\\") for item in result]
 
+
 def relative_path(abspath: str, rel: str) -> str:
-    rel_paths = rel.replace("/", "\\").split('\\')
-    result = abspath.replace("/", "\\").split('\\')[0:-1]
+    rel_paths = rel.replace("/", "\\").split("\\")
+    result = abspath.replace("/", "\\").split("\\")[0:-1]
     for path in rel_paths:
         if path == "..":
             result.pop()
@@ -239,14 +291,17 @@ def relative_path(abspath: str, rel: str) -> str:
             result.append(path)
     return "\\".join(result)
 
+
 def is_unit(path: str) -> bool:
     return filename_match(path, config.units)
+
 
 def filename_match(path: str, patterns: list) -> bool:
     for pat in patterns:
         if fnmatch(path, pat):
             return True
     return False
+
 
 def get_id(path: str) -> int:
     if not os.path.exists(path):
@@ -256,6 +311,7 @@ def get_id(path: str) -> int:
         for chunk in iter(lambda: file.read(4096), b""):
             sha256_hash.update(chunk)
     return sha256_hash.hexdigest()
+
 
 def load_config():
     global global_config
