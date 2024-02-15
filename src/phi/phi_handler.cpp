@@ -69,9 +69,17 @@ namespace phi {
         try {
             what();
         } catch (const std::exception &e) {
-            std::cerr << e.what() << '\n';
-            Generator::clearInstance();
-            abort();
+            std::cerr << Singleton<ProgramFollower>::instance()->position()
+                      << endl;
+            std::cerr << e.what() << endl;
+            auto stack = Singleton<ProgramFollower>::instance()->getCallStack();
+            if (!stack.empty()) {
+                std::cerr << "Call Stack:" << endl;
+                while (!stack.empty()) {
+                    std::cerr << "<- " << stack.top() << endl;
+                    stack.pop();
+                }
+            }
         } catch (const CompileException &e) {
             std::cerr << e.className() << " "
                       << Singleton<ProgramFollower>::instance()->position()
@@ -91,8 +99,18 @@ namespace phi {
                 }
             }
         } catch (const Exception &e) {
-            std::cerr << e.className() << ":\n";
+            std::cerr << e.className() << " "
+                      << Singleton<ProgramFollower>::instance()->position()
+                      << endl;
             std::cerr << e.what() << endl;
+            auto stack = Singleton<ProgramFollower>::instance()->getCallStack();
+            if (!stack.empty()) {
+                std::cerr << "Call Stack:" << endl;
+                while (!stack.empty()) {
+                    std::cerr << "<- " << stack.top() << endl;
+                    stack.pop();
+                }
+            }
         }
         Generator::clearInstance();
     }

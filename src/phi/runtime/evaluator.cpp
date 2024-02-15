@@ -88,7 +88,8 @@ namespace phi {
             UNARY_M_IMPL(COPY, copy)
             UNARY_M_IMPL(DCPY, deepCopy)
         case OPCode::Command::IMPORT: {
-            Ref<Variant> module = import(*_M_state->lookup(code.value()));
+            Ref<Variant> module =
+                import(*_M_state->lookup(code.value()), *_M_state->chunk());
             /*
             Don't worry about taking the address of a temporary variable here,
             it's just to tell VariantPacker that it's a Variable rather than a

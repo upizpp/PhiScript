@@ -1,6 +1,6 @@
 from sys import argv
-from scripts.builder import build_project as build
-from scripts.builder import clear_cache
+from builder import build_project as build
+from builder import clear_cache
 import re
 
 
@@ -20,7 +20,6 @@ def main():
         case "major":
             major()
 
-    clear_cache()
     build({"type": "release"})
 
 
@@ -39,6 +38,9 @@ def major():
 def increase(version: str, level: int):
     split_version = version.split(".")
     split_version[level] = str(int(split_version[level]) + jump)
+    for i in range(level + 1, len(split_version)):
+        split_version[i] = "0"
+
     return ".".join(split_version)
 
 

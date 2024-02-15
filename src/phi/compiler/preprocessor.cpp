@@ -43,6 +43,10 @@ namespace phi {
                            b->tag() == token::Tag::STRING;
                 });
         }
+
+        // TODO: Automatic Semicolon Insertion
+        
+
         return _M_tokens;
     }
 

@@ -6,9 +6,9 @@
 #define MODULE_NAME "io"
 #undef MESSAGE_BODY
 #define MESSAGE_BODY                                                           \
-    FIELD_METHOD(print, void, RestParameters)                                  \
-    FIELD_METHOD(input, string, const string &)                                \
+    FIELD_METHOD(print, void, RestParameters);                                 \
+    FIELD_METHOD(input, string, const string &);                               \
     FIELD_METHOD(get_number, real, const string &, OptionalRef<const string>,  \
-                 OptionalRef<const array> whitelist)
+                 OptionalRef<const array> whitelist);
 
 #include "reflect_header"

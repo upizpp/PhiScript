@@ -3,5 +3,5 @@
 #include <phi/variant.hpp>
 
 namespace phi {
-    Ref<Variant> import(const string &);
+    Ref<Variant> import(const string &module_name, const string &chunk_name);
 } // namespace phi

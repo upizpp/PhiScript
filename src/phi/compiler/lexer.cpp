@@ -145,6 +145,8 @@ namespace phi {
     if (_M_peek == terminal) {                                                 \
         os.str("");                                                            \
         read();                                                                \
+        if (_M_peek == terminal)                                               \
+            return new Word{"", Tag::STRING};                                  \
         do {                                                                   \
             char_t ch = _M_peek;                                               \
             if (eof())                                                         \
@@ -189,7 +191,6 @@ namespace phi {
             os << ch;                                                          \
             read();                                                            \
         } while (_M_peek != terminal);                                         \
-        uinteger l = line();                                                   \
         checkEOF();                                                            \
         return new Word{os.str(), Tag::STRING};                                \
     }

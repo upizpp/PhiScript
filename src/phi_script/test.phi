@@ -1,2 +1,3 @@
-var print = import io.print
-print("")
+import "module_test.phi" as test
+import io
+io.print(test)

@@ -37,7 +37,12 @@ namespace phi {
             return index == string::npos ? "" : self.substr(0, index);
         }
         string CLASS_NAME::path_join(const string &self,
-                                     const string &to_join) {}
+                                     const string &to_join) {
+            if (ends_with(self, "/"))
+                return self + to_join;
+            else
+                return self + "/" + to_join;
+        }
         string CLASS_NAME::get_slice(const string &self,
                                      const string &delimiter, integer index) {
             if (index < 0)
@@ -120,18 +125,27 @@ namespace phi {
             return copy;
         }
 
-        string CLASS_NAME::absolute(const string &relative,
-                                    const string &self) {
+        string CLASS_NAME::absolute(const string &self,
+                                    const string &relative) {
             vector<string> units = split(relative, "/", false);
             string result = self;
+
+            size_t index_dot = result.find_first_of('.');
+            size_t index_slash = result.find_last_of('/');
+            if (index_dot != string::npos && index_slash != string::npos &&
+                index_dot > index_slash)
+                result = get_basedir(result);
+
             for (auto &&unit : units) {
                 if (unit == "..") {
                     if (self.empty())
                         continue;
                     result = get_basedir(result);
                 } else {
+                    result = path_join(result, unit);
                 }
             }
+            return result;
         }
     } // namespace modules
 } // namespace phi

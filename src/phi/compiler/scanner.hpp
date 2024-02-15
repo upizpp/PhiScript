@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <fstream>
 #include <phi/exception.hpp>
 #include <sstream>
@@ -57,6 +58,7 @@ namespace phi {
       public:
         explicit FileScanner(const std::string &path)
             : _M_is(path), _M_filename(new string{path}) {
+            std::replace(_M_filename->begin(), _M_filename->end(), '\\', '/');
             if (!_M_is.good())
                 throw FileException(path);
         }

@@ -1,11 +1,16 @@
 #include "phi_entry.hpp"
+#include <algorithm>
 #include <cstdlib>
 #include <phi/branch_parser.hpp>
 #include <phi/phi_handler.hpp>
 #include <phi/pout.hpp>
 
 namespace phi {
+    static string exe;
     int main(int argc, char **args) {
+        exe = args[0];
+        std::replace(exe.begin(), exe.end(), '\\', '/');
+
         ArgsParser parser;
         parser.addOption("o", ArgsParser::Type::SHORT);
         parser.parse(argc, args);
@@ -30,4 +35,5 @@ namespace phi {
         }
         return EXIT_SUCCESS;
     }
+    const string &getExe() { return exe; }
 } // namespace phi
