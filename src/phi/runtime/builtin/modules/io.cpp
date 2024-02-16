@@ -5,9 +5,14 @@
 
 namespace phi {
     namespace modules {
-        void CLASS_NAME::print(RestParameters what) {
+        void CLASS_NAME::print_variant(RestParameters what) {
             for (auto &&item : what)
                 cout << *item << " ";
+            cout << endl;
+        }
+        void CLASS_NAME::print(RestParameters what) {
+            for (auto &&item : what)
+                cout << (string)*item << " ";
             cout << endl;
         }
 
