@@ -26,7 +26,8 @@ namespace phi {
         if (Singleton<ModuleDB>::instance()->has(name))
             return new Variant{
                 Singleton<ModuleDB>::instance()->get(name).borrow()};
-        HANDLE_IMPORT(chunk);
+
+        HANDLE_IMPORT(StringLib::instance->get_basedir(chunk));
         HANDLE_IMPORT(getExe());
         throw RuntimeException("No such a module named \"%s\".", name.c_str());
     }

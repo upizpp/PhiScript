@@ -1,4 +1,7 @@
+#include <phi/runtime/builtin/modules/filesystem.hpp>
+//
 #include "string.hpp"
+//
 #include "reflect_impl"
 #include <phi/exception.hpp>
 
@@ -127,13 +130,17 @@ namespace phi {
 
         string CLASS_NAME::absolute(const string &self,
                                     const string &relative) {
+            if (self.empty())
+                return relative;
+
             vector<string> units = split(relative, "/", false);
             string result = self;
 
             size_t index_dot = result.find_first_of('.');
             size_t index_slash = result.find_last_of('/');
             if (index_dot != string::npos && index_slash != string::npos &&
-                index_dot > index_slash)
+                    index_dot > index_slash ||
+                FileSystemLib::instance->is_file(result))
                 result = get_basedir(result);
 
             for (auto &&unit : units) {

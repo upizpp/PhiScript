@@ -5,16 +5,16 @@
 #define MODULE_NAME "test"
 #define MESSAGE_BODY
 #endif
+#undef FIELD_METHOD
 #define FIELD_METHOD(name, return_t, ...) return_t name(__VA_ARGS__);
+#undef FIELD_PROPERTY
 #define FIELD_PROPERTY(name, type) type name;
 
-namespace phi
-{
-    namespace modules
-    {
-        class CLASS_NAME : public Object
-        {
-            PhiClass(CLASS_NAME, Object) public : static Ref<CLASS_NAME> instance;
+namespace phi {
+    namespace modules {
+        class CLASS_NAME : public Object {
+            PhiClass(CLASS_NAME, Object) public
+                : static Ref<CLASS_NAME> instance;
 
             MESSAGE_BODY
         };
