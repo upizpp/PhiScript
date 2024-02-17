@@ -6,8 +6,8 @@
         "output": "build/release/phi",
         "extra": "-std=c++17 -O2 -Wno-switch",
         "dependence": [
-            "dependences/libgcc_s_seh-1.dll",
-            "dependences/libstdc++-6.dll"
+            "dependence/libgcc_s_seh-1.dll",
+            "dependence/libstdc++-6.dll"
         ],
         "includes": [
             "src"
@@ -43,8 +43,8 @@
         ],
         "dependence": [
             "src/phi/phi.h",
-            "build/lib/libgcc_s_seh-1.dll",
-            "build/lib/libstdc++-6.dll"
+            "dependence/libgcc_s_seh-1.dll",
+            "dependence/libstdc++-6.dll"
         ],
         "ignore": [
             "src/main.cpp",
