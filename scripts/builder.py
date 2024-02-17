@@ -64,7 +64,16 @@ def main() -> None:
 
 def build_project(args: dict, allow_auto_run=True, save=True) -> None:
     global config
-    config = global_config.pick(args["type"])
+    if args["type"] != "all":
+        config = global_config.pick(args["type"])
+    else:
+        load_config()
+        for type in global_config.types:
+            print(Colors([Colors.BOLD, Colors.WHITE], "开始处理：" + type))
+            args = global_config.data[type]
+            args["type"] = type
+            build_project(args, False)
+        return
 
     if args.get("clear", False):
         clear_cache()
@@ -98,8 +107,7 @@ def build_with_config(config_: ConfigType, allow_auto_run=True) -> None:
 
 
 def build(units: dict) -> None:
-    if not any(units.values()):
-        return
+    flag = not any(units.values())
     objects = []
     print(Colors([Colors.YELLOW, Colors.BOLD], "开始编译..."))
     print()
@@ -111,6 +119,8 @@ def build(units: dict) -> None:
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
         objects.append(output)
+        if flag:
+            continue
         if units[unit]:
             command = get_command(unit, output)
             print(command)

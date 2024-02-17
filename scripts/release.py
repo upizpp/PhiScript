@@ -20,7 +20,7 @@ def main():
         case "major":
             major()
 
-    build({"type": "release"})
+    build({"type": "all"})
 
 
 def patch():

@@ -51,11 +51,11 @@
             "src/test_main.cpp"
         ]
     },
-    "dll_static": {
+    "lib_static": {
         "compiler": "g++",
         "cache": "cache/.lib_build",
         "scan": "src",
-        "output": "build/philib/libphi.$LIB$",
+        "output": "build/philib_static/libphi.$LIB$",
         "extra": "-std=c++17 -shared -O2 -Wno-switch -fPIC",
         "link_extra": "-shared -fPIC -static",
         "auto_run": false,
