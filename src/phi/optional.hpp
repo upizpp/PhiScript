@@ -2,7 +2,7 @@
 #include <phi/typedef.hpp>
 
 #define OPT_DEFAULT(variable, value)                                           \
-    static decltype(variable)::value_t __##variable##_default__{value};        \
+    static decltype(variable)::value_t __##variable##_default__(value);        \
     variable.setDefault(&__##variable##_default__);
 
 namespace phi {

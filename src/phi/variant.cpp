@@ -630,7 +630,7 @@ namespace phi {
             string res = std::to_string(_M_real);
             integer break_index = 0;
             size_t index = res.find('.') + 1;
-            for (size_t i = res.length() - 1; i >= index; -i)
+            for (size_t i = res.length() - 1; i >= index; --i)
                 if (res[i] != '0') {
                     break_index = i;
                     break;

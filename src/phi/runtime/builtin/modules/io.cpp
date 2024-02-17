@@ -24,13 +24,14 @@ namespace phi {
             return tmp;
         }
 
-        real CLASS_NAME::get_number(const string &msg,
+        real CLASS_NAME::get_number(OptionalRef<const string> msg,
                                     OptionalRef<const string> error_msg,
                                     OptionalRef<const array> whitelist) {
+            OPT_DEFAULT(msg, "Please enter a number: ");
             OPT_DEFAULT(error_msg, "Invalid number, please enter again: ");
             OPT_DEFAULT(whitelist, {});
 
-            string tmp = input(msg);
+            string tmp = input(*msg);
             while (!StringLib::instance->is_number(tmp)) {
                 tmp = input(*error_msg);
                 for (auto &&ignore : *whitelist)
