@@ -1,6 +1,6 @@
 #pragma once
 #include <phi/compiler/ast.hpp>
-#include <phi/compiler/token.hpp>
+#include <phi/compiler/token_generator.hpp>
 #include <set>
 
 namespace phi {
@@ -8,6 +8,7 @@ namespace phi {
       private:
         const token::tokens *_M_tokens;
         token::tokens::const_iterator _M_it;
+        Borrower<TokenGenerator> _M_generator;
         Ref<token::Token> _M_look;
 
       public:
@@ -17,9 +18,11 @@ namespace phi {
         Parser() : _M_tokens(nullptr) {}
 
         node_t parse(token::tokens &tokens);
+        node_t parse(TokenGenerator *preprocessor);
 
       private:
         node_t program(const token::tokens &tokens);
+        node_t program(TokenGenerator *generator);
 
         void match(token::tag_t tag);
         void match(std::set<token::tag_t> tags);

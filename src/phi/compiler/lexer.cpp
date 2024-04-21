@@ -18,9 +18,7 @@ namespace phi {
     void Lexer::skipWhitespace() {
         while (true) {
             read();
-            if (_M_peek == '\n')
-                ++_M_line;
-            else if (std::isspace(_M_peek))
+            if (std::isspace(_M_peek))
                 continue;
             else
                 break;
@@ -42,6 +40,12 @@ namespace phi {
 
         Singleton<ProgramFollower>::instance()->position(
             {"__lexer__", _M_line, _M_scanner->chunk()});
+
+        if (_M_peek == '\n') {
+            _M_peek = '\0';
+            ++_M_line;
+            return new Token('\n');
+        }
 
         {
             R res;

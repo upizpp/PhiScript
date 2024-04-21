@@ -39,7 +39,8 @@ namespace phi {
         locate();
         if (tags.find(_M_look->tag()) != tags.end())
             move();
-        else if (_M_look == _M_tokens->back())
+        else if ((_M_generator && _M_generator->eof()) ||
+                 _M_look == _M_tokens->back())
             throw SyntaxException("Unexpected EOF.");
         else
             throw SyntaxException("Unexpected token '" + _M_look->stringify() +
@@ -47,8 +48,12 @@ namespace phi {
     }
 
     void Parser::move() {
-        ++_M_it;
-        _M_look = _M_it != _M_tokens->end() ? *_M_it : nullptr;
+        if (_M_generator) {
+            _M_look = _M_generator->getNextToken();
+        } else {
+            ++_M_it;
+            _M_look = _M_it != _M_tokens->end() ? *_M_it : nullptr;
+        }
         locate();
     }
 
@@ -72,6 +77,10 @@ namespace phi {
         return program(tokens);
     }
 
+    Parser::node_t Parser::parse(TokenGenerator *preprocessor) {
+        return program(preprocessor);
+    }
+
     Parser::node_t Parser::program(const tokens &tokens) {
         if (tokens.empty())
             return new Block;
@@ -79,6 +88,11 @@ namespace phi {
         _M_it = tokens.begin();
         _M_look = *_M_it;
 
+        return block();
+    }
+
+    Parser::node_t Parser::program(TokenGenerator *generator) {
+        _M_generator = generator;
         return block();
     }
 

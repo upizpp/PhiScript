@@ -1,6 +1,8 @@
 #pragma once
-#include <phi/compiler/token.hpp>
+#include <phi/compiler/lexer.hpp>
+#include <phi/compiler/token_generator.hpp>
 #include <phi/typedef.hpp>
+#include <stack>
 
 namespace phi {
     // TODO : PreprocessRule with arguments
@@ -18,20 +20,22 @@ namespace phi {
         }
     };
 
-    class Preprocessor {
+    class Preprocessor : public TokenGenerator {
       private:
-        token::tokens _M_tokens;
-        Owner<PreprocessRule> _M_rule;
+        PreprocessRule _M_rule;
+        Borrower<TokenGenerator> _M_generator;
+        std::stack<Ref<token::Token>> _M_cache;
+        Ref<token::Token> _M_ptr;
+
+      private:
+        void read();
 
       public:
-        Preprocessor(const token::tokens &t) : _M_tokens(t), _M_rule(nullptr) {}
-        Preprocessor(const token::tokens &t, const PreprocessRule &rule)
-            : _M_tokens(t), _M_rule(new PreprocessRule{rule}) {}
+        Preprocessor(TokenGenerator *generator,
+                     PreprocessRule rule = PreprocessRule())
+            : _M_generator(generator), _M_rule(rule) {}
 
-        void setRule(const PreprocessRule &rule) {
-            _M_rule.reset(new PreprocessRule{rule});
-        }
-
-        token::tokens &getTokens();
+        Ref<token::Token> getNextToken();
+        bool eof() { return !_M_cache.empty() && _M_generator->eof(); }
     };
 } // namespace phi

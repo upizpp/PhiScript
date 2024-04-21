@@ -4,52 +4,6 @@
 #include <phi/compiler/scanner.hpp>
 
 namespace phi {
-    token::tokens &Preprocessor::getTokens() {
-        if (_M_rule) {
-            // replace
-            while (true) {
-                bool replaced = false;
-                for (auto it = _M_tokens.begin(); it != _M_tokens.end(); ++it) {
-                    if (_M_rule->replaceable(*it)) {
-                        replaced = true;
-                        auto &replacement = _M_rule->getReplacement(*it);
-                        auto temp = it;
-                        it = _M_tokens.insert(it, replacement.begin(),
-                                              replacement.end());
-                        _M_tokens.erase(temp);
-                    }
-                }
-                if (!replaced)
-                    break;
-            }
-        }
-        // merge strings
-        auto it =
-            std::adjacent_find(_M_tokens.begin(), _M_tokens.end(),
-                               [](Ref<token::Token> a, Ref<token::Token> b) {
-                                   return a->tag() == token::Tag::STRING &&
-                                          b->tag() == token::Tag::STRING;
-                               });
-        while (it != _M_tokens.end()) {
-            auto a = it;
-            auto b = it;
-            ++b;
-            (Ref<token::Word>(*a))->merge(*Ref<token::Word>(*b));
-            _M_tokens.erase(b);
-            it = std::adjacent_find(
-                _M_tokens.begin(), _M_tokens.end(),
-                [](Ref<token::Token> a, Ref<token::Token> b) {
-                    return a->tag() == token::Tag::STRING &&
-                           b->tag() == token::Tag::STRING;
-                });
-        }
-
-        // TODO: Automatic Semicolon Insertion
-        
-
-        return _M_tokens;
-    }
-
     PreprocessRule::PreprocessRule(const string &path) {
         FileScanner scanner(path);
         static std::ostringstream os;
@@ -87,4 +41,16 @@ namespace phi {
                 lexer.getTokens();
         }
     }
+    Ref<token::Token> Preprocessor::getNextToken() {
+        if (!_M_cache.empty()) {
+            Ref<token::Token> result = _M_cache.top();
+            _M_cache.pop();
+            return result;
+        }
+        read();
+        while (_M_ptr->tag() == '\n')
+            read();
+        return _M_ptr;
+    }
+    void Preprocessor::read() { _M_ptr = _M_generator->getNextToken(); }
 } // namespace phi

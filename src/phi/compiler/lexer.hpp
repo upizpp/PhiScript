@@ -1,9 +1,9 @@
 #pragma once
 #include <phi/compiler/scanner.hpp>
-#include <phi/compiler/token.hpp>
+#include <phi/compiler/token_generator.hpp>
 
 namespace phi {
-    class Lexer {
+    class Lexer : public TokenGenerator {
       private:
         Borrower<Scanner> _M_scanner;
         uinteger _M_line;

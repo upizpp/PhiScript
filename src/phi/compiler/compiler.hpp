@@ -37,16 +37,10 @@ namespace phi {
         Compiler(Scanner *scanner, CompileOption &&option)
             : _M_scanner(scanner), _M_option(std::move(option)) {}
 
-        Ref<State> compile();
         Function load();
-        token::tokens tokenize();
-        Ref<ast::Node> parse();
 
-        static void optimize(State &, const CompileOption &);
-        static Ref<ast::Node> parse(token::tokens &);
         static Function load(Ref<ast::Node>, const CompileOption &option);
-        static token::tokens preprocess(const token::tokens &,
-                                        const CompileOption &);
+        static void optimize(State &state, const CompileOption &option);
         static Ref<State> gen(Ref<ast::Node>);
     };
 } // namespace phi
