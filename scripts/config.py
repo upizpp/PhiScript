@@ -1,83 +1,45 @@
-import json
-from sys import platform
+from os import path
+from hashlib import md5
+from re import finditer
+from cpp_libs import is_standard
 
 
-class ConfigType:
-    # the compiler to use
-    compiler: str = "g++"
-    # extra arguments for the compiler
-    extra: str = ""
-    # extra arguments for the linker
-    link_extra: str = ""
-    # the path to the cache directory
-    cache: str = ""
-    # the directory to scan
-    scan: str = ""
-    # the naming format of the code units
-    units: list = ["*.cpp"]
-    # the units which are ignored
-    ignore: list = [""]
-    # the RegEx pattern to search the associated files.
-    pattern: str = """^#include\s*(?:(?:"(.*)")|(?:<(.*)>))\s*$"""
-    # the output file path
-    output: str = "main.exe"
-    # the compile command pattern.
-    command: str = """{compiler} {includes} {unit} {extra} -c -o {output}"""
-    # whether to run the output file.
-    auto_run: bool = True
-    # the include directories
-    includes: list = []
-    # the dependence of the output file.
-    dependence: list = []
-
-    def __init__(self, config: dict) -> None:
-        self._lock(config)
-        self.pick("compiler")
-        self.pick("extra")
-        self.pick("link_extra")
-        self.pick("cache")
-        self.pick("scan")
-        self.pick("units")
-        self.pick("ignore")
-        self.pick("pattern")
-        self.pick("command")
-        self.pick("output")
-        self.pick("auto_run")
-        self.pick("includes")
-        self.pick("dependence")
-        self._unlock()
-
-    def get_command(self, unit: str, output: str) -> str:
-        _output = output.replace("$LIB$", "dll" if platform == "win32" else "so")
-        return self.command.format(
-            includes=" ".join([("-I" + x) for x in self.includes]),
-            extra=self.extra,
-            compiler=self.compiler,
-            output=_output,
-            unit=unit,
-        )
-
-    def pick(self, key: str) -> None:
-        if self.__temp is None:
-            raise Exception("Unable to call pick before calling _lock.")
-        if key in self.__temp:
-            setattr(self, key, self.__temp[key])
-
-    def _lock(self, config: dict) -> None:
-        self.__temp = config
-
-    def _unlock(self) -> None:
-        del self.__temp
+MAKEFILE = "./MakeFile"
+ROOT = "./"
+COMPILER = "g++"
+OBJECT = path.join(ROOT, "build")
 
 
-class Config:
-    def __init__(self, path: str) -> None:
-        with open(path, encoding="utf-8") as file:
-            data: dict = json.loads(file.read())
-            self.data = data
-            self.types = data.keys()
+def is_unit(basedir: str, filename: str) -> str:
+    return filename.endswith(".cpp")
 
-    def pick(self, type: str) -> ConfigType:
-        if not type in self.data:
-            raise KeyError("the type is not existed in the config file.")
-        return ConfigType(self.data[type])
+
+def get_clean(units) -> str:
+    return f"clean: \n\trm -rf {OBJECT}/*\n"
+
+
+def get_target(units) -> str:
+    return f"main: {' '.join([get_output(unit) for unit in units])}\n\t{COMPILER} $^ -o $@\n"
+
+
+def get_dependence(unit: str):
+    reg = '#include\s*(?:(?:<(.*)>)|(?:"(.*)"))'
+    with open(unit, "r", encoding="utf-8") as f:
+        content = f.read()
+        for m in finditer(reg, content):
+            lib = m.group(1)
+            if is_standard(lib):
+                continue
+            yield lib
+
+
+def get_output(unit: str) -> str:
+    return path.join(OBJECT, get_fingerprint(unit)).replace("\\", "/") + ".o"
+
+
+def get_unit_command(unit: str, dependence: list[str]) -> str:
+    return f"{COMPILER} -c {unit} -o {get_output(unit)}"
+
+
+def get_fingerprint(filepath: str) -> str:
+    return md5(filepath.encode()).hexdigest()

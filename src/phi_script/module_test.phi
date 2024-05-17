@@ -1,3 +1,0 @@
-import io
-io.print("TEST")
-return 1

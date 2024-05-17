@@ -1,3 +1,0 @@
-import "module_test.phi" as test
-import io
-io.print(test)

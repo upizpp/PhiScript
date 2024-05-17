@@ -1,0 +1,10 @@
+main: ./build/5f78f4af0541ddee992cafc5b380d427.o
+	g++ $^ -o $@
+
+clean: 
+	rm -rf ./build/*
+
+.PHONY: clean
+
+./build/5f78f4af0541ddee992cafc5b380d427.o: 
+	g++ -c ./src/main.cpp -o ./build/5f78f4af0541ddee992cafc5b380d427.o
