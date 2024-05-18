@@ -6,6 +6,8 @@ from itertools import tee
 def main() -> None:
     if not path.exists(config.OBJECT):
         makedirs(config.OBJECT)
+        with open(path.join(config.OBJECT, ".gitignore"), "w", encoding="utf-8") as f:
+            f.write("*")
     units = scan_units(config.ROOT)
     makefile = get_makefile(units)
     with open(config.MAKEFILE, "w", encoding="utf-8") as f:
@@ -31,7 +33,7 @@ def get_makefile(units) -> str:
 def scan_units(root: str):
     for (
         root,
-        dirs,
+        _dirs,
         files,
     ) in walk(root):
         for file in files:
