@@ -1,9 +1,26 @@
 import config
+from argparse import ArgumentParser
 from os import path, walk, makedirs
 from itertools import tee
+from configparser import ConfigParser
 
 
 def main() -> None:
+    conf = ConfigParser()
+    conf.read("./config.ini", encoding="utf-8")
+
+    parser = ArgumentParser()
+    parser.add_argument(
+        "--project",
+        "-p",
+        required=True,
+        help="the project to build.",
+        choices=conf.sections(),
+    )
+    args = parser.parse_args()
+
+    config.configure(conf[args.project])
+
     if not path.exists(config.OBJECT):
         makedirs(config.OBJECT)
         with open(path.join(config.OBJECT, ".gitignore"), "w", encoding="utf-8") as f:

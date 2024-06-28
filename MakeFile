@@ -1,10 +1,18 @@
-main: ./build/5f78f4af0541ddee992cafc5b380d427.o
-	g++ $^ -o $@
+main: ./build/15f4e13d63e936001bf2fc770521187e.o ./build/d3385bfc8a93e35ef5279a7a98582e3f.o ./build/5b104c625a158f959101d2387e909831.o ./build/fbd077acd22a0faf3944c56b74efba70.o ./build/72866e04ecd2f6af48e373114776f72d.o
+	g++ -g $^ -o $@
 
 clean: 
-	rm -rf ./build/*
+	rm -rf ./build/* && rm -rf ./main
 
 .PHONY: clean
 
-./build/5f78f4af0541ddee992cafc5b380d427.o: 
-	g++ -c ./src/main.cpp -o ./build/5f78f4af0541ddee992cafc5b380d427.o
+./build/15f4e13d63e936001bf2fc770521187e.o: ./src/test.cpp ./src/phi/compile/lexer.hpp ./src/phi/compile/preprocessor.hpp ./src/phi/follower.hpp
+	g++  -I./src/phi -g -c ./src/test.cpp -o ./build/15f4e13d63e936001bf2fc770521187e.o
+./build/d3385bfc8a93e35ef5279a7a98582e3f.o: ./src/phi/native_families.cpp ./src/phi/variable.hpp
+	g++  -I./src/phi -g -c ./src/phi/native_families.cpp -o ./build/d3385bfc8a93e35ef5279a7a98582e3f.o
+./build/5b104c625a158f959101d2387e909831.o: ./src/phi/compile/lexer.cpp ./src/phi/follower.hpp
+	g++  -I./src/phi -g -c ./src/phi/compile/lexer.cpp -o ./build/5b104c625a158f959101d2387e909831.o
+./build/fbd077acd22a0faf3944c56b74efba70.o: ./src/phi/compile/preprocessor.cpp
+	g++  -I./src/phi -g -c ./src/phi/compile/preprocessor.cpp -o ./build/fbd077acd22a0faf3944c56b74efba70.o
+./build/72866e04ecd2f6af48e373114776f72d.o: ./src/phi/compile/token.cpp
+	g++  -I./src/phi -g -c ./src/phi/compile/token.cpp -o ./build/72866e04ecd2f6af48e373114776f72d.o
