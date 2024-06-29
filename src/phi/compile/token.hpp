@@ -7,7 +7,7 @@ namespace phi {
 namespace token {
 
 enum Type {
-    EOF = 256,
+    EOF = 255,
     ID,
     INT,
     REAL,
@@ -57,7 +57,8 @@ struct Token {
     Token(uint16_t ch) : id(ch) {}
 
     string toString() const;
-    static unique_ptr<Token> getToken(const string &keyword);
+    static unique_ptr<Token> getKeyword(const string &keyword);
+    static unique_ptr<Token> getDoubleOperator(const string &op);
 };
 
 struct Word : Token {

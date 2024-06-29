@@ -1,6 +1,8 @@
 #include "lexer.hpp"
+#include <array>
 #include <cctype>
 #include <follower.hpp>
+#include <set>
 
 constexpr phi::char_t EOF = 255;
 
@@ -19,25 +21,34 @@ static bool is_valid_identifier_char(phi::char_t c) {
            (isalpha(c) || c == '$' || c == '_' || byte_length(c) > 1);
 }
 
-namespace phi {
+static bool is_valid_double_operator_char(phi::char_t c) {
+    return c == '+' || c == '-' || c == '*' || c == '/' || c == '%' ||
+           c == '=' || c == '!' || c == '&' || c == '|' || c == '^' ||
+           c == '~' || c == '<' || c == '>';
+}
 
-unique_ptr<token::Token> phi::Lexer::next() {
+namespace phi {
+using namespace token;
+unique_ptr<Token> Lexer::next() {
+    if (_M_peek == '\0')
+        read();
+
     while (_M_peek == '\t' || _M_peek == ' ')
         read();
     if (_M_peek == '\n') {
         read();
         set_line(line + 1);
-        return make_unique<token::Token>('\n');
+        return make_unique<Token>('\n');
     }
     if (_M_peek == EOF) {
         _M_eof = true;
-        return make_unique<token::Token>(token::Type::EOF);
+        return make_unique<Token>(Type::EOF);
     }
 
     if (std::isdigit(_M_peek)) {
         int64_t x = read_integer();
         if (_M_peek != '.')
-            return make_unique<token::Integer>(x);
+            return make_unique<Integer>(x);
         read();
         real_t y = x;
         real_t d = 10;
@@ -46,7 +57,7 @@ unique_ptr<token::Token> phi::Lexer::next() {
             d *= 10;
             read();
         } while (std::isdigit(_M_peek));
-        return make_unique<token::Real>(y);
+        return make_unique<Real>(y);
     }
 
     constexpr char_t symbols[] = {'\'', '\"'};
@@ -88,7 +99,7 @@ unique_ptr<token::Token> phi::Lexer::next() {
                 read();
             }
             read();
-            return make_unique<token::Word>(ss.str(), token::Type::STRING);
+            return make_unique<Word>(ss.str(), Type::STRING);
         }
     }
 
@@ -105,20 +116,72 @@ unique_ptr<token::Token> phi::Lexer::next() {
                 ss << _M_peek;
         } while (is_valid_identifier_char(_M_peek));
         string s = ss.str();
-        if (auto res = token::Token::getToken(s))
+        if (auto res = Token::getKeyword(s))
             return res;
-        return make_unique<token::Word>(s);
+        return make_unique<Word>(s);
     }
 
+    if (is_valid_double_operator_char(_M_peek)) {
+        static const auto DoubleOperators = to_array<std::string_view>({
+            ">=",
+            "<=",
+            "==",
+            "!=",
+            "&&",
+            "||",
+            "<<",
+            ">>",
+            "**",
+            "->",
+            "@@",
+            "++",
+            "--",
+        });
+        char_t tmp = _M_peek;
+        std::set<uint8_t> operators;
+        for (uint8_t i = 0; i < DoubleOperators.size(); ++i)
+            operators.insert(i);
+
+        int16_t result = -1;
+        for (uint8_t i = 0; true; ++i, read()) {
+            bool found = false;
+            for (uint8_t j = 0; j < DoubleOperators.size(); ++j)
+                if (_M_peek != DoubleOperators[j][i] &&
+                    operators.find(j) != operators.end()) {
+                    operators.erase(j);
+                    found = true;
+                }
+            if (operators.size() == 1 &&
+                i == DoubleOperators[*operators.begin()].size() - 1)
+                if (result == -1) {
+                    result = *operators.begin();
+                    _M_peek = '\0';
+                }
+            if (!found || operators.size() == 0)
+                break;
+        }
+        return result == -1
+                   ? make_unique<Token>(tmp)
+                   : Token::getDoubleOperator({DoubleOperators[result].data()});
+    }
     char_t tmp = _M_peek;
     read();
-    return make_unique<token::Token>(tmp);
+    return make_unique<Token>(tmp);
 }
 void Lexer::set_line(uint64_t v) {
     line = v;
     ProgramFollower::get().line = line;
 }
 void Lexer::read() { _M_scanner >> _M_peek; }
+bool Lexer::read(char_t expected) {
+    read();
+    if (_M_peek == expected) {
+        _M_peek = '\0';
+        return true;
+    } else {
+        return false;
+    }
+}
 int64_t Lexer::read_integer() {
     int64_t x = 0;
     do {

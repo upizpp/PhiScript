@@ -5,7 +5,6 @@
 namespace phi {
 struct Lexer : TokenGenerator {
     Lexer(Scanner &scanner) : _M_scanner(scanner), _M_peek(0), _M_eof(false) {
-        read();
         set_line(1);
     }
 
@@ -21,6 +20,7 @@ struct Lexer : TokenGenerator {
   private:
     void set_line(uint64_t v);
     void read();
+    bool read(char_t);
     int64_t read_integer();
 
     bool _M_eof;

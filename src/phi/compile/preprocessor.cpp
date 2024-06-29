@@ -18,16 +18,16 @@ unique_ptr<token::Token> Preprocessor::next() {
         auto next_tok = _M_generator.next();
         if (!(    //
                 ( //
-                    token->id == '\n' &&
-                    (next_tok->id == '\n' || next_tok->id == token::Type::EOF)) //
-                ||                                                      //
-                (                                                       //
-                    token->id == ';' &&                                 //
-                    (next_tok->id == ';' ||                                 //
-                     next_tok->id == '\n' ||                                //
-                     next_tok->id == token::Type::EOF                       //
-                     ))                                                 //
-                )                                                       //
+                    token->id == '\n' && (next_tok->id == '\n' ||
+                                          next_tok->id == token::Type::EOF)) //
+                ||                                                           //
+                (                                                            //
+                    token->id == ';' &&                                      //
+                    (next_tok->id == ';' ||                                  //
+                     next_tok->id == '\n' ||                                 //
+                     next_tok->id == token::Type::EOF                        //
+                     ))                                                      //
+                )                                                            //
         ) {
             _M_cache = next_tok.release();
             break;
@@ -65,13 +65,12 @@ unique_ptr<token::Token> Preprocessor::next() {
         if (_M_unclosed_pair[begin] == 0)
             _M_unclosed_pair.erase(begin);
     }
-    if ((token->id == '\n' || token->id == token::Type::EOF) &&
-        _M_unclosed_pair.empty() && _M_struct_keywords == 0) {
-        return make_unique<token::Token>(';');
-    }
-    if ((token->id == '\n' || token->id == token::Type::EOF) &&
-        _M_unclosed_pair.empty() && _M_struct_keywords != 0) {
-        --_M_struct_keywords;
+    if (token->id == '\n' || token->id == token::Type::EOF) {
+        if (_M_unclosed_pair.empty())
+            if (_M_struct_keywords == 0)
+                return make_unique<token::Token>(';');
+            else
+                --_M_struct_keywords;
         return next();
     }
 
