@@ -10,7 +10,7 @@ std::ostream &token::operator<<(std::ostream &os, const Token &token) {
 }
 
 string Token::toString() const {
-    switch (id) {
+    switch (tag) {
     case EOF:
         return "<EOF>";
     case '\n':
@@ -24,51 +24,72 @@ string Token::toString() const {
     case REAL:
         return std::to_string(static_cast<const Real &>(*this).num);
     default:
-        if (id < 256)
-            return string({(char)id});
+        if (tag < 256)
+            return string({(char)tag});
         else
-            switch (id) {
-            case Type::GE:
+            switch (tag) {
+            case Tag::GE:
                 return ">=";
             default:
                 return static_cast<const Word &>(*this).word;
             }
     }
 }
+string token::Token::tagToString(Tag tag) {
+    switch (tag) {
+    case EOF:
+        return "<EOF>";
+    case '\n':
+        return "<ENDL>";
+    case STRING:
+        return "<string>";
+    case ID:
+        return "<identifier>";
+    case INT:
+        return "<int>";
+    case REAL:
+        return "<real>";
+    default:
+        if (tag < 256)
+            return string({(char)tag});
+        else
+            return "<unknown>";
+    }
+}
 unique_ptr<Token> Token::getKeyword(const string &keyword) {
-    static const std::map<string, Type> Keywords = {
-        {"pass", Type::PASS},
-        {"return", Type::RETURN},
-        {"fn", Type::FN},
-        {"var", Type::VAR},
-        {"if", Type::IF},
-        {"else", Type::ELSE},
-        {"for", Type::FOR},
-        {"while", Type::WHILE},
-        {"do", Type::DO},
-        {"break", Type::BREAK},
-        {"continue", Type::CONTINUE},
-        {"true", Type::TRUE},
-        {"false", Type::FALSE},
-        {"export", Type::EXPORT},
-        {"import", Type::IMPORT},
-        {"as", Type::AS},
-        {"eval", Type::EVAL},
-        {"delete", Type::DELETE},
-        {"likely", Type::LIKELY},
-        {"unlikely", Type::UNLIKELY},
+    static const std::map<string, Tag> Keywords = {
+        {"pass", Tag::PASS},
+        {"return", Tag::RETURN},
+        {"fn", Tag::FN},
+        {"var", Tag::VAR},
+        {"if", Tag::IF},
+        {"else", Tag::ELSE},
+        {"for", Tag::FOR},
+        {"while", Tag::WHILE},
+        {"do", Tag::DO},
+        {"break", Tag::BREAK},
+        {"continue", Tag::CONTINUE},
+        {"true", Tag::TRUE},
+        {"false", Tag::FALSE},
+        {"export", Tag::EXPORT},
+        {"import", Tag::IMPORT},
+        {"as", Tag::AS},
+        {"eval", Tag::EVAL},
+        {"delete", Tag::DELETE},
+        {"likely", Tag::LIKELY},
+        {"unlikely", Tag::UNLIKELY},
     };
     if (Keywords.find(keyword) != Keywords.end())
         return unique_ptr<Token>(new Word(keyword, Keywords.at(keyword)));
     return unique_ptr<Token>();
 }
 unique_ptr<Token> Token::getDoubleOperator(const string &op) {
-    static const std::map<string, Type> DoubleOperators = {
-        {">=", Type::GE},     {"<=", Type::LE},     {"==", Type::EQ},
-        {"!=", Type::NE},     {"&&", Type::AND},    {"||", Type::OR},
-        {"<<", Type::LSHIFT}, {">>", Type::RSHIFT}, {"**", Type::POW},
-        {"->", Type::ARROW},  {"@@", Type::DCPY},   {"++", Type::INC},
-        {"--", Type::RED},
+    static const std::map<string, Tag> DoubleOperators = {
+        {">=", Tag::GE},     {"<=", Tag::LE},     {"==", Tag::EQ},
+        {"!=", Tag::NE},     {"&&", Tag::AND},    {"||", Tag::OR},
+        {"<<", Tag::LSHIFT}, {">>", Tag::RSHIFT}, {"**", Tag::POW},
+        {"->", Tag::ARROW},  {"@@", Tag::DCPY},   {"++", Tag::INC},
+        {"--", Tag::RED},
     };
     if (DoubleOperators.find(op) != DoubleOperators.end())
         return unique_ptr<Token>(new Word(op, DoubleOperators.at(op)));

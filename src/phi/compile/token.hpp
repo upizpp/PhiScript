@@ -6,7 +6,7 @@
 namespace phi {
 namespace token {
 
-enum Type {
+enum Tag : uint16_t {
     EOF = 255,
     ID,
     INT,
@@ -51,12 +51,13 @@ enum Type {
 };
 
 struct Token {
-    uint16_t id;
+    Tag tag;
 
     Token() = default;
-    Token(uint16_t ch) : id(ch) {}
+    Token(uint16_t ch) : tag((Tag)ch) {}
 
     string toString() const;
+    static string tagToString(Tag);
     static unique_ptr<Token> getKeyword(const string &keyword);
     static unique_ptr<Token> getDoubleOperator(const string &op);
 };
@@ -65,7 +66,7 @@ struct Word : Token {
     string word;
 
     Word(string w) : word(w), Token(ID) {}
-    Word(string w, uint16_t id) : word(w), Token(id) {}
+    Word(string w, uint16_t tag) : word(w), Token(tag) {}
 };
 
 struct Integer : Token {

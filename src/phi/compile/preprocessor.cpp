@@ -18,16 +18,16 @@ unique_ptr<token::Token> Preprocessor::next() {
         auto next_tok = _M_generator.next();
         if (!(    //
                 ( //
-                    token->id == '\n' && (next_tok->id == '\n' ||
-                                          next_tok->id == token::Type::EOF)) //
-                ||                                                           //
-                (                                                            //
-                    token->id == ';' &&                                      //
-                    (next_tok->id == ';' ||                                  //
-                     next_tok->id == '\n' ||                                 //
-                     next_tok->id == token::Type::EOF                        //
-                     ))                                                      //
-                )                                                            //
+                    token->tag == '\n' && (next_tok->tag == '\n' ||
+                                           next_tok->tag == token::Tag::EOF)) //
+                ||                                                            //
+                (                                                             //
+                    token->tag == ';' &&                                      //
+                    (next_tok->tag == ';' ||                                  //
+                     next_tok->tag == '\n' ||                                 //
+                     next_tok->tag == token::Tag::EOF                         //
+                     ))                                                       //
+                )                                                             //
         ) {
             _M_cache = next_tok.release();
             break;
@@ -46,26 +46,26 @@ unique_ptr<token::Token> Preprocessor::next() {
         {')', '('},
     };
     static const std::set<uint16_t> StructKeyword = {
-        token::Type::IF,
-        token::Type::FOR,
-        token::Type::WHILE,
+        token::Tag::IF,
+        token::Tag::FOR,
+        token::Tag::WHILE,
     };
-    if (StructKeyword.find(token->id) != StructKeyword.end())
+    if (StructKeyword.find(token->tag) != StructKeyword.end())
         ++_M_struct_keywords;
-    if (BeginPairs.find(token->id) != BeginPairs.end()) {
-        if (_M_unclosed_pair.find(token->id) == _M_unclosed_pair.end())
-            _M_unclosed_pair[token->id] = 0;
-        ++_M_unclosed_pair[token->id];
+    if (BeginPairs.find(token->tag) != BeginPairs.end()) {
+        if (_M_unclosed_pair.find(token->tag) == _M_unclosed_pair.end())
+            _M_unclosed_pair[token->tag] = 0;
+        ++_M_unclosed_pair[token->tag];
     }
-    if (EndPairs.find(token->id) != EndPairs.end()) {
-        char_t begin = EndPairs.at(token->id);
+    if (EndPairs.find(token->tag) != EndPairs.end()) {
+        char_t begin = EndPairs.at(token->tag);
         if (_M_unclosed_pair.find(begin) == _M_unclosed_pair.end())
             throw TokenException(*token);
         --_M_unclosed_pair[begin];
         if (_M_unclosed_pair[begin] == 0)
             _M_unclosed_pair.erase(begin);
     }
-    if (token->id == '\n' || token->id == token::Type::EOF) {
+    if (token->tag == '\n' || token->tag == token::Tag::EOF) {
         if (_M_unclosed_pair.empty())
             if (_M_struct_keywords == 0)
                 return make_unique<token::Token>(';');

@@ -42,7 +42,7 @@ unique_ptr<Token> Lexer::next() {
     }
     if (_M_peek == EOF) {
         _M_eof = true;
-        return make_unique<Token>(Type::EOF);
+        return make_unique<Token>(Tag::EOF);
     }
 
     if (std::isdigit(_M_peek)) {
@@ -99,7 +99,7 @@ unique_ptr<Token> Lexer::next() {
                 read();
             }
             read();
-            return make_unique<Word>(ss.str(), Type::STRING);
+            return make_unique<Word>(ss.str(), Tag::STRING);
         }
     }
 
