@@ -46,9 +46,8 @@ unique_ptr<token::Token> Preprocessor::next() {
         {')', '('},
     };
     static const std::set<uint16_t> StructKeyword = {
-        token::Tag::IF,
-        token::Tag::FOR,
-        token::Tag::WHILE,
+        token::Tag::IF,    token::Tag::ELSE, token::Tag::FOR,
+        token::Tag::WHILE, token::Tag::FN,
     };
     if (StructKeyword.find(token->tag) != StructKeyword.end())
         ++_M_struct_keywords;

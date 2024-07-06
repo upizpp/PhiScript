@@ -1,4 +1,4 @@
-main: ./build/15f4e13d63e936001bf2fc770521187e.o ./build/d3385bfc8a93e35ef5279a7a98582e3f.o ./build/5b104c625a158f959101d2387e909831.o ./build/fbd077acd22a0faf3944c56b74efba70.o ./build/72866e04ecd2f6af48e373114776f72d.o
+main: ./build/15f4e13d63e936001bf2fc770521187e.o ./build/d3385bfc8a93e35ef5279a7a98582e3f.o ./build/4476a85cc5438cde6f751e1b536fb9de.o ./build/5b104c625a158f959101d2387e909831.o ./build/2032a2b12b33de32f01a8412b2ba4409.o ./build/fbd077acd22a0faf3944c56b74efba70.o ./build/72866e04ecd2f6af48e373114776f72d.o
 	g++ -g $^ -o $@
 
 clean: 
@@ -6,13 +6,17 @@ clean:
 
 .PHONY: clean
 
-./build/15f4e13d63e936001bf2fc770521187e.o: ./src/test.cpp ./src/phi/compile/lexer.hpp ./src/phi/compile/preprocessor.hpp ./src/phi/follower.hpp
+./build/15f4e13d63e936001bf2fc770521187e.o: ./src/test.cpp ./src/phi/compile/lexer.hpp ./src/phi/compile/parser.hpp ./src/phi/compile/preprocessor.hpp ./src/phi/follower.hpp
 	g++  -I./src/phi -g -c ./src/test.cpp -o ./build/15f4e13d63e936001bf2fc770521187e.o
 ./build/d3385bfc8a93e35ef5279a7a98582e3f.o: ./src/phi/native_families.cpp ./src/phi/variable.hpp
 	g++  -I./src/phi -g -c ./src/phi/native_families.cpp -o ./build/d3385bfc8a93e35ef5279a7a98582e3f.o
+./build/4476a85cc5438cde6f751e1b536fb9de.o: ./src/phi/compile/ast.cpp ./src/phi/follower.hpp
+	g++  -I./src/phi -g -c ./src/phi/compile/ast.cpp -o ./build/4476a85cc5438cde6f751e1b536fb9de.o
 ./build/5b104c625a158f959101d2387e909831.o: ./src/phi/compile/lexer.cpp ./src/phi/follower.hpp
 	g++  -I./src/phi -g -c ./src/phi/compile/lexer.cpp -o ./build/5b104c625a158f959101d2387e909831.o
-./build/fbd077acd22a0faf3944c56b74efba70.o: ./src/phi/compile/preprocessor.cpp
+./build/2032a2b12b33de32f01a8412b2ba4409.o: ./src/phi/compile/parser.cpp ./src/phi/exception.hpp
+	g++  -I./src/phi -g -c ./src/phi/compile/parser.cpp -o ./build/2032a2b12b33de32f01a8412b2ba4409.o
+./build/fbd077acd22a0faf3944c56b74efba70.o: ./src/phi/compile/preprocessor.cpp ./src/phi/exception.hpp
 	g++  -I./src/phi -g -c ./src/phi/compile/preprocessor.cpp -o ./build/fbd077acd22a0faf3944c56b74efba70.o
 ./build/72866e04ecd2f6af48e373114776f72d.o: ./src/phi/compile/token.cpp
 	g++  -I./src/phi -g -c ./src/phi/compile/token.cpp -o ./build/72866e04ecd2f6af48e373114776f72d.o

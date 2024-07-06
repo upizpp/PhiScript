@@ -114,7 +114,7 @@ unique_ptr<Token> Lexer::next() {
             }
             for (size_t i = 0; i < len; i++, read())
                 ss << _M_peek;
-        } while (is_valid_identifier_char(_M_peek));
+        } while (is_valid_identifier_char(_M_peek) || std::isdigit(_M_peek));
         string s = ss.str();
         if (auto res = Token::getKeyword(s))
             return res;
@@ -143,6 +143,7 @@ unique_ptr<Token> Lexer::next() {
             operators.insert(i);
 
         int16_t result = -1;
+        bool first = true;
         for (uint8_t i = 0; true; ++i, read()) {
             bool found = false;
             for (uint8_t j = 0; j < DoubleOperators.size(); ++j)
@@ -151,18 +152,21 @@ unique_ptr<Token> Lexer::next() {
                     operators.erase(j);
                     found = true;
                 }
+            if (first && operators.empty())
+                _M_peek = '\0';
             if (operators.size() == 1 &&
-                i == DoubleOperators[*operators.begin()].size() - 1)
-                if (result == -1) {
-                    result = *operators.begin();
-                    _M_peek = '\0';
-                }
+                i == DoubleOperators[*operators.begin()].size() - 1 &&
+                result == -1) {
+                result = *operators.begin();
+                _M_peek = '\0';
+            }
             if (!found || operators.size() == 0)
                 break;
+            first = false;
         }
-        return result == -1
-                   ? make_unique<Token>(tmp)
-                   : Token::getDoubleOperator({DoubleOperators[result].data()});
+        if (result == -1)
+            return make_unique<Token>(tmp);
+        return Token::getDoubleOperator({DoubleOperators[result].data()});
     }
     char_t tmp = _M_peek;
     read();

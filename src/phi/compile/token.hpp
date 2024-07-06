@@ -1,4 +1,5 @@
 #pragma once
+#include <map>
 #include <typedef.hpp>
 
 #undef EOF
@@ -28,6 +29,7 @@ enum Tag : uint16_t {
     DCPY,  // deep copy
     ARROW, // =>
     // keywords
+    IN,
     PASS,
     RETURN,
     FN,
@@ -51,7 +53,10 @@ enum Tag : uint16_t {
 };
 
 struct Token {
-    Tag tag;
+    union {
+        Tag tag;
+        char_t _;
+    };
 
     Token() = default;
     Token(uint16_t ch) : tag((Tag)ch) {}
@@ -60,13 +65,23 @@ struct Token {
     static string tagToString(Tag);
     static unique_ptr<Token> getKeyword(const string &keyword);
     static unique_ptr<Token> getDoubleOperator(const string &op);
+
+    const int64_t &getInt() const;
+    const real_t &getReal() const;
+    const string &getString() const;
+    const shared_ptr<string> &getStringPtr() const;
 };
 
 struct Word : Token {
-    string word;
+    Word(const string &w);
+    Word(const string &w, uint16_t tag);
 
-    Word(string w) : word(w), Token(ID) {}
-    Word(string w, uint16_t tag) : word(w), Token(tag) {}
+    const shared_ptr<string> &wordPtr() const { return _M_word; }
+    const string &word() const { return *wordPtr(); }
+
+  private:
+    static std::map<string, shared_ptr<string>> _M_words;
+    shared_ptr<string> _M_word;
 };
 
 struct Integer : Token {
