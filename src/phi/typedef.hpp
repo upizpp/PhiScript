@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #define __always_inline inline __attribute__((always_inline))
 
@@ -28,8 +29,12 @@ using std::uint8_t;
 
 using char_t = unsigned char;
 using real_t = double;
+using int_t = int64_t;
+
+using index_t = uint32_t;
 
 using std::string;
+using std::string_view;
 
 using std::cout;
 using std::endl;
@@ -61,5 +66,19 @@ template <typename R, typename... Args> struct __func_ptr_impl<R(Args...)> {
     using type = R (*)(Args...);
 };
 template <typename F> using func_ptr = typename __func_ptr_impl<F>::type;
+
+template <typename T, typename C, typename I = size_t>
+struct ContainerReference {
+    ContainerReference(C &container, I index)
+        : _M_container(container), _M_index(index) {}
+
+    PROPERTY(I, index, 0)
+
+    T &value() { return _M_container[index()]; }
+    const T &value() const { return _M_container[index()]; }
+
+  private:
+    C &_M_container;
+};
 
 } // namespace phi

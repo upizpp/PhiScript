@@ -90,8 +90,7 @@ unique_ptr<Token> Token::getDoubleOperator(const string &op) {
         {"!=", Tag::NE},     {"&&", Tag::AND},    {"||", Tag::OR},
         {"<<", Tag::LSHIFT}, {">>", Tag::RSHIFT}, {"**", Tag::POW},
         {"->", Tag::ARROW},  {"@@", Tag::DCPY},   {"++", Tag::INC},
-        {"--", Tag::RED},
-    };
+        {"--", Tag::RED},    {"=>", Tag::ARROW}};
     if (DoubleOperators.find(op) != DoubleOperators.end())
         return unique_ptr<Token>(new Word(op, DoubleOperators.at(op)));
     return unique_ptr<Token>();

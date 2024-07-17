@@ -122,21 +122,9 @@ unique_ptr<Token> Lexer::next() {
     }
 
     if (is_valid_double_operator_char(_M_peek)) {
-        static const auto DoubleOperators = to_array<std::string_view>({
-            ">=",
-            "<=",
-            "==",
-            "!=",
-            "&&",
-            "||",
-            "<<",
-            ">>",
-            "**",
-            "->",
-            "@@",
-            "++",
-            "--",
-        });
+        static const auto DoubleOperators = to_array<std::string_view>(
+            {">=", "<=", "==", "!=", "&&", "||", "<<", ">>", "**", "->", "@@",
+             "++", "--", "=>"});
         char_t tmp = _M_peek;
         std::set<uint8_t> operators;
         for (uint8_t i = 0; i < DoubleOperators.size(); ++i)

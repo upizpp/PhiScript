@@ -24,6 +24,11 @@ void StringExpr::print(int16_t level) {
     INIT;
     WOUT << "Constant: " << '"' << *value << '"';
 }
+
+void BoolExpr::print(int16_t level) {
+    INIT;
+    WOUT << "Constant: " << (value ? "true" : "false");
+}
 void Sequence::print(int16_t level) {
     if (current)
         current->print(level);
@@ -36,7 +41,8 @@ void Sequence::print(int16_t level) {
 void Block::print(int16_t level) {
     INIT;
     WOUT << "Block: " << endl;
-    body->print(level + 1);
+    if (body)
+        body->print(level + 1);
 }
 void UnaryExpr::print(int16_t level) {
     INIT;

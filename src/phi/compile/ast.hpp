@@ -11,6 +11,7 @@ struct Expr {
         STRING,
         INTEGER,
         REAL,
+        BOOL,
         SEQUENCE,
         BLOCK,
         UNARY_EXPR,
@@ -20,9 +21,11 @@ struct Expr {
         FOR,
         ACCESS,
         CALL,
-        FUNC
+        FUNC,
+        LOAD,
     };
     Expr();
+    Expr(uint64_t l) : line(l) {}
 
     uint64_t line;
 
@@ -31,19 +34,26 @@ struct Expr {
 };
 struct IntegerExpr : Expr {
     int64_t value;
-    IntegerExpr(int64_t v) : value(v), Expr() {}
+    IntegerExpr(int64_t v, uint64_t line_) : value(v), Expr(line_) {}
     virtual Type getType() override { return Type::INTEGER; }
     virtual void print(int16_t level) override;
 };
 struct RealExpr : Expr {
     real_t value;
-    RealExpr(real_t v) : value(v), Expr() {}
+    RealExpr(real_t v, uint64_t line_) : value(v), Expr(line_) {}
     virtual Type getType() override { return Type::REAL; }
+    virtual void print(int16_t level) override;
+};
+struct BoolExpr : Expr {
+    bool value;
+    BoolExpr(bool v, uint64_t line_) : value(v), Expr(line_) {}
+    virtual Type getType() override { return Type::BOOL; }
     virtual void print(int16_t level) override;
 };
 struct StringExpr : Expr {
     shared_ptr<string> value;
-    StringExpr(const shared_ptr<string> &v) : value(v), Expr() {}
+    StringExpr(const shared_ptr<string> &v, uint64_t line_)
+        : value(v), Expr(line_) {}
     virtual Type getType() override { return Type::STRING; }
     virtual void print(int16_t level) override;
 };
@@ -51,8 +61,8 @@ struct Sequence : Expr {
     unique_ptr<Expr> current;
     unique_ptr<Expr> next;
 
-    Sequence(unique_ptr<Expr> &&c, unique_ptr<Expr> &&n)
-        : current(move(c)), next(move(n)), Expr() {}
+    Sequence(unique_ptr<Expr> &&c, unique_ptr<Expr> &&n, uint64_t line_)
+        : current(move(c)), next(move(n)), Expr(line_) {}
     Type getType() override { return Type::SEQUENCE; }
     virtual void print(int16_t level) override;
 };
@@ -62,16 +72,17 @@ struct Block : Expr {
 
     unique_ptr<Expr> body;
 
-    Block(unique_ptr<Expr> &&b) : body(move(b)), Expr() {}
-    Type getType() override { return Type::EXPR; }
+    Block(unique_ptr<Expr> &&b, uint64_t line_) : body(move(b)), Expr(line_) {}
+    Type getType() override { return Type::BLOCK; }
     virtual void print(int16_t level) override;
 };
 struct UnaryExpr : Expr {
 
     unique_ptr<Expr> expr;
     unique_ptr<token::Token> op;
-    UnaryExpr(unique_ptr<Expr> &&e, unique_ptr<token::Token> &&o)
-        : Expr(), expr(move(e)), op(move(o)) {}
+    UnaryExpr(unique_ptr<Expr> &&e, unique_ptr<token::Token> &&o,
+              uint64_t line_)
+        : Expr(line_), expr(move(e)), op(move(o)) {}
     Type getType() override { return Type::UNARY_EXPR; }
     virtual void print(int16_t level) override;
 };
@@ -80,8 +91,8 @@ struct BinaryExpr : Expr {
     unique_ptr<Expr> right;
     unique_ptr<token::Token> op;
     BinaryExpr(unique_ptr<Expr> &&l, unique_ptr<Expr> &&r,
-               unique_ptr<token::Token> o)
-        : Expr(), left(move(l)), right(move(r)), op(move(o)) {}
+               unique_ptr<token::Token> o, uint64_t line_)
+        : Expr(line_), left(move(l)), right(move(r)), op(move(o)) {}
 
     Type getType() override { return Type::BINARY_EXPR; }
     virtual void print(int16_t level) override;
@@ -90,8 +101,9 @@ struct Load : Expr {
     shared_ptr<string> identifier;
     bool withVar;
 
-    Load(const shared_ptr<string> &i, bool wv) : identifier(i), withVar(wv) {}
-    Type getType() override { return Type::EXPR; }
+    Load(const shared_ptr<string> &i, bool wv, uint64_t line_)
+        : identifier(i), withVar(wv), Expr(line_) {}
+    Type getType() override { return Type::LOAD; }
     virtual void print(int16_t level) override;
 };
 
@@ -100,8 +112,9 @@ struct If : Expr {
     unique_ptr<Expr> body;
     unique_ptr<Expr> elseBody;
 
-    If(unique_ptr<Expr> &&c, unique_ptr<Expr> &&b, unique_ptr<Expr> &&eb)
-        : condition(move(c)), body(move(b)), elseBody(move(eb)), Expr() {}
+    If(unique_ptr<Expr> &&c, unique_ptr<Expr> &&b, unique_ptr<Expr> &&eb,
+       uint64_t line_)
+        : condition(move(c)), body(move(b)), elseBody(move(eb)), Expr(line_) {}
 
     virtual void print(int16_t level) override;
     virtual Type getType() override { return Type::IF; }
@@ -111,11 +124,12 @@ struct While : Expr {
     unique_ptr<Expr> body;
     unique_ptr<Expr> elseBody;
 
-    While(unique_ptr<Expr> &&c, unique_ptr<Expr> &&b, unique_ptr<Expr> &&eb)
-        : condition(move(c)), body(move(b)), elseBody(move(eb)), Expr() {}
+    While(unique_ptr<Expr> &&c, unique_ptr<Expr> &&b, unique_ptr<Expr> &&eb,
+          uint64_t line_)
+        : condition(move(c)), body(move(b)), elseBody(move(eb)), Expr(line_) {}
 
     virtual void print(int16_t level) override;
-    virtual Type getType() override { return Type::IF; }
+    virtual Type getType() override { return Type::WHILE; }
 };
 struct For : Expr {
     unique_ptr<Expr> initializer;
@@ -125,9 +139,9 @@ struct For : Expr {
     unique_ptr<Expr> elseBody;
 
     For(unique_ptr<Expr> &&i, unique_ptr<Expr> &&c, unique_ptr<Expr> &&u,
-        unique_ptr<Expr> &&b, unique_ptr<Expr> &&eb)
+        unique_ptr<Expr> &&b, unique_ptr<Expr> &&eb, uint64_t line_)
         : initializer(move(i)), condition(move(c)), update(move(u)),
-          body(move(b)), elseBody(move(eb)), Expr() {}
+          body(move(b)), elseBody(move(eb)), Expr(line_) {}
 
     virtual void print(int16_t level) override;
     virtual Type getType() override { return Type::FOR; }
@@ -136,8 +150,8 @@ struct Access : Expr {
     unique_ptr<Expr> target;
     unique_ptr<Expr> args;
 
-    Access(unique_ptr<Expr> &&t, unique_ptr<Expr> &&a)
-        : target(move(t)), args(move(a)), Expr() {}
+    Access(unique_ptr<Expr> &&t, unique_ptr<Expr> &&a, uint64_t line_)
+        : target(move(t)), args(move(a)), Expr(line_) {}
     virtual void print(int16_t level) override;
     virtual Type getType() override { return Type::ACCESS; }
 };
@@ -145,8 +159,8 @@ struct Call : Expr {
     unique_ptr<Expr> target;
     unique_ptr<Expr> args;
 
-    Call(unique_ptr<Expr> &&t, unique_ptr<Expr> &&a)
-        : target(move(t)), args(move(a)), Expr() {}
+    Call(unique_ptr<Expr> &&t, unique_ptr<Expr> &&a, uint64_t line_)
+        : target(move(t)), args(move(a)), Expr(line_) {}
     virtual void print(int16_t level) override;
     virtual Type getType() override { return Type::CALL; }
 };
@@ -156,8 +170,8 @@ struct Func : Expr {
     shared_ptr<string> name;
 
     Func(const std::vector<shared_ptr<std::string>> &a, unique_ptr<Expr> &&b,
-         const shared_ptr<string> &n)
-        : args(a), body(move(b)), name(n), Expr() {}
+         const shared_ptr<string> &n, uint64_t line_)
+        : args(a), body(move(b)), name(n), Expr(line_) {}
 
     virtual void print(int16_t level) override;
     virtual Type getType() override { return Type::FUNC; }

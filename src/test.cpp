@@ -1,3 +1,4 @@
+#include <compile/generator.hpp>
 #include <compile/lexer.hpp>
 #include <compile/parser.hpp>
 #include <compile/preprocessor.hpp>
@@ -20,10 +21,15 @@ int main() {
     //               << std::endl;
     // while (!preprocessor.eof())
     //     std::cout << std::left << std::setw(4)
-    //               << phi::ProgramFollower::get().line << *preprocessor.next()
+    //               << phi::ProgramFollower::get().line <<
+    // *preprocessor.next()
     //               << std::endl;
     phi::Parser parser(preprocessor);
     phi::Parser::node_t node = parser.parse();
     node->print(0);
+    std::cout << std::endl;
+    phi::Generator generator(node);
+    phi::unique_ptr<phi::Program> program = generator.generate();
+    std::cout << *program;
     return EXIT_SUCCESS;
 }

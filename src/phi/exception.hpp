@@ -22,8 +22,10 @@ struct Exception {
     string _M_msg;
 };
 
-DEFINE_EXCEPTION(LogicalException, Exception);
+DEFINE_EXCEPTION(RuntimeException, Exception);
+DEFINE_EXCEPTION(ConvertException, RuntimeException);
 DEFINE_EXCEPTION(CompileException, Exception);
+DEFINE_EXCEPTION(CompilerException, RuntimeException);
 DEFINE_EXCEPTION(SyntaxException, CompileException);
 
 struct TokenException : CompileException {

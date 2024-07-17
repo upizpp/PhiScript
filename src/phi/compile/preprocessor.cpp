@@ -1,11 +1,16 @@
 #include "preprocessor.hpp"
 #include <exception.hpp>
+#include <follower.hpp>
 #include <map>
 #include <set>
+
 
 namespace phi {
 unique_ptr<token::Token> Preprocessor::next() {
     unique_ptr<token::Token> token;
+
+    if (_M_cache_line != -1)
+        ProgramFollower::get().line = _M_cache_line;
 
     if (_M_cache) {
         token.reset(_M_cache);
@@ -15,7 +20,10 @@ unique_ptr<token::Token> Preprocessor::next() {
     }
 
     while (!eof()) {
+        uint64_t temp = ProgramFollower::get().line;
         auto next_tok = _M_generator.next();
+        _M_cache_line = ProgramFollower::get().line;
+        ProgramFollower::get().line = temp;
         if (!(    //
                 ( //
                     token->tag == '\n' && (next_tok->tag == '\n' ||
@@ -36,18 +44,16 @@ unique_ptr<token::Token> Preprocessor::next() {
 
     // ASI
     static const std::set<char_t> BeginPairs = {
-        '{',
         '[',
         '(',
     };
     static const std::map<char_t, char_t> EndPairs = {
-        {'}', '{'},
         {']', '['},
         {')', '('},
     };
     static const std::set<uint16_t> StructKeyword = {
         token::Tag::IF,    token::Tag::ELSE, token::Tag::FOR,
-        token::Tag::WHILE, token::Tag::FN,
+        token::Tag::WHILE, token::Tag::FN,   token::Tag::ARROW,
     };
     if (StructKeyword.find(token->tag) != StructKeyword.end())
         ++_M_struct_keywords;

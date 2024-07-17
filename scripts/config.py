@@ -7,6 +7,7 @@ from json import load
 
 EXTRA = ""
 LINK_EXTRA = ""
+STANDARD = ""
 INCLUDE = ["./src/phi"]
 MACRO = []
 IGNORE = []
@@ -19,6 +20,7 @@ OBJECT = path.join(ROOT, "build")
 def configure(data: any) -> None:
     try:
         global EXTRA
+        global STANDARD
         global LINK_EXTRA
         global INCLUDE
         global MACRO
@@ -28,6 +30,7 @@ def configure(data: any) -> None:
         global COMPILER
         global OBJECT
         EXTRA = eval(data.get("extra", '""'))
+        STANDARD = eval(data.get("standard", '""'))
         LINK_EXTRA = eval(data.get("link_extra", '""'))
         INCLUDE = eval(data.get("include", '["./src/phi"]'))
         MACRO = eval(data.get("macro", "[]"))
@@ -80,7 +83,7 @@ def get_output(unit: str) -> str:
 
 
 def get_unit_command(unit: str, dependence) -> str:
-    return f"{COMPILER} {('-D' if MACRO else '') + ' -D'.join(MACRO)} {('-I' if INCLUDE else '') + ' -I'.join(INCLUDE)} {EXTRA} -c {unit} -o {get_output(unit)}"
+    return f"{COMPILER} -std={STANDARD} {('-D' if MACRO else '') + ' -D'.join(MACRO)} {('-I' if INCLUDE else '') + ' -I'.join(INCLUDE)} {EXTRA} -c {unit} -o {get_output(unit)}"
 
 
 def get_fingerprint(filepath: str) -> str:
