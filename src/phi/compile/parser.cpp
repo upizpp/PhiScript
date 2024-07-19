@@ -1,6 +1,8 @@
 #include "parser.hpp"
+#include <cstdlib>
 #include <exception.hpp>
 #include <follower.hpp>
+#include <new>
 #include <vector>
 
 namespace phi {
@@ -237,14 +239,28 @@ Parser::node_t Parser::factor() {
         if (auto t = opt(res))
             return t;
         return res;
+    case '<': {
+        match('<');
+        auto args = params((Tag)'>');
+        match('>');
+        match(Tag::ARROW);
+        node_t body = stmt();
+        if (body->getType() != Expr::Type::BLOCK)
+            body = make_unique<Return>(std::move(body), tline);
+        return make_unique<Func>(std::move(args), std::move(body), nullptr,
+                                 tline);
+    }
     case Tag::ID:
         tmp = std::move(_M_look);
         move();
         if (_M_look->tag == Tag::ARROW) {
             move();
+            node_t body = stmt();
+            if (body->getType() != Expr::Type::BLOCK)
+                body = make_unique<Return>(std::move(body), tline);
             return make_unique<Func>(
-                std::vector<shared_ptr<string>>{tmp->getStringPtr()}, stmt(),
-                nullptr, tline);
+                std::vector<shared_ptr<string>>{tmp->getStringPtr()},
+                std::move(body), nullptr, tline);
         }
         res = make_unique<Load>(tmp->getStringPtr(), false, tline);
         if (auto t = opt(res))
@@ -269,20 +285,39 @@ Parser::node_t Parser::factor() {
         return make_unique<If>(std::move(cond), std::move(body), stmt(), tline);
     }
     case Tag::WHILE: {
+        shared_ptr<string> tag;
         match(Tag::WHILE);
+        if (_M_look->tag == ':') {
+            match(':');
+            if (_M_look->tag == Tag::ID)
+                tag = std::move(_M_look)->getStringPtr();
+            match(Tag::ID);
+        }
         match('(');
         node_t cond = expr();
         match(')');
+        native_ptr<While> loop = (native_ptr<While>)malloc(sizeof(While));
+        new (&loop->tag) shared_ptr<string>;
+        loop->tag = tag;
+        Loop::push(loop);
         node_t body = stmt();
+        Loop::pop();
         if (_M_look->tag != Tag::ELSE)
-            return make_unique<While>(std::move(cond), std::move(body), nullptr,
-                                      tline);
+            return unique_ptr<While>(new (loop) While(
+                tag, std::move(cond), std::move(body), nullptr, tline));
         match(Tag::ELSE);
-        return make_unique<While>(std::move(cond), std::move(body), stmt(),
-                                  tline);
+        return unique_ptr<While>(new (loop) While(
+            tag, std::move(cond), std::move(body), stmt(), tline));
     }
     case Tag::FOR: {
+        shared_ptr<string> tag;
         match(Tag::FOR);
+        if (_M_look->tag == ':') {
+            match(':');
+            if (_M_look->tag == Tag::ID)
+                tag = std::move(_M_look)->getStringPtr();
+            match(Tag::ID);
+        }
         match('(');
         node_t initializer = expr();
         match(';');
@@ -290,15 +325,38 @@ Parser::node_t Parser::factor() {
         match(';');
         node_t update = expr();
         match(')');
+        native_ptr<For> loop = (native_ptr<For>)malloc(sizeof(For));
+        new (&loop->tag) shared_ptr<string>;
+        loop->tag = tag;
+        Loop::push(loop);
         node_t body = stmt();
+        Loop::pop();
         if (_M_look->tag != Tag::ELSE)
-            return make_unique<For>(std::move(initializer),
-                                    std::move(condition), std::move(update),
-                                    std::move(body), nullptr, tline);
+            return unique_ptr<For>(new (loop) For(
+                tag, std::move(initializer), std::move(condition),
+                std::move(update), std::move(body), nullptr, tline));
         match(Tag::ELSE);
-        return make_unique<For>(std::move(initializer), std::move(condition),
-                                std::move(update), std::move(body), stmt(),
-                                tline);
+        return unique_ptr<For>(
+            new (loop) For(tag, std::move(initializer), std::move(condition),
+                           std::move(update), std::move(body), stmt(), tline));
+    }
+    case Tag::BREAK: {
+        match(Tag::BREAK);
+        shared_ptr<string> tag;
+        if (_M_look->tag == Tag::ID) {
+            tag = _M_look->getStringPtr();
+            match(Tag::ID);
+        }
+        return make_unique<Break>(tag, tline);
+    }
+    case Tag::CONTINUE: {
+        match(Tag::CONTINUE);
+        shared_ptr<string> tag;
+        if (_M_look->tag == Tag::ID) {
+            tag = _M_look->getStringPtr();
+            match(Tag::ID);
+        }
+        return make_unique<Continue>(tag, tline);
     }
     case Tag::FN: {
         match(Tag::FN);
@@ -308,22 +366,16 @@ Parser::node_t Parser::factor() {
             move();
         }
         match('(');
-        std::vector<shared_ptr<string>> args;
-        if (_M_look->tag != ')') {
-            auto tmp = std::move(_M_look);
-            match(Tag::ID, tmp);
-            args.push_back(tmp->getStringPtr());
-            move();
-        }
-        while (_M_look->tag == ',') {
-            move();
-            auto tmp = std::move(_M_look);
-            match(Tag::ID, tmp);
-            args.push_back(tmp->getStringPtr());
-            move();
-        }
+        std::vector<shared_ptr<string>> args = params((Tag)')');
         match(')');
-        return make_unique<Func>(std::move(args), stmt(), name, tline);
+        node_t body = stmt();
+        if (body->getType() != Expr::Type::BLOCK)
+            body = make_unique<Return>(std::move(body), tline);
+        return make_unique<Func>(std::move(args), std::move(body), name, tline);
+    }
+    case Tag::RETURN: {
+        match(Tag::RETURN);
+        return make_unique<Return>(expr(), tline);
     }
     }
     throw SyntaxException("Unexpected token '" + _M_look->toString() + '\'');
@@ -352,9 +404,9 @@ Parser::node_t Parser::opt(Parser::node_t &target) {
         auto tmp = std::move(_M_look);
         match(Tag::ID, tmp);
         move();
-        res = make_unique<Access>(std::move(target),
-                                  make_unique<StringExpr>(tmp->getStringPtr(), tline),
-                                  tline);
+        res = make_unique<Access>(
+            std::move(target),
+            make_unique<StringExpr>(tmp->getStringPtr(), tline), tline);
         if (auto tmp = opt(res))
             return tmp;
         return res;
@@ -367,5 +419,22 @@ Parser::node_t Parser::args() {
     while (_M_look->tag == ',')
         res = make_unique<Sequence>(std::move(res), expr(), tline);
     return res;
+}
+std::vector<shared_ptr<string>> Parser::params(Tag end) {
+    std::vector<shared_ptr<string>> args;
+    if (_M_look->tag != end) {
+        auto tmp = std::move(_M_look);
+        match(Tag::ID, tmp);
+        args.push_back(tmp->getStringPtr());
+        move();
+    }
+    while (_M_look->tag == ',') {
+        move();
+        auto tmp = std::move(_M_look);
+        match(Tag::ID, tmp);
+        args.push_back(tmp->getStringPtr());
+        move();
+    }
+    return args;
 }
 } // namespace phi

@@ -31,7 +31,11 @@ struct OPCode {
         RED,
         ASSIGN,
 
-        FLAG,
+        FUNC_FLAG,
+        MAKE_FUNC,
+        RETURN,
+
+        ARGS_FLAG,
         ACCESS,
         CALL,
 

@@ -1,4 +1,5 @@
 #include "ast.hpp"
+#include <exception.hpp>
 #include <follower.hpp>
 
 #define INIT string WS(4 * level, ' ')
@@ -79,7 +80,7 @@ void If::print(int16_t level) {
 }
 void While::print(int16_t level) {
     INIT;
-    WOUT << "While:" << endl;
+    WOUT << "While: " << (tag ? *tag : "") << endl;
     level += 1;
     REINIT;
     WOUT << "Condition:" << endl;
@@ -95,7 +96,7 @@ void While::print(int16_t level) {
 }
 void For::print(int16_t level) {
     INIT;
-    WOUT << "For:" << endl;
+    WOUT << "For: " << (tag ? *tag : "") << endl;
     level += 1;
     REINIT;
     WOUT << "Initializer:" << endl;
@@ -103,6 +104,9 @@ void For::print(int16_t level) {
     cout << endl;
     WOUT << "Condition:" << endl;
     condition->print(level + 1);
+    cout << endl;
+    WOUT << "Update:" << endl;
+    update->print(level + 1);
     cout << endl;
     WOUT << "Body:" << endl;
     body->print(level + 1);
@@ -149,6 +153,30 @@ void Func::print(int16_t level) {
         body->print(level + 1);
     else
         WOUT << "    Empty";
+}
+void Return::print(int16_t level) {
+    INIT;
+    WOUT << "Return: " << endl;
+    if (value)
+        value->print(level + 1);
+}
+void Break::print(int16_t level) {
+    INIT;
+    WOUT << "Break " << (loop->tag ? *loop->tag : "");
+}
+void Continue::print(int16_t level) {
+    INIT;
+    WOUT << "Continue " << (loop->tag ? *loop->tag : "");
+}
+std::vector<native_ptr<Loop>> Loop::_M_loops;
+void Loop::push(native_ptr<Loop> loop) { _M_loops.push_back(loop); }
+void Loop::pop() { _M_loops.pop_back(); }
+native_ptr<Loop> Loop::top() { return _M_loops.back(); }
+native_ptr<Loop> Loop::find(shared_ptr<string> tag) {
+    for (auto &&loop : _M_loops)
+        if (*loop->tag == *tag)
+            return loop;
+    throw SyntaxException("Undefined loop tag");
 }
 } // namespace ast
 

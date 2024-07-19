@@ -39,5 +39,6 @@ struct Parser {
 
     node_t opt(node_t &);
     node_t args();
+    std::vector<shared_ptr<string>> params(token::Tag end);
 };
 } // namespace phi

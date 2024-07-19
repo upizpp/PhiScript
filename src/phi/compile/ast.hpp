@@ -1,7 +1,9 @@
 #pragma once
 #include <compile/token.hpp>
+#include <runtime/program.hpp>
 #include <typedef.hpp>
 #include <vector>
+
 
 namespace phi {
 namespace ast {
@@ -23,6 +25,9 @@ struct Expr {
         CALL,
         FUNC,
         LOAD,
+        RETURN,
+        BREAK,
+        CONTINUE,
     };
     Expr();
     Expr(uint64_t l) : line(l) {}
@@ -119,32 +124,67 @@ struct If : Expr {
     virtual void print(int16_t level) override;
     virtual Type getType() override { return Type::IF; }
 };
-struct While : Expr {
+struct Loop : Expr {
+    static void push(native_ptr<Loop> loop);
+    static void pop();
+    static native_ptr<Loop> top();
+    static native_ptr<Loop> find(shared_ptr<string> tag);
+
+    shared_ptr<string> tag;
+
+    std::vector<Program::OPCodeReference> break_labels;
+    std::vector<Program::OPCodeReference> continue_labels;
+
+    Loop(shared_ptr<string> tag, uint64_t line_) : tag(tag), Expr(line_) {}
+
+  private:
+    static std::vector<native_ptr<Loop>> _M_loops;
+};
+struct While : Loop {
     unique_ptr<Expr> condition;
     unique_ptr<Expr> body;
     unique_ptr<Expr> elseBody;
 
-    While(unique_ptr<Expr> &&c, unique_ptr<Expr> &&b, unique_ptr<Expr> &&eb,
-          uint64_t line_)
-        : condition(move(c)), body(move(b)), elseBody(move(eb)), Expr(line_) {}
+    While(shared_ptr<string> tag_, unique_ptr<Expr> &&c, unique_ptr<Expr> &&b,
+          unique_ptr<Expr> &&eb, uint64_t line_)
+        : Loop(tag_, line_), condition(move(c)), body(move(b)),
+          elseBody(move(eb)) {}
 
     virtual void print(int16_t level) override;
     virtual Type getType() override { return Type::WHILE; }
 };
-struct For : Expr {
+struct For : Loop {
     unique_ptr<Expr> initializer;
     unique_ptr<Expr> condition;
     unique_ptr<Expr> update;
     unique_ptr<Expr> body;
     unique_ptr<Expr> elseBody;
 
-    For(unique_ptr<Expr> &&i, unique_ptr<Expr> &&c, unique_ptr<Expr> &&u,
-        unique_ptr<Expr> &&b, unique_ptr<Expr> &&eb, uint64_t line_)
+    For(shared_ptr<string> tag_, unique_ptr<Expr> &&i, unique_ptr<Expr> &&c,
+        unique_ptr<Expr> &&u, unique_ptr<Expr> &&b, unique_ptr<Expr> &&eb,
+        uint64_t line_)
         : initializer(move(i)), condition(move(c)), update(move(u)),
-          body(move(b)), elseBody(move(eb)), Expr(line_) {}
+          body(move(b)), elseBody(move(eb)), Loop(tag_, line_) {}
 
     virtual void print(int16_t level) override;
     virtual Type getType() override { return Type::FOR; }
+};
+struct LoopController : Expr {
+    native_ptr<Loop> loop;
+
+    LoopController(shared_ptr<string> tag, uint64_t line_)
+        : Expr(line_), loop(tag ? Loop::find(tag) : Loop::top()) {}
+};
+struct Break : LoopController {
+    using LoopController::LoopController;
+
+    virtual Type getType() override { return Type::BREAK; }
+    virtual void print(int16_t level) override;
+};
+struct Continue : LoopController {
+    using LoopController::LoopController;
+    virtual Type getType() override { return Type::CONTINUE; }
+    virtual void print(int16_t level) override;
 };
 struct Access : Expr {
     unique_ptr<Expr> target;
@@ -175,6 +215,14 @@ struct Func : Expr {
 
     virtual void print(int16_t level) override;
     virtual Type getType() override { return Type::FUNC; }
+};
+struct Return : Expr {
+    unique_ptr<Expr> value;
+
+    Return(unique_ptr<Expr> &&v, uint64_t line_)
+        : value(move(v)), Expr(line_) {}
+    virtual void print(int16_t level) override;
+    virtual Type getType() override { return Type::RETURN; }
 };
 
 } // namespace ast

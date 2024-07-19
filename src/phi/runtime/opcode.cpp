@@ -129,8 +129,14 @@ string_view OPCode::toString() const {
         return "ASSIGN";
     case Command::ACCESS:
         return "ACCESS";
-    case Command::FLAG:
-        return "FLAG";
+    case Command::FUNC_FLAG:
+        return "FUNC_FLAG";
+    case Command::MAKE_FUNC:
+        return "MAKE_FUNC";
+    case Command::RETURN:
+        return "RETURN";
+    case Command::ARGS_FLAG:
+        return "ARGS_FLAG";
     case Command::CALL:
         return "CALL";
     case Command::LOAD:

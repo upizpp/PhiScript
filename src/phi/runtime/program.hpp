@@ -16,6 +16,7 @@ struct Program {
     ConstantReference pushConstant(const Variable &);
     OPCodeReference pushCode(const OPCode &, uint32_t line);
     index_t emitLabel();
+    index_t getTop() { return _M_codes.size(); }
 
     struct LineInfo {
         uint32_t line;

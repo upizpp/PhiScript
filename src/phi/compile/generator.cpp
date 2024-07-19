@@ -2,10 +2,53 @@
 
 namespace phi {
 using namespace ast;
-void Generator::generateWithoutReturn() {
+void Generator::generateWithoutReturn(bool with_clear) {
     if (!_M_process)
         return;
     switch (_M_node->getType()) {
+    case Expr::Type::RETURN: {
+        auto &node = static_cast<Return &>(*_M_node);
+        generate(node.value);
+        _M_process->pushCode(OPCode::Command::RETURN, node.line);
+        break;
+    }
+    case Expr::Type::FUNC: {
+        auto &node = static_cast<Func &>(*_M_node);
+        if (node.name) {
+            index_t index =
+                _M_process->pushConstant(Variable(*node.name)).index();
+            _M_process->pushCode(OPCode(OPCode::Command(index)), node.line);
+            _M_process->pushCode(OPCode::Command::ALLOCATE, node.line);
+        }
+        auto ArgI = _M_process->pushCode(OPCode(), node.line);
+        _M_process->pushCode(OPCode::Command::FUNC_FLAG, node.line);
+        generate(node.body);
+        ArgI.value() = (OPCode::Command)_M_process->emitLabel();
+        for (auto &&arg : node.args) {
+            index_t index = _M_process->pushConstant(Variable(*arg)).index();
+            _M_process->pushCode(OPCode(OPCode::Command(index)), node.line);
+        }
+        _M_process->pushCode(OPCode::Command::MAKE_FUNC, node.line);
+        if (node.name)
+            _M_process->pushCode(OPCode::Command::ASSIGN, node.line);
+        break;
+    }
+    case Expr::Type::CALL: {
+        auto &node = static_cast<Call &>(*_M_node);
+        _M_process->pushCode(OPCode::Command::ARGS_FLAG, node.line);
+        generate(node.args, false);
+        generate(node.target);
+        _M_process->pushCode(OPCode::Command::CALL, node.line);
+        break;
+    }
+    case Expr::Type::ACCESS: {
+        auto &node = static_cast<Access &>(*_M_node);
+        _M_process->pushCode(OPCode::Command::ARGS_FLAG, node.line);
+        generate(node.args, false);
+        generate(node.target);
+        _M_process->pushCode(OPCode::Command::ACCESS, node.line);
+        break;
+    }
     case Expr::Type::LOAD: {
         auto &node = static_cast<Load &>(*_M_node);
         index_t index =
@@ -20,28 +63,28 @@ void Generator::generateWithoutReturn() {
         auto &node = static_cast<IntegerExpr &>(*_M_node);
         index_t index = _M_process->pushConstant(Variable(node.value)).index();
         _M_process->pushCode(OPCode(OPCode::Command(index)), node.line);
-        _M_process->pushCode(OPCode(OPCode::Command::LOAD_CONST), node.line);
+        _M_process->pushCode(OPCode::Command::LOAD_CONST, node.line);
         break;
     }
     case Expr::Type::REAL: {
         auto &node = static_cast<RealExpr &>(*_M_node);
         index_t index = _M_process->pushConstant(Variable(&node.value)).index();
         _M_process->pushCode(OPCode(OPCode::Command(index)), node.line);
-        _M_process->pushCode(OPCode(OPCode::Command::LOAD_CONST), node.line);
+        _M_process->pushCode(OPCode::Command::LOAD_CONST, node.line);
         break;
     }
     case Expr::Type::BOOL: {
         auto &node = static_cast<RealExpr &>(*_M_node);
         index_t index = _M_process->pushConstant(Variable(&node.value)).index();
         _M_process->pushCode(OPCode(OPCode::Command(index)), node.line);
-        _M_process->pushCode(OPCode(OPCode::Command::LOAD_CONST), node.line);
+        _M_process->pushCode(OPCode::Command::LOAD_CONST, node.line);
         break;
     }
     case Expr::Type::STRING: {
         auto &node = static_cast<StringExpr &>(*_M_node);
         index_t index = _M_process->pushConstant(Variable(&node.value)).index();
         _M_process->pushCode(OPCode(OPCode::Command(index)), node.line);
-        _M_process->pushCode(OPCode(OPCode::Command::LOAD_CONST), node.line);
+        _M_process->pushCode(OPCode::Command::LOAD_CONST, node.line);
         break;
     }
     case Expr::Type::UNARY_EXPR: {
@@ -61,17 +104,17 @@ void Generator::generateWithoutReturn() {
         auto &node = static_cast<Block &>(*_M_node);
         if (!node.body)
             break;
-        _M_process->pushCode(OPCode(OPCode::Command::ENTER_BLOCK), node.line);
+        _M_process->pushCode(OPCode::Command::ENTER_BLOCK, node.line);
         generate(node.body);
-        _M_process->pushCode(OPCode(OPCode::Command::EXIT_BLOCK), node.line);
+        _M_process->pushCode(OPCode::Command::EXIT_BLOCK, node.line);
         break;
     }
     case Expr::Type::SEQUENCE: {
         auto &node = static_cast<Sequence &>(*_M_node);
-        if (node.current) {
+        if (node.current)
             generate(node.current);
-            _M_process->pushCode(OPCode(OPCode::Command::CLEAR), node.line);
-        }
+        if (node.current && node.next && with_clear)
+            _M_process->pushCode(OPCode::Command::CLEAR, node.line);
         if (node.next)
             generate(node.next);
         break;
@@ -88,7 +131,7 @@ void Generator::generateWithoutReturn() {
             */
             generate(node.condition);
             auto L0 = _M_process->pushCode(OPCode(), node.line);
-            _M_process->pushCode(OPCode(OPCode::Command::IFFALSE), node.line);
+            _M_process->pushCode(OPCode::Command::IFFALSE, node.line);
             generate(node.body);
             L0.value().command() = (OPCode::Command)_M_process->emitLabel();
         } else {
@@ -102,10 +145,10 @@ void Generator::generateWithoutReturn() {
             */
             generate(node.condition);
             auto L0 = _M_process->pushCode(OPCode(), node.line);
-            _M_process->pushCode(OPCode(OPCode::Command::IFFALSE), node.line);
+            _M_process->pushCode(OPCode::Command::IFFALSE, node.line);
             generate(node.body);
             auto L1 = _M_process->pushCode(OPCode(), node.line);
-            _M_process->pushCode(OPCode(OPCode::Command::GOTO), node.line);
+            _M_process->pushCode(OPCode::Command::GOTO, node.line);
             L0.value() = (OPCode::Command)_M_process->emitLabel();
             generate(node.elseBody);
             L1.value() = (OPCode::Command)_M_process->emitLabel();
@@ -125,11 +168,16 @@ void Generator::generateWithoutReturn() {
             auto L0_i = _M_process->emitLabel();
             generate(node.condition);
             auto L1 = _M_process->pushCode(OPCode(), node.line);
-            _M_process->pushCode(OPCode(OPCode::Command::IFFALSE), node.line);
+            _M_process->pushCode(OPCode::Command::IFFALSE, node.line);
             generate(node.body);
             _M_process->pushCode(OPCode((OPCode::Command)L0_i), node.line);
-            _M_process->pushCode(OPCode(OPCode::Command::GOTO), node.line);
+            _M_process->pushCode(OPCode::Command::GOTO, node.line);
             L1.value() = (OPCode::Command)_M_process->emitLabel();
+
+            for (auto &&label : node.continue_labels)
+                label.value() = (OPCode::Command)L0_i;
+            for (auto &&label : node.break_labels)
+                label.value() = L1.value();
         } else {
             /*
                    eval x
@@ -144,20 +192,26 @@ void Generator::generateWithoutReturn() {
            */
             generate(node.condition);
             auto L1 = _M_process->pushCode(OPCode(), node.line);
-            _M_process->pushCode(OPCode(OPCode::Command::IFTRUE), node.line);
+            _M_process->pushCode(OPCode::Command::IFTRUE, node.line);
             generate(node.elseBody);
             auto L2_1 = _M_process->pushCode(OPCode(), node.line);
-            _M_process->pushCode(OPCode(OPCode::Command::GOTO), node.line);
+            _M_process->pushCode(OPCode::Command::GOTO, node.line);
             auto L0_i = _M_process->emitLabel();
             generate(node.condition);
             auto L2_2 = _M_process->pushCode(OPCode(), node.line);
-            _M_process->pushCode(OPCode(OPCode::Command::IFFALSE), node.line);
+            _M_process->pushCode(OPCode::Command::IFFALSE, node.line);
             L1.value() = (OPCode::Command)_M_process->emitLabel();
             generate(node.body);
             _M_process->pushCode(OPCode((OPCode::Command)L0_i), node.line);
-            _M_process->pushCode(OPCode(OPCode::Command::GOTO), node.line);
-            L2_1.value() = (OPCode::Command)_M_process->emitLabel();
-            L2_2.value() = L2_1.value();
+            _M_process->pushCode(OPCode::Command::GOTO, node.line);
+            auto L2_i = _M_process->emitLabel();
+            L2_1.value() = (OPCode::Command)L2_i;
+            L2_2.value() = (OPCode::Command)L2_i;
+
+            for (auto &&label : node.continue_labels)
+                label.value() = (OPCode::Command)L0_i;
+            for (auto &&label : node.break_labels)
+                label.value() = (OPCode::Command)L2_i;
         }
         break;
     }
@@ -170,7 +224,7 @@ void Generator::generateWithoutReturn() {
                 L0: eval test
                 ifFalse test goto L1
                 body
-                update
+                L2: update
                 goto L0
                 L1: pop_env
             */
@@ -181,14 +235,23 @@ void Generator::generateWithoutReturn() {
             if (node.condition)
                 generate(node.condition);
             auto L1 = _M_process->pushCode(OPCode(), node.line);
-            _M_process->pushCode(OPCode(OPCode::Command::IFFALSE), node.line);
+            _M_process->pushCode(OPCode::Command::IFFALSE, node.line);
             generate(node.body);
+            index_t L2_i;
+            if (!node.continue_labels.empty())
+                L2_i = _M_process->emitLabel();
             if (node.update)
                 generate(node.update);
             _M_process->pushCode(OPCode((OPCode::Command)L0_i), node.line);
-            _M_process->pushCode(OPCode(OPCode::Command::GOTO), node.line);
-            L1.value() = (OPCode::Command)_M_process->emitLabel();
+            _M_process->pushCode(OPCode::Command::GOTO, node.line);
+            auto L1_i = _M_process->emitLabel();
+            L1.value() = (OPCode::Command)L1_i;
             _M_process->pushCode(OPCode::Command::EXIT_BLOCK, node.line);
+
+            for (auto &&label : node.continue_labels)
+                label.value() = (OPCode::Command)L2_i;
+            for (auto &&label : node.break_labels)
+                label.value() = (OPCode::Command)L1_i;
         } else {
             /*
                 push_env
@@ -210,25 +273,45 @@ void Generator::generateWithoutReturn() {
             if (node.condition)
                 generate(node.condition);
             auto L0 = _M_process->pushCode(OPCode(), node.line);
-            _M_process->pushCode(OPCode(OPCode::Command::IFTRUE), node.line);
+            _M_process->pushCode(OPCode::Command::IFTRUE, node.line);
             generate(node.elseBody);
             auto L2_1 = _M_process->pushCode(OPCode(), node.line);
-            _M_process->pushCode(OPCode(OPCode::Command::GOTO), node.line);
+            _M_process->pushCode(OPCode::Command::GOTO, node.line);
             auto L1_i = _M_process->emitLabel();
             if (node.condition)
                 generate(node.condition);
             auto L2_2 = _M_process->pushCode(OPCode(), node.line);
-            _M_process->pushCode(OPCode(OPCode::Command::IFFALSE), node.line);
+            _M_process->pushCode(OPCode::Command::IFFALSE, node.line);
             L0.value() = (OPCode::Command)_M_process->emitLabel();
             generate(node.body);
             if (node.update)
                 generate(node.update);
             _M_process->pushCode(OPCode((OPCode::Command)L1_i), node.line);
-            _M_process->pushCode(OPCode(OPCode::Command::GOTO), node.line);
-            L2_1.value() = (OPCode::Command)_M_process->emitLabel();
-            L2_2.value() = L2_1.value();
+            _M_process->pushCode(OPCode::Command::GOTO, node.line);
+            auto L2_i = _M_process->emitLabel();
+            L2_1.value() = (OPCode::Command)L2_i;
+            L2_2.value() = (OPCode::Command)L2_i;
             _M_process->pushCode(OPCode::Command::EXIT_BLOCK, node.line);
+
+            for (auto &&label : node.continue_labels)
+                label.value() = (OPCode::Command)L1_i;
+            for (auto &&label : node.break_labels)
+                label.value() = (OPCode::Command)L2_i;
         }
+        break;
+    }
+    case Expr::Type::BREAK: {
+        auto &node = static_cast<Break &>(*_M_node);
+        auto ref = _M_process->pushCode(OPCode(), node.line);
+        _M_process->pushCode(OPCode::Command::GOTO, node.line);
+        node.loop->break_labels.push_back(ref);
+        break;
+    }
+    case Expr::Type::CONTINUE: {
+        auto &node = static_cast<Continue &>(*_M_node);
+        auto ref = _M_process->pushCode(OPCode(), node.line);
+        _M_process->pushCode(OPCode::Command::GOTO, node.line);
+        node.loop->continue_labels.push_back(ref);
         break;
     }
     }
