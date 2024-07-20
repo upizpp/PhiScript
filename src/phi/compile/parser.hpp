@@ -10,6 +10,8 @@ struct Parser {
 
     node_t parse();
 
+    string chunk() { return _M_generator.chunk(); }
+
   private:
     token_t _M_look;
     TokenGenerator &_M_generator;

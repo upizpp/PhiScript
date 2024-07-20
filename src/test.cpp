@@ -28,7 +28,7 @@ int main() {
     phi::Parser::node_t node = parser.parse();
     node->print(0);
     std::cout << std::endl;
-    phi::Generator generator(node);
+    phi::Generator generator(node, parser.chunk());
     phi::unique_ptr<phi::Program> program = generator.generate();
     std::cout << *program;
     return EXIT_SUCCESS;

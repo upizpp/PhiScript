@@ -14,6 +14,7 @@ struct Lexer : TokenGenerator {
         _M_eof = false;
         _M_scanner.reset();
     }
+    virtual string chunk() override { return _M_scanner.chunk(); }
 
     uint64_t line;
 

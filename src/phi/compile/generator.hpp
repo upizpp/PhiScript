@@ -16,12 +16,14 @@ struct GenerateProcess {
     index_t getTop() { return _M_result->getTop(); }
 };
 struct Generator {
-    Generator(unique_ptr<ast::Expr> &node)
-        : _M_node(node), _M_process(new GenerateProcess) {}
+    Generator(unique_ptr<ast::Expr> &node, const string &chunk)
+        : _M_node(node), _M_process(new GenerateProcess), _M_chunk(chunk) {}
 
     unique_ptr<Program> generate() {
         generateWithoutReturn();
-        return std::move(_M_process->result());
+        unique_ptr<Program> res = std::move(_M_process->result());
+        res->chunk() = _M_chunk;
+        return res;
     }
 
   private:
@@ -35,6 +37,7 @@ struct Generator {
 
     shared_ptr<GenerateProcess> _M_process;
     unique_ptr<ast::Expr> &_M_node;
+    string _M_chunk;
 };
 
 } // namespace phi

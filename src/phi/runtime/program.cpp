@@ -35,6 +35,7 @@ static bool is_from_labels(OPCode::Command command) {
 std::ostream &operator<<(std::ostream &os, const Program &program) {
     using namespace std;
     os << "Program:\n";
+    os << '\t' << "At " << program.chunk() << '\n';
     os << "Codes: \n";
     auto line_iterator = program.line_map().begin();
     auto &codes = program.codes();

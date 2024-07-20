@@ -10,6 +10,7 @@ template <typename T> struct BasicScanner {
     virtual bool eof() = 0;
     virtual void reset() = 0;
     virtual T next() = 0;
+    virtual string chunk() = 0;
 
     template <typename U>
     std::enable_if_t<std::is_convertible_v<U, T>, BasicScanner<T> &>
@@ -33,16 +34,25 @@ template <typename T> struct BasicIStreamScanner : BasicScanner<T> {
 
 template <typename T> struct BasicFileScanner : BasicIStreamScanner<T> {
     BasicFileScanner(const std::string &filename) : _M_file(filename) {}
+    virtual string chunk() override { return _M_chunk; }
 
   private:
     virtual std::basic_istream<T> &get_stream() override { return _M_file; }
     std::basic_ifstream<T> _M_file;
+    string _M_chunk;
 };
 using FileScanner = BasicFileScanner<char>;
 using WFileScanner = BasicFileScanner<wchar_t>;
 
 template <typename T> struct BasicStringScanner : BasicIStreamScanner<T> {
     BasicStringScanner(const std::basic_string<T> &str) : _M_str(str) {}
+    virtual string chunk() override {
+        std::ostringstream os;
+        os << "chunk(";
+        os << this;
+        os << ')';
+        return os.str();
+    }
 
   private:
     virtual std::basic_istream<T> &get_stream() override { return _M_str; }

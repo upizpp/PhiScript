@@ -8,6 +8,7 @@ struct TokenGenerator {
     virtual unique_ptr<token::Token> next() = 0;
     virtual bool eof() = 0;
     virtual void reset() = 0;
+    virtual string chunk() = 0;
 };
 
 template <size_t C = 8> struct CachedGenerator : TokenGenerator {

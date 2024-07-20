@@ -28,6 +28,7 @@ struct Program {
     PROPERTY(std::vector<uint64_t>, labels, {})
     PROPERTY(std::vector<LineInfo>, line_map, {})
     PROPERTY(std::vector<Variable>, constants, {})
+    PROPERTY(string, chunk, {})
 };
 
 std::ostream &operator<<(std::ostream &, const Program &);

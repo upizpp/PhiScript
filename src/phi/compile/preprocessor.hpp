@@ -8,6 +8,7 @@ struct Preprocessor : TokenGenerator {
     virtual unique_ptr<token::Token> next();
     virtual bool eof() { return _M_generator.eof() && _M_cache == nullptr; }
     virtual void reset() { _M_generator.reset(); }
+    virtual string chunk() { return _M_generator.chunk(); }
 
   private:
     token::Token *_M_cache = nullptr;
