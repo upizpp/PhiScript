@@ -1,0 +1,24 @@
+#pragma once
+#include "scanner.hpp"
+#include "token.hpp"
+
+namespace phi {
+struct Lexer : TokenGenerator {
+    Lexer(BasicScanner<char> *scanner) : _M_scanner(scanner) { read(); }
+
+    virtual bool eof() override {
+        skip_blank();
+        return _M_eof && _M_sentinel == EOF;
+    }
+    virtual unique_ptr<Token> next() override;
+
+  private:
+    void read();
+    void skip_blank();
+
+    unique_ptr<BasicScanner<char>> _M_scanner;
+    char _M_sentinel = '\0';
+    bool _M_eof = false;
+};
+
+} // namespace phi

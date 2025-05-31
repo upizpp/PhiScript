@@ -1,0 +1,5 @@
+build
+main.exe
+test.exe
+MakeFile
+src/path.hpp
