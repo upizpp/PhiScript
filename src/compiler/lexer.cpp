@@ -98,7 +98,7 @@ unique_ptr<Token> Lexer::next() {
     OPERATOR(-, -);
     OPERATOR(@, @);
 
-    return unique_ptr<Token>(new Token(tmp));
+    return make_unique<Token>(tmp);
 }
 void Lexer::read() {
     _M_sentinel = _M_scanner->get();
@@ -109,7 +109,7 @@ void Lexer::read() {
         }
 }
 void Lexer::skip_blank() {
-    while (std::isspace(_M_sentinel))
+    while (_M_sentinel != '\n' && std::isspace(_M_sentinel))
         read();
 }
 } // namespace phi

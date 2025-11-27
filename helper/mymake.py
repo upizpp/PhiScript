@@ -10,12 +10,14 @@ class Config:
     cxx = "g++"
     output = "./main"
     makefile = "MakeFile"
+    linkflags = ""
     ignores = []
 
     def configure(self, data: any):
         try:
             self.includes = eval(data.get("includes", "[]"))
             self.cxxflags = eval(data.get("cxxflags", '""'))
+            self.linkflags = eval(data.get("linkflags", '""'))
             self.cxx = eval(data.get("cxx", '"g++"'))
             self.output = eval(data.get("output", '"./main"'))
             self.ignores = eval(data.get("ignores", "[]"))
@@ -40,7 +42,7 @@ def main():
     else:
         make(config_parser[args.project])
     with open("src/path.hpp", "w") as file:
-        file.write('#define PATH "' + getcwd().replace('\\', '/') + '"')
+        file.write('#define PATH "' + getcwd().replace("\\", "/") + '"')
 
 
 def make(data):
@@ -52,13 +54,13 @@ def make(data):
     includes = " ".join(map(lambda x: "-I" + x, config.includes))
     with open(config.makefile, "w") as file:
         file.write("CXX = g++\n")
-        file.write("CXXFLAGS = -std=c++17\n")
+        file.write(f"CXXFLAGS = {config.cxxflags}\n")
         if sys.platform == "win32":
             file.write("SHELL=cmd.exe\n")
         file.write(f"OBJS = {' '.join(objs)}\n\n")
         file.write(".PHONY: all clean\n\n")
         file.write(
-            f"all: $(OBJS)\n\t$(CXX) $(CXXFLAGS) {includes} $^ -o {config.output}\n\n"
+            f"all: $(OBJS)\n\t$(CXX) $(CXXFLAGS) {includes} {config.linkflags} $^ -o {config.output}\n\n"
         )
         file.write(
             f"clean:\n\t{delete()} build\n\t{delete()} {config.output}{'.exe' if sys.platform == 'win32' else ''}\n\n\n"

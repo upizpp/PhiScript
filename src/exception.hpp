@@ -9,7 +9,18 @@
 
 namespace phi {
 struct Exception {
-    Exception(const string &message) : _M_message(message) {}
+    // Exception(const string &message) : _M_message(message) {}
+    template <typename... Args>
+    Exception(const string &message, Args &&...args) {
+        if (sizeof...(args) == 0) {
+            _M_message = message;
+        } else {
+            char *tmp = new char[message.length() + 200];
+            sprintf(tmp, message.c_str(), args...);
+            _M_message = tmp;
+            delete tmp;
+        }
+    }
 
     virtual ~Exception() = default;
     virtual const char *classCame() const { return "Exception"; }

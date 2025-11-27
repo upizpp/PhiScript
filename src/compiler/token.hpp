@@ -10,14 +10,18 @@ struct Integer;
 struct Real;
 
 struct Token {
-    enum class Tag : uint16_t {
+    enum Tag : uint16_t {
         INT = 256,
         REAL,
         STRING,
         IDENTIFIER,
 
         VAR, // variable
-        CON, // constant
+        //CON, // constant
+
+        TRUE,
+        FALSE,
+        NIL,
 
         IF,
         ELSE,
@@ -47,6 +51,8 @@ struct Token {
         GE,
         LSHIFT,
         RSHIFT,
+
+        POW,
     };
 
     Token(Tag tag) : _M_tag(tag) {}
@@ -59,20 +65,26 @@ struct Token {
 
     string stringify() const;
 
-  private:
+    bool operator==(const Token &tok) const { return tag() == tok.tag(); }
+    bool operator!=(const Token &tok) const { return tag() != tok.tag(); }
+
+  protected:
     PROPERTY(Tag, tag)
 };
 
-struct Word : Token {
+string stringify(const Token::Tag &tag);
+
+struct Word : public Token {
     Word(const string &value) : _M_value(value), Token(Tag::IDENTIFIER) {
         auto it = _M_words.find(value);
         if (it != _M_words.end())
-            tag() = it->second;
+            _M_tag = it->second;
     }
     Word(const string &value, bool) : _M_value(value), Token(Tag::STRING) {}
 
   private:
     static std::map<string, Tag> _M_words;
+    friend const std::map<Token::Tag, string>& get_rev_words();
 
     PROPERTY(string, value)
 };
@@ -100,5 +112,7 @@ std::ostream &operator<<(std::ostream &os, const Token &token);
 struct TokenGenerator {
     virtual unique_ptr<Token> next() = 0;
     virtual bool eof() = 0;
+
+    uint64_t line = 1;
 };
 } // namespace phi
