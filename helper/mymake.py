@@ -21,7 +21,7 @@ class Config:
     cxxflags = ""
     cxx = "g++"
     output = "./main"
-    makefile = "MakeFile"
+    makefile = "makeFile"
     linkflags = ""
     ignores = []
 
@@ -33,7 +33,7 @@ class Config:
             self.cxx = eval(data.get("cxx", '"g++"'))
             self.output = eval(data.get("output", '"./main"'))
             self.ignores = eval(data.get("ignores", "[]"))
-            self.makefile = eval(data.get("makefile", '"./MakeFile"'))
+            self.makefile = eval(data.get("makefile", '"./makeFile"'))
         except KeyError as e:
             print(f"[ERROR] {e}")
 
@@ -53,7 +53,8 @@ def main():
             make(config_parser[section])
     else:
         make(config_parser[args.project])
-    mkdir("build")
+    if not path.exists("build"):
+        mkdir("build")
     with open("src/path.hpp", "w") as file:
         file.write('#define PATH "' + getcwd().replace("\\", "/") + '"')
 
@@ -75,6 +76,8 @@ def make(data):
         file.write(
             f"all: $(OBJS)\n\t$(CXX) $(CXXFLAGS) {includes} {config.linkflags} $^ -o {config.output}\n\n"
         )
+        path_hpp = '#define PATH "' + getcwd().replace("\\", "/") + '"'
+        file.write(f"path.hpp:\n\techo {path_hpp} > ./src/path.hpp\n\n")
         file.write(
             f"clean:\n\t{delete()} build\n\t{delete()} {config.output}{'.exe' if sys.platform == 'win32' else ''}\n\n\n"
         )
