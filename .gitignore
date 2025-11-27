@@ -1,7 +1,9 @@
 build/
 .vscode/
 main.exe
+main
 test.exe
+test
 MakeFile
 makefile
 src/path.hpp
