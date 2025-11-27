@@ -9,7 +9,7 @@ struct LexerTest : Test {
     virtual void _run() override {
         {
             TESTSECTION("Lexer");
-            Lexer lexer(new FileScanner(PATH "/test/lexer_test.txt"));
+            Lexer lexer(new FileScanner(PATH "/src/test/lexer_test.txt"));
 
             ASSERT_FALSE(lexer.eof());
             while (!lexer.eof())

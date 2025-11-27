@@ -1,6 +1,7 @@
 
 #include "test.hpp"
 #include <compiler/scanner.hpp>
+#include <path.hpp>
 
 namespace phi {
 namespace test {
@@ -22,7 +23,7 @@ struct ScannerTest : Test {
         }
         {
             TESTSECTION("FileScanner");
-            FileScanner scanner("./test/letters.txt");
+            FileScanner scanner(PATH "/src/test/letters.txt");
             LISTEN_BEGIN();
             while (!scanner.eof())
                 printts(scanner.get());

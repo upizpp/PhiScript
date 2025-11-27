@@ -11,7 +11,8 @@ struct PreprocessorTest : Test {
     virtual void _run() override {
         {
             TESTSECTION("Lexer");
-            Lexer lexer(new FileScanner(PATH "/test/preprocessor_test.txt"));
+            Lexer lexer(
+                new FileScanner(PATH "/src/test/preprocessor_test.txt"));
             Preprocessor preprocessor(lexer);
 
             ASSERT_FALSE(preprocessor.eof());

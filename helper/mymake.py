@@ -1,7 +1,7 @@
 import sys
 from argparse import ArgumentParser
 from configparser import ConfigParser
-from os import popen, getcwd, path
+from os import mkdir, popen, getcwd, path
 
 
 def removeprefix(text, prefix):
@@ -53,6 +53,7 @@ def main():
             make(config_parser[section])
     else:
         make(config_parser[args.project])
+    mkdir("build")
     with open("src/path.hpp", "w") as file:
         file.write('#define PATH "' + getcwd().replace("\\", "/") + '"')
 
