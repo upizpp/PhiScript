@@ -102,7 +102,7 @@ unique_ptr<Token> Lexer::next() {
 }
 void Lexer::read() {
     _M_sentinel = _M_scanner->get();
-    if (_M_sentinel == EOF)
+    if (_M_sentinel == (char)EOF)
         if (!_M_eof) {
             _M_sentinel = 0;
             _M_eof = true;

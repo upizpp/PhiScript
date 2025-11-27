@@ -5,7 +5,6 @@
 #include <iostream>
 #include <sstream>
 
-
 namespace phi {
 template <typename CharT> struct BasicScanner {
     virtual CharT get() = 0;
@@ -20,7 +19,9 @@ template <typename CharT> struct BasicStreamScanner : BasicScanner<CharT> {
     virtual CharT get() override { return getStream().get(); }
     virtual CharT peek() override { return getStream().peek(); }
     virtual void unget() override { getStream().unget(); }
-    virtual bool eof() override { return getStream().eof() || peek() == EOF; }
+    virtual bool eof() override {
+        return getStream().eof() || peek() == (char)EOF;
+    }
     virtual void reset() override { getStream().seekg(0); }
 
   private:

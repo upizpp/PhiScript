@@ -8,7 +8,7 @@ struct Lexer : TokenGenerator {
 
     virtual bool eof() override {
         skip_blank();
-        return _M_eof && _M_sentinel == EOF;
+        return _M_eof && _M_sentinel == (char)EOF;
     }
     virtual unique_ptr<Token> next() override;
 

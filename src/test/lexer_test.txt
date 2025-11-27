@@ -6,7 +6,7 @@ namespace phi {
 struct Lexer : TokenGenerator {
     Lexer(BasicScanner<char> *scanner) : _M_scanner(scanner) { read(); }
 
-    virtual bool eof() override { return _M_sentinel == EOF; }
+    virtual bool eof() override { return _M_sentinel == (char)EOF; }
     virtual unique_ptr<Token> next() override;
 
   private:
