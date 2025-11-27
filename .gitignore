@@ -1,5 +1,5 @@
-build
-.vscode
+build/
+.vscode/
 main.exe
 test.exe
 MakeFile
