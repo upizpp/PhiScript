@@ -23,6 +23,7 @@ class Config:
     output = "./main"
     makefile = "makeFile"
     linkflags = ""
+    standard = "c++17"
     ignores = []
 
     def configure(self, data: any):
@@ -34,6 +35,7 @@ class Config:
             self.output = eval(data.get("output", '"./main"'))
             self.ignores = eval(data.get("ignores", "[]"))
             self.makefile = eval(data.get("makefile", '"./makeFile"'))
+            self.standard = eval(data.get("standard", '"c++17"'))
         except KeyError as e:
             print(f"[ERROR] {e}")
 
@@ -74,7 +76,7 @@ def make(data):
         file.write(f"OBJS = {' '.join(objs)}\n\n")
         file.write(".PHONY: all clean\n\n")
         file.write(
-            f"all: $(OBJS)\n\t$(CXX) $(CXXFLAGS) {includes} {config.linkflags} $^ -o {config.output}\n\n"
+            f"all: $(OBJS)\n\t$(CXX) $(CXXFLAGS) {includes} {config.linkflags}  $^ -std={config.standard} -o {config.output}\n\n"
         )
         path_hpp = '#define PATH "' + getcwd().replace("\\", "/") + '"'
         file.write(f"path.hpp:\n\techo {path_hpp} > ./src/path.hpp\n\n")
@@ -85,7 +87,7 @@ def make(data):
             dependence = get_includes(f + ".cpp")
             out = f"./build/{f.replace('/', '___')}.o"
             file.write(
-                f"{out}: {' '.join(dependence)} {f + '.cpp'}\n\t$(CXX) {f}.cpp {includes} $(CXXFLAGS) -c -o {out}\n\n"
+                f"{out}: {' '.join(dependence)} {f + '.cpp'}\n\t$(CXX) {f}.cpp {includes} $(CXXFLAGS) -c -std={config.standard} -o {out}\n\n"
             )
 
 
