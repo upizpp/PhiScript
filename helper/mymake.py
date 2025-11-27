@@ -131,7 +131,10 @@ def get_files():
     return filter(
         lambda x: not x.startswith("helper/") and not x in config.ignores,
         map(
-            lambda x: removesuffix(x[l + 1 :].replace("\\", "/"), ".cpp\n"),
+            lambda x: removesuffix(
+                (x[l + 1 :] if sys.platform == "win32" else x).replace("\\", "/"),
+                ".cpp\n",
+            ),
             out.readlines(),
         ),
     )
