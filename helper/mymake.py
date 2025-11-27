@@ -132,8 +132,20 @@ def get_files():
     elif sys.platform == "linux":
         out = popen('find . -name "*.cpp"')
 
+    def paths_equivalent(path1, path2):
+        try:
+            return path.abspath(path1) == path.abspath(path2)
+        except:
+            return False
+
+    def is_ignored(file_path):
+        for ignored_path in config.ignores:
+            if paths_equivalent(file_path, ignored_path):
+                return True
+        return False
+
     return filter(
-        lambda x: not x.startswith("helper/") and not x in config.ignores,
+        lambda x: not x.startswith("helper/") and not is_ignored(x),
         map(
             lambda x: removesuffix(
                 (x[l + 1 :] if sys.platform == "win32" else x).replace("\\", "/"),
