@@ -4,6 +4,18 @@ from configparser import ConfigParser
 from os import popen, getcwd, path
 
 
+def removeprefix(text, prefix):
+    if text.startswith(prefix):
+        return text[len(prefix) :]
+    return text
+
+
+def removesuffix(text, suffix):
+    if text.endswith(suffix):
+        return text[: -len(suffix)]
+    return text
+
+
 class Config:
     includes = []
     cxxflags = ""
@@ -92,9 +104,9 @@ def get_includes(filename: str):
         line = file.readline()
         while line:
             if line.startswith("#include"):
-                line = line.removeprefix("#include").lstrip(" ").removesuffix("\n")
+                line = removesuffix(removeprefix(line, "#include").lstrip(" "), "\n")
                 if line.startswith("<") and line.endswith(">"):
-                    res = line.removeprefix("<").removesuffix(">")
+                    res = removeprefix(removesuffix(line, ">"), "<")
                     if res.find(".") == -1:
                         line = file.readline()
                         continue
@@ -102,7 +114,7 @@ def get_includes(filename: str):
                         if path.exists(i + "/" + res):
                             res = i + "/" + res
                 elif line.startswith('"') and line.endswith('"'):
-                    res = line.removeprefix('"').removesuffix('"')
+                    res = removeprefix(removesuffix(line, '"'), '"')
                     res = path.dirname(filename) + "/" + res
                 yield res
             line = file.readline()
@@ -119,7 +131,7 @@ def get_files():
     return filter(
         lambda x: not x.startswith("helper/") and not x in config.ignores,
         map(
-            lambda x: x[l + 1 :].replace("\\", "/").removesuffix(".cpp\n"),
+            lambda x: removesuffix(x[l + 1 :].replace("\\", "/"), ".cpp\n"),
             out.readlines(),
         ),
     )
